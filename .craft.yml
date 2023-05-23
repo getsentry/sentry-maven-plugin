@@ -1,0 +1,13 @@
+minVersion: 0.29.3
+changelogPolicy: auto
+targets:
+  - name: maven
+    mavenCliPath: mvnw
+    mavenSettingsPath: settings.xml
+    mavenRepoId: ossrh
+    mavenRepoUrl: https://oss.sonatype.org/service/local/staging/deploy/maven2/
+    android: false
+  - name: github
+  - name: registry
+    sdks:
+      maven:io.sentry:sentry-maven-plugin:

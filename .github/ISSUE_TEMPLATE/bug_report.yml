@@ -1,0 +1,63 @@
+name: 🐞 Bug Report
+description: Tell us about something that's not working the way we (probably) intend.
+labels: ["Platform: Java", "bug"]
+body:
+  - type: input
+    id: maven_version
+    attributes:
+      label: Maven Version
+      description: Maven Version
+      placeholder: 3.9.2 ← should look like this
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Sentry Maven Plugin Version
+      placeholder: 1.0.2 ← should look like this
+    validations:
+      required: true
+
+  - type: input
+    id: sdk_version
+    attributes:
+      label: Sentry SDK Version
+      description: The version of the Sentry Java SDK
+      placeholder: 6.0.0 ← should look like this
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to Reproduce
+      description: How can we see what you're seeing? Specific is terrific.
+      placeholder: |-
+        1. foo
+        2. bar
+        3. baz
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Result
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Result
+      description: Logs? Screenshots? Yes, please.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |-
+        ## Thanks 🙏
+        Check our [triage docs](https://open.sentry.io/triage/) for what to expect next.
