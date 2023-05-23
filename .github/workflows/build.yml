@@ -23,7 +23,7 @@ jobs:
 
       - name: Build Maven Plugin distribution artifacts
         run: |
-          ./mvwn clean package
+          ./mvnw clean package
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
