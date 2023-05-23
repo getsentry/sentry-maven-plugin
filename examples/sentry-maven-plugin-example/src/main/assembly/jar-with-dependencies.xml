@@ -1,0 +1,3 @@
+<descriptors>
+    <descriptor>src/main/assembly/jar-with-dependencies.xml</descriptor>
+</descriptors>
