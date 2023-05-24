@@ -26,11 +26,11 @@ jobs:
           ./mvnw --batch-mode -DdryRun=true clean release:prepare-with-pom
           mv pom.xml.tag pom.xml
           cp release-pom.xml pom-default.xml
-          ./mvnw clean package
+          ./mvnw clean package assembly:single
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.sha }}
           path: |
-            ${{ github.workspace }}/target/*-bin.zip
+            ${{ github.workspace }}/target/*.zip
