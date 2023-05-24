@@ -33,4 +33,4 @@ jobs:
         with:
           name: ${{ github.sha }}
           path: |
-            ${{ github.workspace }}/target/*.zip
+            ${{ github.workspace }}/target/*-bin.zip
