@@ -21,17 +21,60 @@
           <artifactId>maven-plugin-plugin</artifactId>
           <version>3.9.0</version>
         </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
+          <version>3.3.0</version>
           <executions>
-              <execution>
-                  <id>attach-sources</id>
-                  <goals>
-                      <goal>jar</goal>
-                  </goals>
-              </execution>
+            <execution>
+                <id>attach-sources</id>
+                <goals>
+                    <goal>jar</goal>
+                </goals>
+            </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.5.0</version>
+          <executions>
+            <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                    <goal>jar</goal>
+                </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.6.0</version>
+            <configuration>
+                <descriptors>
+                    <descriptor>src/assembly/distribution.xml</descriptor>
+                </descriptors>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>dist</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>single</goal>
+                    </goals>
+                    <configuration>
+                        <descriptorRefs>
+                            <descriptorRef>
+                                src
+                            </descriptorRef>
+                        </descriptorRefs>
+                    </configuration>
+                </execution>
+            </executions>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -46,7 +89,6 @@
           </configuration>
         </plugin>
       </plugins>
-    </pluginManagement>
   </build>
   <dependencies>
     <dependency>
