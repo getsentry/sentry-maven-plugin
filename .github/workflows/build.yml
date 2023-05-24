@@ -23,11 +23,11 @@ jobs:
 
       - name: Build Maven Plugin distribution artifacts
         run: |
-          ./mvnw clean package
+          ./mvnw --batch-mode -DdryRun=true clean release:prepare-with-pom
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.sha }}
           path: |
-            ${{ github.workspace }}/target/*.jar
+            ${{ github.workspace }}/target/*.zip

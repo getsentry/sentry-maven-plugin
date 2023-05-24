@@ -13,6 +13,6 @@ NEW_VERSION="$2"
 
 MAVEN_FILEPATH="pom.xml"
 
-# Replace <version> with the given version
-VERSION_PATTERN="^  <version>.*<\/version>.*$"
-perl -pi -e "s/$VERSION_PATTERN/  <version>$NEW_VERSION<\/version>/g" $MAVEN_FILEPATH
+# Replace <releaseVersion> with the given releaseVersion
+VERSION_PATTERN="^.*<releaseVersion>.*<\/releaseVersion>.*$"
+perl -pi -e "s/$VERSION_PATTERN/              <releaseVersion>$NEW_VERSION<\/releaseVersion>/g" $MAVEN_FILEPATH
