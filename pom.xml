@@ -11,12 +11,37 @@
   </properties>
   <name>sentry-maven-plugin Maven Mojo</name>
   <url>http://maven.apache.org</url>
+  <scm>
+      <developerConnection>scm:git:git@github.com:getsentry/sentry-maven-plugin.git</developerConnection>
+  </scm>
   <build>
     <pluginManagement>
       <plugins>
         <plugin>
           <artifactId>maven-plugin-plugin</artifactId>
           <version>3.9.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+              <execution>
+                  <id>attach-sources</id>
+                  <goals>
+                      <goal>jar</goal>
+                  </goals>
+              </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.3</version>
+          <configuration>
+              <tagNameFormat>v@{project.version}</tagNameFormat>
+              <autoVersionSubmodules>true</autoVersionSubmodules>
+              <releaseProfiles>releases</releaseProfiles>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
