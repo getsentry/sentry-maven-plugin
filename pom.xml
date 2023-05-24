@@ -40,7 +40,7 @@
           <configuration>
               <releaseVersion>0.0.1</releaseVersion>
               <pushChanges>false</pushChanges>
-              <tagNameFormat>v@{project.version}</tagNameFormat>
+              <tagNameFormat>@{project.version}</tagNameFormat>
               <autoVersionSubmodules>true</autoVersionSubmodules>
               <releaseProfiles>releases</releaseProfiles>
           </configuration>

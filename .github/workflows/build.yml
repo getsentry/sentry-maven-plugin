@@ -24,6 +24,8 @@ jobs:
       - name: Build Maven Plugin distribution artifacts
         run: |
           ./mvnw --batch-mode -DdryRun=true clean release:prepare-with-pom
+          mv pom.xml.tag pom.xml
+          ./mvnw clean package source:jar javadoc:jar
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
