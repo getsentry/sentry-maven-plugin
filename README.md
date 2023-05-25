@@ -10,7 +10,7 @@
 
 _Bad software is everywhere, and we're tired of it. Sentry is on a mission to help developers write better software faster, so we can get back to enjoying technology. If you want to join us [<kbd>**Check out our open positions**</kbd>](https://sentry.io/careers/)_
 
-Sentry SDK for Java and Android
+Sentry Plugin for Maven
 ===========
 [![GH Workflow](https://img.shields.io/github/actions/workflow/status/getsentry/sentry-maven-plugin/build.yml?branch=main)](https://github.com/getsentry/sentry-maven-plugin/actions)
 [![codecov](https://codecov.io/gh/getsentry/sentry-maven-plugin/branch/main/graph/badge.svg)](https://codecov.io/gh/getsentry/sentry-maven-plugin)

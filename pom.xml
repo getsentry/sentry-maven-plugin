@@ -1,18 +1,33 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.sentry</groupId>
   <artifactId>sentry-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
+  <description>Sentry plugin for Maven</description>
   <version>1.0-SNAPSHOT</version>
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
   </properties>
   <name>sentry-maven-plugin Maven Mojo</name>
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/getsentry/sentry-maven-plugin</url>
+  <licenses>
+    <license>
+        <name>MIT</name>
+        <url>https://github.com/getsentry/sentry-maven-plugin/blob/main/LICENSE</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+        <id>getsentry</id>
+        <name>Sentry Team and Contributors</name>
+        <url>https://github.com/getsentry/</url>
+    </developer>
+  </developers>
   <scm>
+      <connection>scm:git:git://github.com/getsentry/sentry-maven-plugin.git</connection>
       <developerConnection>scm:git:git@github.com:getsentry/sentry-maven-plugin.git</developerConnection>
+      <url>https://github.com/getsentry/sentry-maven-plugin</url>
   </scm>
   <build>
     <pluginManagement>
