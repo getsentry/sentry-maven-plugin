@@ -13,13 +13,14 @@ import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -144,6 +145,16 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     }
 
     private void runSentryCli(String sentryCliCommand) throws MojoExecutionException {
+        boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+
+        String executable = "/bin/sh";
+        String cArg = "-c";
+
+        if(isWindows) {
+            executable = "cmd.exe";
+            cArg = "/c";
+        }
+
         // TODO probably won't work on windows
         executeMojo(
             plugin(
@@ -156,9 +167,9 @@ public class UploadSourceBundleMojo extends AbstractMojo {
                 element(name("target"),
                     element(name("exec"),
                         attributes(
-                            attribute("executable", "/bin/sh")
+                            attribute("executable", executable)
                         ),
-                        element(name("arg"), attributes(attribute("value", "-c"))),
+                        element(name("arg"), attributes(attribute("value", cArg))),
                         element(name("arg"), attributes(attribute("value", sentryCliExecutablePath + " " + sentryCliCommand)))
                     )
                 )
