@@ -13,13 +13,14 @@ import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -129,6 +130,13 @@ public class UploadSourceBundleMojo extends AbstractMojo {
             command.add("--log-level=debug");
         }
 
+        if (url != null) {
+            command.add("--url=" + url);
+        }
+        if (authToken != null) {
+            command.add("--auth-token=" + authToken);
+        }
+
         command.add("debug-files");
         command.add("upload");
         command.add("--type=jvm");
@@ -144,7 +152,11 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     }
 
     private void runSentryCli(String sentryCliCommand) throws MojoExecutionException {
-        // TODO probably won't work on windows
+        boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+
+        String executable = isWindows ? "cmd.exe" : "/bin/sh";
+        String cArg = isWindows ? "/c" : "-c";
+
         executeMojo(
             plugin(
                 groupId("org.apache.maven.plugins"),
@@ -156,9 +168,9 @@ public class UploadSourceBundleMojo extends AbstractMojo {
                 element(name("target"),
                     element(name("exec"),
                         attributes(
-                            attribute("executable", "/bin/sh")
+                            attribute("executable", executable)
                         ),
-                        element(name("arg"), attributes(attribute("value", "-c"))),
+                        element(name("arg"), attributes(attribute("value", cArg))),
                         element(name("arg"), attributes(attribute("value", sentryCliExecutablePath + " " + sentryCliCommand)))
                     )
                 )
