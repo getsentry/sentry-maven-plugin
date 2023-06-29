@@ -130,6 +130,13 @@ public class UploadSourceBundleMojo extends AbstractMojo {
             command.add("--log-level=debug");
         }
 
+        if (url != null) {
+            command.add("--url=" + url);
+        }
+        if (authToken != null) {
+            command.add("--auth-token=" + authToken);
+        }
+
         command.add("debug-files");
         command.add("upload");
         command.add("--type=jvm");
