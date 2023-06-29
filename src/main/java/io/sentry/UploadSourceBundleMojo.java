@@ -162,7 +162,6 @@ public class UploadSourceBundleMojo extends AbstractMojo {
             cArg = "/c";
         }
 
-        // TODO probably won't work on windows
         executeMojo(
             plugin(
                 groupId("org.apache.maven.plugins"),
