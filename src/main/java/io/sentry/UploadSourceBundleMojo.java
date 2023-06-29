@@ -154,13 +154,8 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     private void runSentryCli(String sentryCliCommand) throws MojoExecutionException {
         boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 
-        String executable = "/bin/sh";
-        String cArg = "-c";
-
-        if(isWindows) {
-            executable = "cmd.exe";
-            cArg = "/c";
-        }
+        String executable = isWindows ? "cmd.exe" : "/bin/sh";
+        String cArg = isWindows ? "/c" : "-c";
 
         executeMojo(
             plugin(
