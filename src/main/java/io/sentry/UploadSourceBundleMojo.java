@@ -27,7 +27,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 @Mojo(name = "uploadSourceBundle", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
 public class UploadSourceBundleMojo extends AbstractMojo {
 
-    private static Logger logger = LoggerFactory.getLogger(UploadSourceBundleMojo.class);
+    private static final Logger logger = LoggerFactory.getLogger(UploadSourceBundleMojo.class);
 
     @Parameter(property = "sentry.cli.debug", defaultValue = "false")
     private boolean debugSentryCli;

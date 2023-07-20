@@ -19,7 +19,9 @@
                 <groupId>io.sentry</groupId>
                 <artifactId>sentry-maven-plugin</artifactId>
                 <version>1.0-SNAPSHOT</version>
+                <extensions>true</extensions>
                 <configuration>
+                    <autoInstall>true</autoInstall>
                     <!-- for showing output of sentry-cli -->
                     <debugSentryCli>true</debugSentryCli>
 
