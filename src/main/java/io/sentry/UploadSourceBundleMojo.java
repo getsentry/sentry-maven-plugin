@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static io.sentry.SentryCliProvider.getCliPath;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 @Mojo(name = "uploadSourceBundle", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
@@ -171,7 +172,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
                             attribute("executable", executable)
                         ),
                         element(name("arg"), attributes(attribute("value", cArg))),
-                        element(name("arg"), attributes(attribute("value", sentryCliExecutablePath + " " + sentryCliCommand)))
+                        element(name("arg"), attributes(attribute("value", getCliPath(mavenProject, sentryCliExecutablePath) + " " + sentryCliCommand)))
                     )
                 )
             ),
