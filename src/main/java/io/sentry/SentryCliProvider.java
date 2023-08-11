@@ -1,16 +1,14 @@
 package io.sentry;
 
-import org.apache.maven.plugins.annotations.Parameter;
+import com.google.common.io.Files;
 import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Properties;
 
 /*
  * Helper class to find sentry-cli
@@ -24,6 +22,13 @@ class SentryCliProvider {
 
         if(cliPathParameter != null && !cliPathParameter.isBlank()) {
             return cliPathParameter;
+        }
+
+        String pathFromProperties = searchCliInPropertiesFile(mavenProject);
+
+        if(pathFromProperties != null && !pathFromProperties.isBlank()) {
+            logger.info("Cli found in sentry properties, using " + pathFromProperties);
+            return pathFromProperties;
         }
 
         String cliSuffix = getCliSuffix();
@@ -40,13 +45,33 @@ class SentryCliProvider {
             String cliTempPath = loadCliFromResourcesToTemp(resourcePath);
 
             if(cliTempPath != null) {
-                logger.info("Cli found in " + cliTempPath);
+                logger.info("Cli found in .jar using " + cliTempPath);
                 return cliTempPath;
             }
 
         }
 
         return "sentry-cli";
+    }
+
+    private static String searchCliInPropertiesFile(MavenProject mavenProject) {
+        File propertiesFileToUse = new File(mavenProject.getBasedir(), "sentry.properties");
+
+
+        if(!propertiesFileToUse.exists() && mavenProject.getParent() != null) {
+            propertiesFileToUse= new File(mavenProject.getParent().getBasedir(), "sentry.properties");
+        }
+
+        try {
+            Properties sentryProperties = new Properties();
+            sentryProperties.load(new FileInputStream(propertiesFileToUse));
+
+            return sentryProperties.getProperty("cli.executable");
+
+        } catch (IOException e) {
+            logger.info("Properties file not found");
+            return null;
+        }
     }
 
     private static String getCliSuffix() {

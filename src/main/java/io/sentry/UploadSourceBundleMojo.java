@@ -169,7 +169,8 @@ public class UploadSourceBundleMojo extends AbstractMojo {
                 element(name("target"),
                     element(name("exec"),
                         attributes(
-                            attribute("executable", executable)
+                            attribute("executable", executable),
+                            attribute("failOnError", "true")
                         ),
                         element(name("arg"), attributes(attribute("value", cArg))),
                         element(name("arg"), attributes(attribute("value", getCliPath(mavenProject, sentryCliExecutablePath) + " " + sentryCliCommand)))
