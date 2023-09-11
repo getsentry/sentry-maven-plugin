@@ -82,12 +82,33 @@
           <artifactId>maven-release-plugin</artifactId>
           <version>3.0.0</version>
           <configuration>
-              <releaseVersion>0.0.3</releaseVersion>
+              <releaseVersion>0.0.4</releaseVersion>
               <pushChanges>false</pushChanges>
               <tagNameFormat>@{project.version}</tagNameFormat>
               <autoVersionSubmodules>true</autoVersionSubmodules>
               <releaseProfiles>releases</releaseProfiles>
           </configuration>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+                <execution>
+                    <phase>generate-resources</phase>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                    <configuration>
+                        <target name="Sentry CLI Download">
+                            <exec executable="/bin/sh" failonerror="true">
+                                <arg value="-c"/>
+                                <arg value="./download-sentry-cli.sh"/>
+                            </exec>
+                        </target>
+                    </configuration>
+                </execution>
+            </executions>
         </plugin>
       </plugins>
   </build>

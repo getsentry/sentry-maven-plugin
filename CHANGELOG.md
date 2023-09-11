@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.4
+
+- Download and Bundle sentry-cli with maven plugin ([#8](https://github.com/getsentry/sentry-maven-plugin/pull/8))
+
 ## 0.0.3
 
 ### Features

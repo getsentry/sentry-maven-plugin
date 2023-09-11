@@ -28,7 +28,7 @@
                     <!-- download the latest sentry-cli and provide path to it here -->
                     <!-- download it here: https://github.com/getsentry/sentry-cli/releases -->
                     <!-- minimum required version is 2.17.3 -->
-                    <sentryCliExecutablePath>/Users/adinauer/repos/sentry-cli/target/debug/sentry-cli</sentryCliExecutablePath>
+<!--                    <sentryCliExecutablePath>/Users/adinauer/repos/sentry-cli/target/debug/sentry-cli</sentryCliExecutablePath>-->
 
                     <org>sentry-sdks</org>
 
