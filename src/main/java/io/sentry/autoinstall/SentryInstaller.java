@@ -1,21 +1,27 @@
 package io.sentry.autoinstall;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
 import org.apache.maven.model.Dependency;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
 import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
 
 public class SentryInstaller {
-
-    private static final String SENTRY_VERSION = "6.26.0";
+    private static final String SENTRY_VERSION = "6.28.0";
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SentryInstaller.class);
 
-    public String install(List<Dependency> dependencyList) {
-        Dependency sentryDependency = dependencyList.stream().filter((dep) -> dep.getGroupId().equals("io.sentry") && dep.getArtifactId().equals("sentry")).findFirst().orElse(null);
+    public static String install(List<Dependency> dependencyList) {
+
+        Dependency sentryDependency = dependencyList.stream().filter((dep) ->
+            dep.getGroupId().equals(SENTRY_GROUP_ID) && dep.getArtifactId().equals(SENTRY_ARTIFACT_ID)
+        ).findFirst().orElse(null);
 
         if(sentryDependency != null) {
             logger.info("Sentry already installed " + sentryDependency.getVersion());
