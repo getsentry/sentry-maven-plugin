@@ -1,4 +1,4 @@
-package io.sentry.autoinstall.log4j2;
+package io.sentry.autoinstall.graphql;
 
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
@@ -7,26 +7,21 @@ import org.apache.maven.model.Dependency;
 
 import java.util.List;
 
-public class Log4j2InstallStrategy extends AbstractIntegrationInstaller {
-    private static final String LOG4J2_GROUP = "org.apache.logging.log4j";
-    private static final String LOG4J2_ID = "log4j-api";
-    public static final String SENTRY_LOG4J2_ID = "sentry-log4j2";
+public class GraphqlInstallStrategy extends AbstractIntegrationInstaller {
+    private static final String GRAPHQL_GROUP = "com.graphql-java";
+    private static final String GRAPHQL_ID = "graphql-java";
+    public static final String SENTRY_GRAPHQL_ID = "sentry-graphql";
 
     @Override
     protected Dependency findThirdPartyDependency(List<Dependency> dependencyList) {
         return dependencyList.stream().filter((dep) ->
-            dep.getGroupId().equals(LOG4J2_GROUP) && dep.getArtifactId().equals(LOG4J2_ID)
+            dep.getGroupId().equals(GRAPHQL_GROUP) && dep.getArtifactId().equals(GRAPHQL_ID)
         ).findFirst().orElse(null);
     }
 
     @Override
     protected boolean shouldInstallModule(AutoInstallState autoInstallState) {
-        return autoInstallState.isInstallLog4j2();
-    }
-
-    @Override
-    protected Version minSupportedThirdPartyVersion() {
-        return Version.create(2, 0, 0);
+        return autoInstallState.isInstallGraphql();
     }
 
     @Override
@@ -36,6 +31,6 @@ public class Log4j2InstallStrategy extends AbstractIntegrationInstaller {
 
     @Override
     protected String sentryModuleId() {
-        return SENTRY_LOG4J2_ID;
+        return SENTRY_GRAPHQL_ID;
     }
 }

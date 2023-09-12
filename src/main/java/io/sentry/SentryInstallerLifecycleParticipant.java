@@ -3,7 +3,12 @@ package io.sentry;
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
 import io.sentry.autoinstall.SentryInstaller;
+import io.sentry.autoinstall.graphql.GraphqlInstallStrategy;
 import io.sentry.autoinstall.log4j2.Log4j2InstallStrategy;
+import io.sentry.autoinstall.logback.LogbackInstallStrategy;
+import io.sentry.autoinstall.spring.Spring5InstallStrategy;
+import io.sentry.autoinstall.spring.Spring6InstallStrategy;
+import io.sentry.autoinstall.spring.SpringBoot2InstallStrategy;
 import io.sentry.autoinstall.spring.SpringBoot3InstallStrategy;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
@@ -28,14 +33,26 @@ import java.util.stream.Stream;
 
 import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
 import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
+import static io.sentry.autoinstall.graphql.GraphqlInstallStrategy.SENTRY_GRAPHQL_ID;
+import static io.sentry.autoinstall.log4j2.Log4j2InstallStrategy.SENTRY_LOG4J2_ID;
+import static io.sentry.autoinstall.logback.LogbackInstallStrategy.SENTRY_LOGBACK_ID;
+import static io.sentry.autoinstall.spring.Spring5InstallStrategy.SENTRY_SPRING_5_ID;
+import static io.sentry.autoinstall.spring.Spring6InstallStrategy.SENTRY_SPRING_6_ID;
+import static io.sentry.autoinstall.spring.SpringBoot2InstallStrategy.SENTRY_SPRING_BOOT_2_ID;
 import static io.sentry.autoinstall.spring.SpringBoot3InstallStrategy.SENTRY_SPRING_BOOT_3_ID;
 
 @Named( "sentry-installer")
 @Singleton
 public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleParticipant {
     private static final List<Class<? extends AbstractIntegrationInstaller>> installers = Stream.of(
-        SpringBoot3InstallStrategy.class, Log4j2InstallStrategy.class)
-        .collect(Collectors.toList());
+        Spring5InstallStrategy.class,
+        Spring6InstallStrategy.class,
+        SpringBoot2InstallStrategy.class,
+        SpringBoot3InstallStrategy.class,
+        Log4j2InstallStrategy.class,
+        LogbackInstallStrategy.class,
+        GraphqlInstallStrategy.class
+        ).collect(Collectors.toList());
 
     private static final String SENTRY_MAVEN_PLUGIN_ARTIFACT_ID = "sentry-maven-plugin";
 
@@ -68,19 +85,14 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 //            }
 
             Model currModel = project.getModel();
-
-            String sentryVersion = SentryInstaller.install(currModel.getDependencies());
+            List<Dependency> dependencyList = currModel.getDependencies();
+            String sentryVersion = SentryInstaller.install(dependencyList);
 
             AutoInstallState autoInstallState = new AutoInstallState();
-
-            boolean shouldInstallSpring = !(
-                isModuleAvailable(currModel.getDependencies(), SENTRY_SPRING_BOOT_3_ID) &&
-                    isModuleAvailable(currModel.getDependencies(), SENTRY_SPRING_BOOT_3_ID) &&
-                    isModuleAvailable(currModel.getDependencies(), SENTRY_SPRING_BOOT_3_ID) &&
-                    isModuleAvailable(currModel.getDependencies(), SENTRY_SPRING_BOOT_3_ID)
-            );
-
-            autoInstallState.setInstallSpring(shouldInstallSpring);
+            autoInstallState.setInstallSpring(shouldInstallSpring(dependencyList));
+            autoInstallState.setInstallLogback(!isModuleAvailable(dependencyList, SENTRY_LOGBACK_ID));
+            autoInstallState.setInstallLog4j2(!isModuleAvailable(dependencyList, SENTRY_LOG4J2_ID));
+            autoInstallState.setInstallLog4j2(!isModuleAvailable(dependencyList, SENTRY_GRAPHQL_ID));
 
             for(Class<? extends AbstractIntegrationInstaller> installerClass : installers) {
                 try {
@@ -93,6 +105,15 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
             super.afterProjectsRead(session);
         }
+    }
+
+    private boolean shouldInstallSpring(List<Dependency> dependencies) {
+        return !(
+            isModuleAvailable(dependencies, SENTRY_SPRING_5_ID) &&
+                isModuleAvailable(dependencies, SENTRY_SPRING_6_ID) &&
+                isModuleAvailable(dependencies, SENTRY_SPRING_BOOT_2_ID) &&
+                isModuleAvailable(dependencies, SENTRY_SPRING_BOOT_3_ID)
+        );
     }
 
     @Override
