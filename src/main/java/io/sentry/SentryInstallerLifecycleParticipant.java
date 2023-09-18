@@ -72,11 +72,11 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
             logger.info( "Checking project '" + project.getId() + "'" );
 
 
-            Plugin sentryPlugin = project.getBuildPlugins().stream().filter((plugin) -> plugin.getGroupId().equals(SENTRY_GROUP_ID) && plugin.getArtifactId().equals(SENTRY_MAVEN_PLUGIN_ARTIFACT_ID)).findFirst().orElse(null);
-
-            if(sentryPlugin == null) {
-                continue;
-            }
+//            Plugin sentryPlugin = project.getBuildPlugins().stream().filter((plugin) -> plugin.getGroupId().equals(SENTRY_GROUP_ID) && plugin.getArtifactId().equals(SENTRY_MAVEN_PLUGIN_ARTIFACT_ID)).findFirst().orElse(null);
+//
+//            if(sentryPlugin == null) {
+//                continue;
+//            }
 
 //            PlexusConfiguration pomConfiguration = new XmlPlexusConfiguration(((Xpp3Dom) sentryPlugin.getConfiguration()));
 //            boolean autoInstall = Boolean.parseBoolean(pomConfiguration.getChild("autoInstall").getValue());
