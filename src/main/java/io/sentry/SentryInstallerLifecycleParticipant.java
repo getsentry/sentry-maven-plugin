@@ -4,6 +4,7 @@ import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
 import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.autoinstall.graphql.GraphqlInstallStrategy;
+import io.sentry.autoinstall.jdbc.JdbcInstallStrategy;
 import io.sentry.autoinstall.log4j2.Log4j2InstallStrategy;
 import io.sentry.autoinstall.logback.LogbackInstallStrategy;
 import io.sentry.autoinstall.spring.Spring5InstallStrategy;
@@ -34,6 +35,7 @@ import java.util.stream.Stream;
 import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
 import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
 import static io.sentry.autoinstall.graphql.GraphqlInstallStrategy.SENTRY_GRAPHQL_ID;
+import static io.sentry.autoinstall.jdbc.JdbcInstallStrategy.SENTRY_JDBC_ID;
 import static io.sentry.autoinstall.log4j2.Log4j2InstallStrategy.SENTRY_LOG4J2_ID;
 import static io.sentry.autoinstall.logback.LogbackInstallStrategy.SENTRY_LOGBACK_ID;
 import static io.sentry.autoinstall.spring.Spring5InstallStrategy.SENTRY_SPRING_5_ID;
@@ -51,12 +53,11 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         SpringBoot3InstallStrategy.class,
         Log4j2InstallStrategy.class,
         LogbackInstallStrategy.class,
-        GraphqlInstallStrategy.class
+        GraphqlInstallStrategy.class,
+        JdbcInstallStrategy.class
         ).collect(Collectors.toList());
 
     private static final String SENTRY_MAVEN_PLUGIN_ARTIFACT_ID = "sentry-maven-plugin";
-
-
 
     @Parameter(property = "autoInstall")
     private String autoInstall;
@@ -92,7 +93,8 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
             autoInstallState.setInstallSpring(shouldInstallSpring(dependencyList));
             autoInstallState.setInstallLogback(!isModuleAvailable(dependencyList, SENTRY_LOGBACK_ID));
             autoInstallState.setInstallLog4j2(!isModuleAvailable(dependencyList, SENTRY_LOG4J2_ID));
-            autoInstallState.setInstallLog4j2(!isModuleAvailable(dependencyList, SENTRY_GRAPHQL_ID));
+            autoInstallState.setInstallGraphql(!isModuleAvailable(dependencyList, SENTRY_GRAPHQL_ID));
+            autoInstallState.setInstallJdbc(!isModuleAvailable(dependencyList, SENTRY_JDBC_ID));
 
             for(Class<? extends AbstractIntegrationInstaller> installerClass : installers) {
                 try {
