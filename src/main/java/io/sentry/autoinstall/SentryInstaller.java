@@ -13,7 +13,7 @@ import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
 import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
 
 public class SentryInstaller {
-    private static final String SENTRY_VERSION = "6.28.0";
+    public static final String SENTRY_VERSION = "6.28.0";
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SentryInstaller.class);
 
