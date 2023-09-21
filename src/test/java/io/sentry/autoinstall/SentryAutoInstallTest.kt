@@ -18,35 +18,14 @@ class SentryAutoInstallTest {
     lateinit var file: File
 
     fun getPOM(
-        installLog4j2: Boolean = true,
-        log4j2Version: String = "2.17.0",
         withExtension: Boolean = true,
+        installedSentryVersion: String? = null
     ): String {
-        var dependencies =
-            """
-                    <dependency>
-                        <groupId>org.apache.logging.log4j</groupId>
-                        <artifactId>log4j-api</artifactId>
-                        <version>${log4j2Version}</version>
-                    </dependency>
-                """.trimIndent()
 
-        if (!installLog4j2) {
-            dependencies = dependencies.plus(
-                """
-                    <dependency>
-                        <groupId>io.sentry</groupId>
-                        <artifactId>sentry-log4j2</artifactId>
-                        <version>6.25.2</version>
-                    </dependency>
-                """.trimIndent()
-            )
-        }
-
-        val pomContent = basePom(dependencies)
+        val pomContent = basePom("", installedSentryVersion)
 
 
-        Files.write(Path(file.absolutePath + "/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
+        Files.write(Path("${file.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
 
         if (withExtension) {
             createExtensionInFolder(file)
@@ -69,15 +48,15 @@ class SentryAutoInstallTest {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun verifySentryInstalledAndLog4jInstalled() {
-        val path = getPOM(true)
+    fun verifySentryNotInstalledIfAlreadyInDependencies() {
+        val alreadyInstalledSentryVersion = "6.25.2"
+        val path = getPOM(true, installedSentryVersion = alreadyInstalledSentryVersion)
         val verifier = Verifier(path)
-        verifier.deleteDirectory("target")
         verifier.isAutoclean = false
         verifier.addCliArgument("install")
         verifier.execute()
-        verifier.verifyFilePresent("target/lib/sentry-log4j2-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyFilePresent("target/lib/sentry-$alreadyInstalledSentryVersion.jar")
+        verifier.verifyTextInLog("Sentry already installed $alreadyInstalledSentryVersion");
         verifier.resetStreams()
-        verifier.deleteDirectory(path)
     }
 }

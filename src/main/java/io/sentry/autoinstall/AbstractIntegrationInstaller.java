@@ -91,6 +91,8 @@ public abstract class AbstractIntegrationInstaller {
         newDep.setVersion(sentryVersion);
 
         dependencyList.add(newDep);
+
+        logger.info(sentryModuleId() + " was successfully installed with version: " + sentryVersion);
     }
 
     private Version parseVersion(String version) {

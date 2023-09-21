@@ -32,7 +32,7 @@ public class JdbcInstallStrategy extends AbstractIntegrationInstaller {
    public static final String SENTRY_JDBC_ID = "sentry-jdbc";
 
     protected Version minSupportedSentryVersion() {
-        return Version.create(6, 7, 0);
+        return Version.create(5, 3, 0);
     }
 
     @Override
@@ -48,16 +48,11 @@ public class JdbcInstallStrategy extends AbstractIntegrationInstaller {
             (dep.getGroupId().equals(SPRING_JDBC_GROUP) && dep.getArtifactId().equals(SPRING_JDBC_ID))
             || (dep.getGroupId().equals(HSQL_GROUP) && dep.getArtifactId().equals(HSQL_ID))
             || (dep.getGroupId().equals(MYSQL_GROUP) && dep.getArtifactId().equals(MYSQL_ID))
-            || (dep.getGroupId().equals(MARIADB_GROUP) && dep.getArtifactId().equals(SPRING_JDBC_ID))
-            || (dep.getGroupId().equals(SPRING_JDBC_GROUP) && dep.getArtifactId().equals(MARIADB_ID))
+            || (dep.getGroupId().equals(MARIADB_GROUP) && dep.getArtifactId().equals(MARIADB_ID))
+            || (dep.getGroupId().equals(SPRING_JDBC_GROUP) && dep.getArtifactId().equals(SPRING_JDBC_ID))
             || (dep.getGroupId().equals(POSTGRES_GROUP) && dep.getArtifactId().equals(POSTGRES_ID))
             || oracleDependencyList.contains(dep.getGroupId() + ":" + dep.getArtifactId())
         ).findFirst().orElse(null);
-    }
-
-    @Override
-    protected Version minSupportedThirdPartyVersion() {
-        return Version.create(6, 0, 0);
     }
 
     @Override

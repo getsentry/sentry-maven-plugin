@@ -64,11 +64,11 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     private BuildPluginManager pluginManager;
 
     public void execute() throws MojoExecutionException {
-        String bundleId = UUID.randomUUID().toString();
-        File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
-        createDebugMetaPropertiesFile(bundleId);
-        bundleSources(bundleId, sourceBundleTargetDir);
-        uploadSourceBundle(sourceBundleTargetDir);
+//        String bundleId = UUID.randomUUID().toString();
+//        File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
+//        createDebugMetaPropertiesFile(bundleId);
+//        bundleSources(bundleId, sourceBundleTargetDir);
+//        uploadSourceBundle(sourceBundleTargetDir);
     }
 
     private File sentryBuildDir() {

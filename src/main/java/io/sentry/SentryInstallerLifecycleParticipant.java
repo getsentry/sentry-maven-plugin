@@ -59,9 +59,6 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
     private static final String SENTRY_MAVEN_PLUGIN_ARTIFACT_ID = "sentry-maven-plugin";
 
-    @Parameter(property = "autoInstall")
-    private String autoInstall;
-
     private static org.slf4j.Logger logger = LoggerFactory.getLogger(SentryInstallerLifecycleParticipant.class);
 
     @Override
