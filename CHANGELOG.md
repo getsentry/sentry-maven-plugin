@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Auto-Install Sentry and Sentry Integrations using maven extension ([#10](https://github.com/getsentry/sentry-maven-plugin/pull/10))
+
 ## 0.0.4
 
 - Download and Bundle sentry-cli with maven plugin ([#8](https://github.com/getsentry/sentry-maven-plugin/pull/8))
