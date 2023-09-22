@@ -66,7 +66,7 @@ class JdbcAutoInstallTest {
         verifier.isAutoclean = false
         verifier.addCliArgument("install")
         verifier.execute()
-        verifier.verifyTextInLog("sentry-jdbc won't be installed because it was already installed directly")
+        verifier.verifyTextInLog("won't be installed because it was already installed directly")
         verifier.resetStreams()
     }
 

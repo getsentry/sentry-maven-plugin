@@ -57,7 +57,7 @@ public class JdbcInstallStrategy extends AbstractIntegrationInstaller {
 
     @Override
     protected boolean shouldInstallModule(AutoInstallState autoInstallState) {
-        return autoInstallState.isInstallSpring();
+        return autoInstallState.isInstallJdbc();
     }
 
     @Override
