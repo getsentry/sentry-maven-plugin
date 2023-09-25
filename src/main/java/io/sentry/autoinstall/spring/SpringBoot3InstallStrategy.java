@@ -10,9 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
-import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
-
 public class SpringBoot3InstallStrategy extends AbstractIntegrationInstaller {
 
     public static final String SENTRY_SPRING_BOOT_3_ID = "sentry-spring-boot-jakarta";

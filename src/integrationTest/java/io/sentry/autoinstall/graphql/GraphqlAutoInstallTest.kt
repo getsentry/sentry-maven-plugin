@@ -25,8 +25,9 @@ class GraphqlAutoInstallTest {
         val dependencies = ArrayList<Dependency>()
 
 
-        fun getSut(installGraphql: Boolean = true,
-                   graphqlVersion: String = "2.0.0"
+        fun getSut(
+            installGraphql: Boolean = true,
+            graphqlVersion: String = "2.0.0"
         ): GraphqlInstallStrategy {
             dependencies.add(
                 Dependency().apply {

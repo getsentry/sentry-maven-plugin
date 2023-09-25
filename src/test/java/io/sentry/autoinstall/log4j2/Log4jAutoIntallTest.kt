@@ -3,10 +3,8 @@ package io.sentry.autoinstall.log4j2
 import io.sentry.autoinstall.AutoInstallState
 import io.sentry.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
-import org.apache.maven.shared.verifier.VerificationException
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
-import java.io.IOException
 import kotlin.test.assertTrue
 
 class Log4jAutoIntallTest {
@@ -17,8 +15,9 @@ class Log4jAutoIntallTest {
         val installState = AutoInstallState()
 
 
-        fun getSut(installLog4j2: Boolean = true,
-                   log4j2Version: String = "2.0.0"
+        fun getSut(
+            installLog4j2: Boolean = true,
+            log4j2Version: String = "2.0.0"
 
         ): Log4j2InstallStrategy {
             dependencies.add(

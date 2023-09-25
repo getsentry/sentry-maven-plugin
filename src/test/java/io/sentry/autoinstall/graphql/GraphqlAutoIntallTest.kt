@@ -3,10 +3,8 @@ package io.sentry.autoinstall.graphql
 import io.sentry.autoinstall.AutoInstallState
 import io.sentry.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
-import org.apache.maven.shared.verifier.VerificationException
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
-import java.io.IOException
 import kotlin.test.assertTrue
 
 class GraphqlAutoInstallTest {
@@ -17,8 +15,9 @@ class GraphqlAutoInstallTest {
         val installState = AutoInstallState()
 
 
-        fun getSut(installGraphql: Boolean = true,
-                   graphqlVersion: String = "2.0.0"
+        fun getSut(
+            installGraphql: Boolean = true,
+            graphqlVersion: String = "2.0.0"
 
         ): GraphqlInstallStrategy {
             dependencies.add(

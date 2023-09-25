@@ -1,7 +1,5 @@
 package io.sentry.fakes
 
-import org.slf4j.Logger
-
 class CapturingTestLogger : BaseTestLogger() {
     override fun getName(): String = "SentryPluginTest"
 
