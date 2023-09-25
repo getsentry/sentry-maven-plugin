@@ -2,8 +2,11 @@ package io.sentry.autoinstall.spring;
 
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
+import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.semver.Version;
 import org.apache.maven.model.Dependency;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -15,6 +18,15 @@ public class SpringBoot3InstallStrategy extends AbstractIntegrationInstaller {
     public static final String SENTRY_SPRING_BOOT_3_ID = "sentry-spring-boot-jakarta";
     private static final String SPRING_GROUP = "org.springframework.boot";
     private static final String SPRING_BOOT_3_ID = "spring-boot-starter";
+
+    public SpringBoot3InstallStrategy() {
+        this(LoggerFactory.getLogger(SentryInstaller.class));
+    }
+
+    public SpringBoot3InstallStrategy(Logger logger) {
+        this.logger = logger;
+    }
+
     @Override
     protected Version minSupportedSentryVersion() {
         return Version.create(6, 28, 0);

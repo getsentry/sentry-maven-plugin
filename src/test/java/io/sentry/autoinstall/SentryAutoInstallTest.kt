@@ -1,62 +1,71 @@
 package io.sentry.autoinstall
 
-import basePom
-import createExtensionInFolder
+import io.sentry.fakes.CapturingTestLogger
+import org.apache.maven.model.Dependency
 import org.apache.maven.shared.verifier.VerificationException
-import org.apache.maven.shared.verifier.Verifier
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
-import java.io.File
+import org.slf4j.Logger
 import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
-import kotlin.io.path.Path
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SentryAutoInstallTest {
 
-    @TempDir()
-    lateinit var file: File
+    class Fixture {
+        val logger = CapturingTestLogger()
+        val dependencies = ArrayList<Dependency>()
 
-    fun getPOM(
-        withExtension: Boolean = true,
-        installedSentryVersion: String? = null
-    ): String {
+        fun getSut(installSentry: Boolean = true,
+                   sentryVersion: String = "6.28.0"
 
-        val pomContent = basePom("", installedSentryVersion)
+        ): SentryInstaller {
+            if(!installSentry) {
+                dependencies.add(
+                    Dependency().apply {
+                        groupId = "io.sentry"
+                        artifactId = "sentry"
+                        version = sentryVersion
+                    }
+                )
+            }
 
+            return SentryInstallerImpl(logger)
+        }
+    }
 
-        Files.write(Path("${file.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
+    private val fixture = Fixture()
 
-        if (withExtension) {
-            createExtensionInFolder(file)
+    @Test
+    fun `when sentry-log4j2 is a direct dependency logs a message and does nothing`() {
+        val sut = fixture.getSut(false, sentryVersion = "6.25.2")
+        val sentryVersion = sut.install(fixture.dependencies)
+
+        assertEquals("6.25.2", sentryVersion)
+
+        assertTrue {
+            fixture.logger.capturedMessage ==
+                "Sentry already installed 6.25.2"
         }
 
-        return file.absolutePath
+        assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry-log4j2" })
     }
 
     @Test
-    @Throws(VerificationException::class, IOException::class)
-    fun verifySentryInstalled() {
-        val path = getPOM(true)
-        val verifier = Verifier(path)
-        verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
-        verifier.verifyFilePresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
-        verifier.resetStreams()
+    fun `installs sentry with info message`() {
+        val sut = fixture.getSut()
+
+        val sentryVersion = sut.install(fixture.dependencies)
+
+        assertEquals(SentryInstaller.SENTRY_VERSION, sentryVersion)
+
+        assertTrue {
+            fixture.logger.capturedMessage ==
+                "Installing Sentry with version " + SentryInstaller.SENTRY_VERSION
+        }
+
+        assertTrue(fixture.dependencies.any { it.groupId == "io.sentry" && it.artifactId == "sentry" })
     }
 
-    @Test
-    @Throws(VerificationException::class, IOException::class)
-    fun verifySentryNotInstalledIfAlreadyInDependencies() {
-        val alreadyInstalledSentryVersion = "6.25.2"
-        val path = getPOM(true, installedSentryVersion = alreadyInstalledSentryVersion)
-        val verifier = Verifier(path)
-        verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
-        verifier.verifyFilePresent("target/lib/sentry-$alreadyInstalledSentryVersion.jar")
-        verifier.verifyTextInLog("Sentry already installed $alreadyInstalledSentryVersion");
-        verifier.resetStreams()
-    }
+    private class SentryInstallerImpl(logger: Logger) : SentryInstaller(logger)
 }
+

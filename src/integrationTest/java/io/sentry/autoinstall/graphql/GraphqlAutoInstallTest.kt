@@ -2,21 +2,47 @@ package io.sentry.autoinstall.graphql
 
 import basePom
 import createExtensionInFolder
+import io.sentry.autoinstall.AutoInstallState
 import io.sentry.autoinstall.SentryInstaller
+import io.sentry.fakes.CapturingTestLogger
+import org.apache.maven.model.Dependency
 import org.apache.maven.shared.verifier.VerificationException
 import org.apache.maven.shared.verifier.Verifier
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.slf4j.Logger
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.Path
+import kotlin.test.assertTrue
 
 class GraphqlAutoInstallTest {
 
+    class Fixture {
+        val logger = CapturingTestLogger()
+        val dependencies = ArrayList<Dependency>()
+
+
+        fun getSut(installGraphql: Boolean = true,
+                   graphqlVersion: String = "2.0.0"
+        ): GraphqlInstallStrategy {
+            dependencies.add(
+                Dependency().apply {
+                    groupId = "com.graphql-java"
+                    artifactId = "graphql-java"
+                    version = "2.0.0"
+                }
+            )
+            return GraphqlInstallStrategyImpl(logger)
+        }
+    }
+
     @TempDir()
     lateinit var file: File
+
+    private val fixture = Fixture()
 
     fun getPOM(
         installGraphql: Boolean = true,
@@ -56,6 +82,19 @@ class GraphqlAutoInstallTest {
         }
 
         return file.absolutePath
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `installs sentry-graphql with info message unittest`() {
+        val sut = fixture.getSut()
+
+        sut.install(fixture.dependencies, AutoInstallState().apply { isInstallGraphql = true }, "6.25.2")
+
+        assertTrue {
+            fixture.logger.capturedMessage ==
+                "sentry-graphql was successfully installed with version: 6.25.2"
+        }
     }
 
     @Test
@@ -100,4 +139,6 @@ class GraphqlAutoInstallTest {
         verifier.resetStreams()
         verifier.deleteDirectory(path)
     }
+
+    private class GraphqlInstallStrategyImpl(logger: Logger) : GraphqlInstallStrategy(logger)
 }

@@ -13,7 +13,7 @@ import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
 
 public abstract class AbstractIntegrationInstaller {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(AbstractIntegrationInstaller.class);
+    protected org.slf4j.Logger logger;
 
     protected Version minSupportedThirdPartyVersion() {
         return null;
@@ -33,11 +33,13 @@ public abstract class AbstractIntegrationInstaller {
 
     protected abstract String sentryModuleId();
 
-    public void install(List<Dependency> dependencyList, AutoInstallState autoInstallState, String sentryVersion) {
+    public void install(List<Dependency> dependencyList, AutoInstallState autoInstallState) {
         if (!shouldInstallModule(autoInstallState)) {
             logger.info(sentryModuleId() + " won't be installed because it was already installed directly");
             return;
         }
+
+        String sentryVersion = autoInstallState.getSentryVersion();
 
         Dependency thirdPartyDependency = findThirdPartyDependency(dependencyList);
 

@@ -2,8 +2,11 @@ package io.sentry.autoinstall.spring;
 
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
+import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.semver.Version;
 import org.apache.maven.model.Dependency;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -12,6 +15,14 @@ public class Spring5InstallStrategy extends AbstractIntegrationInstaller {
     public static final String SENTRY_SPRING_5_ID = "sentry-spring";
     private static final String SPRING_GROUP = "org.springframework";
     private static final String SPRING_5_ID = "spring-core";
+
+    public Spring5InstallStrategy() {
+        this(LoggerFactory.getLogger(SentryInstaller.class));
+    }
+
+    public Spring5InstallStrategy(Logger logger) {
+        this.logger = logger;
+    }
 
     protected Version minSupportedSentryVersion() {
         return Version.create(4, 1, 0);

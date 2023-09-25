@@ -84,9 +84,10 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
             Model currModel = project.getModel();
             List<Dependency> dependencyList = currModel.getDependencies();
-            String sentryVersion = SentryInstaller.install(dependencyList);
+            String sentryVersion = new SentryInstaller().install(dependencyList);
 
             AutoInstallState autoInstallState = new AutoInstallState();
+            autoInstallState.setSentryVersion(sentryVersion);
             autoInstallState.setInstallSpring(shouldInstallSpring(dependencyList));
             autoInstallState.setInstallLogback(!isModuleAvailable(dependencyList, SENTRY_LOGBACK_ID));
             autoInstallState.setInstallLog4j2(!isModuleAvailable(dependencyList, SENTRY_LOG4J2_ID));
@@ -96,7 +97,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
             for(Class<? extends AbstractIntegrationInstaller> installerClass : installers) {
                 try {
                     AbstractIntegrationInstaller installer = installerClass.getDeclaredConstructor().newInstance();
-                    installer.install(currModel.getDependencies(), autoInstallState, sentryVersion);
+                    installer.install(currModel.getDependencies(), autoInstallState);
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }

@@ -1,12 +1,21 @@
 package io.sentry.autoinstall;
 
 public class AutoInstallState {
+
+    private String sentryVersion;
     private boolean installSpring = false;
     private boolean installLogback = false;
     private boolean installLog4j2 = false;
     private boolean installJdbc = false;
     private boolean installGraphql = false;
 
+    public String getSentryVersion() {
+        return sentryVersion;
+    }
+
+    public void setSentryVersion(String sentryVersion) {
+        this.sentryVersion = sentryVersion;
+    }
 
     public boolean isInstallSpring() {
         return installSpring;

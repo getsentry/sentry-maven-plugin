@@ -2,8 +2,11 @@ package io.sentry.autoinstall.jdbc;
 
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
+import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.semver.Version;
 import org.apache.maven.model.Dependency;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +33,14 @@ public class JdbcInstallStrategy extends AbstractIntegrationInstaller {
    private static final String ORACLE_OJDBC_ID_PREFIX = "ojdbc";
 
    public static final String SENTRY_JDBC_ID = "sentry-jdbc";
+
+    public JdbcInstallStrategy() {
+        this(LoggerFactory.getLogger(SentryInstaller.class));
+    }
+
+    public JdbcInstallStrategy(Logger logger) {
+        this.logger = logger;
+    }
 
     protected Version minSupportedSentryVersion() {
         return Version.create(5, 3, 0);
