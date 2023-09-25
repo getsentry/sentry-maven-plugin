@@ -39,6 +39,7 @@ public class Spring5InstallStrategy extends AbstractIntegrationInstaller {
     protected Version minSupportedThirdPartyVersion() {
         return Version.create(5, 1, 2);
     }
+
     @Override
     protected Version maxSupportedThirdPartyVersion() {
         return Version.create(5, 9999, 9999);

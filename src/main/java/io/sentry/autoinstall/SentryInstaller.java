@@ -3,6 +3,7 @@ package io.sentry.autoinstall;
 import org.apache.maven.model.Dependency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.List;
 
 import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
@@ -27,7 +28,7 @@ public class SentryInstaller {
             dep.getGroupId().equals(SENTRY_GROUP_ID) && dep.getArtifactId().equals(SENTRY_ARTIFACT_ID)
         ).findFirst().orElse(null);
 
-        if(sentryDependency != null) {
+        if (sentryDependency != null) {
             logger.info("Sentry already installed " + sentryDependency.getVersion());
             return sentryDependency.getVersion();
         } else {

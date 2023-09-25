@@ -2,10 +2,8 @@ package io.sentry.autoinstall
 
 import io.sentry.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
-import org.apache.maven.shared.verifier.VerificationException
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
-import java.io.IOException
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -15,11 +13,12 @@ class SentryAutoInstallTest {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
 
-        fun getSut(installSentry: Boolean = true,
-                   sentryVersion: String = "6.28.0"
+        fun getSut(
+            installSentry: Boolean = true,
+            sentryVersion: String = "6.28.0"
 
         ): SentryInstaller {
-            if(!installSentry) {
+            if (!installSentry) {
                 dependencies.add(
                     Dependency().apply {
                         groupId = "io.sentry"

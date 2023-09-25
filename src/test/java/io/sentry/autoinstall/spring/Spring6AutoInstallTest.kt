@@ -15,8 +15,9 @@ class Spring6AutoInstallTest {
         val installState = AutoInstallState()
 
 
-        fun getSut(installSpring: Boolean = true,
-                   springVersion: String = "6.0.0"
+        fun getSut(
+            installSpring: Boolean = true,
+            springVersion: String = "6.0.0"
 
         ): Spring6InstallStrategy {
             dependencies.add(

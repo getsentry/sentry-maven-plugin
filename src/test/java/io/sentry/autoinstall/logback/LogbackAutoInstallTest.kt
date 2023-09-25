@@ -3,10 +3,8 @@ package io.sentry.autoinstall.logback
 import io.sentry.autoinstall.AutoInstallState
 import io.sentry.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
-import org.apache.maven.shared.verifier.VerificationException
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
-import java.io.IOException
 import kotlin.test.assertTrue
 
 class LogbackAutoInstallTest {
@@ -17,8 +15,9 @@ class LogbackAutoInstallTest {
         val installState = AutoInstallState()
 
 
-        fun getSut(installLogback: Boolean = true,
-                   logbackVersion: String = "2.0.0"
+        fun getSut(
+            installLogback: Boolean = true,
+            logbackVersion: String = "2.0.0"
 
         ): LogbackInstallStrategy {
             dependencies.add(

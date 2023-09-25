@@ -2,13 +2,9 @@ package io.sentry.autoinstall;
 
 import io.sentry.semver.Version;
 import org.apache.maven.model.Dependency;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
 import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
 
 public abstract class AbstractIntegrationInstaller {
@@ -43,13 +39,13 @@ public abstract class AbstractIntegrationInstaller {
 
         Dependency thirdPartyDependency = findThirdPartyDependency(dependencyList);
 
-        if(thirdPartyDependency == null) {
+        if (thirdPartyDependency == null) {
             logger.info(sentryModuleId() + " won't be installed because its third party dependency could not be found ");
             return;
         }
 
-        if(minSupportedThirdPartyVersion() != null) {
-            if(parseVersion(thirdPartyDependency.getVersion()).isLowerThan(minSupportedThirdPartyVersion())) {
+        if (minSupportedThirdPartyVersion() != null) {
+            if (parseVersion(thirdPartyDependency.getVersion()).isLowerThan(minSupportedThirdPartyVersion())) {
                 logger.info(
                     sentryModuleId() + " won't be installed because the current version is " +
                         "lower than the minimum supported version " + minSupportedThirdPartyVersion());
@@ -57,8 +53,8 @@ public abstract class AbstractIntegrationInstaller {
             }
         }
 
-        if(maxSupportedThirdPartyVersion() != null) {
-            if(parseVersion(thirdPartyDependency.getVersion()).isGreaterThan(maxSupportedThirdPartyVersion())) {
+        if (maxSupportedThirdPartyVersion() != null) {
+            if (parseVersion(thirdPartyDependency.getVersion()).isGreaterThan(maxSupportedThirdPartyVersion())) {
                 logger.info(
                     sentryModuleId() + " won't be installed because the current version is " +
                         "higher than the maximum supported version " + maxSupportedThirdPartyVersion());
@@ -66,11 +62,11 @@ public abstract class AbstractIntegrationInstaller {
             }
         }
 
-        if(minSupportedSentryVersion().getMajor() > 0) {
+        if (minSupportedSentryVersion().getMajor() > 0) {
             try {
                 Version sentrySemVersion = Version.parseVersion(sentryVersion);
-                if(sentrySemVersion.isLowerThan(minSupportedSentryVersion())) {
-                    logger.warn (
+                if (sentrySemVersion.isLowerThan(minSupportedSentryVersion())) {
+                    logger.warn(
                         sentryModuleId() + " won't be installed because the current version is " +
                             "lower than the minimum supported sentry version " + sentryVersion
                     );
@@ -99,6 +95,6 @@ public abstract class AbstractIntegrationInstaller {
 
     private Version parseVersion(String version) {
         final String suffix = ".RELEASE";
-        return Version.parseVersion(version.endsWith(suffix) ?  version.substring(0, version.length() - suffix.length()) : version);
+        return Version.parseVersion(version.endsWith(suffix) ? version.substring(0, version.length() - suffix.length()) : version);
     }
 }

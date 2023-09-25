@@ -15,8 +15,9 @@ class SpringBoot3AutoInstallTest {
         val installState = AutoInstallState()
 
 
-        fun getSut(installSpring: Boolean = true,
-                   springVersion: String = "3.0.0"
+        fun getSut(
+            installSpring: Boolean = true,
+            springVersion: String = "3.0.0"
 
         ): SpringBoot3InstallStrategy {
             dependencies.add(

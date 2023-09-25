@@ -15,8 +15,9 @@ class Spring5AutoInstallTest {
         val installState = AutoInstallState()
 
 
-        fun getSut(installSpring: Boolean = true,
-                   springVersion: String = "5.1.2"
+        fun getSut(
+            installSpring: Boolean = true,
+            springVersion: String = "5.1.2"
 
         ): Spring5InstallStrategy {
             dependencies.add(

@@ -15,8 +15,9 @@ class SpringBoot2AutoInstallTest {
         val installState = AutoInstallState()
 
 
-        fun getSut(installSpring: Boolean = true,
-                   springVersion: String = "2.1.0"
+        fun getSut(
+            installSpring: Boolean = true,
+            springVersion: String = "2.1.0"
 
         ): SpringBoot2InstallStrategy {
             dependencies.add(

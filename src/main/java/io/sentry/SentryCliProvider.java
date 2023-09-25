@@ -1,6 +1,5 @@
 package io.sentry;
 
-import com.google.common.io.Files;
 import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,31 +19,31 @@ class SentryCliProvider {
 
     protected static String getCliPath(MavenProject mavenProject, String cliPathParameter) {
 
-        if(cliPathParameter != null && !cliPathParameter.isBlank()) {
+        if (cliPathParameter != null && !cliPathParameter.isBlank()) {
             return cliPathParameter;
         }
 
         String pathFromProperties = searchCliInPropertiesFile(mavenProject);
 
-        if(pathFromProperties != null && !pathFromProperties.isBlank()) {
+        if (pathFromProperties != null && !pathFromProperties.isBlank()) {
             logger.info("Cli found in sentry properties, using " + pathFromProperties);
             return pathFromProperties;
         }
 
         String cliSuffix = getCliSuffix();
 
-        if(cliSuffix != null && !cliSuffix.isBlank()) {
+        if (cliSuffix != null && !cliSuffix.isBlank()) {
             String resourcePath = "/bin/sentry-cli-" + cliSuffix;
             String cliAbsolutePath = searchCliInResources(resourcePath);
 
-            if(cliAbsolutePath != null) {
+            if (cliAbsolutePath != null) {
                 logger.info("Cli found in " + cliAbsolutePath);
                 return cliAbsolutePath;
             }
 
             String cliTempPath = loadCliFromResourcesToTemp(resourcePath);
 
-            if(cliTempPath != null) {
+            if (cliTempPath != null) {
                 logger.info("Cli found in .jar using " + cliTempPath);
                 return cliTempPath;
             }
@@ -58,8 +57,8 @@ class SentryCliProvider {
         File propertiesFileToUse = new File(mavenProject.getBasedir(), "sentry.properties");
 
 
-        if(!propertiesFileToUse.exists() && mavenProject.getParent() != null) {
-            propertiesFileToUse= new File(mavenProject.getParent().getBasedir(), "sentry.properties");
+        if (!propertiesFileToUse.exists() && mavenProject.getParent() != null) {
+            propertiesFileToUse = new File(mavenProject.getParent().getBasedir(), "sentry.properties");
         }
 
         try {
@@ -78,15 +77,15 @@ class SentryCliProvider {
         String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         String osArch = System.getProperty("os.arch");
 
-        if(osName.contains("mac")) {
+        if (osName.contains("mac")) {
             return "Darwin-universal";
         }
 
-        if(osName.contains("linux")) {
+        if (osName.contains("linux")) {
             return osArch.equals("amd64") ? "Linux-x86_64" : "Linux-" + osArch;
         }
 
-        if(osName.contains("win")) {
+        if (osName.contains("win")) {
             return "Windows-i686.exe";
         }
 
@@ -96,9 +95,9 @@ class SentryCliProvider {
     private static String searchCliInResources(String resourcePath) {
         URL resourceUrl = SentryCliProvider.class.getResource(resourcePath);
 
-        if(resourceUrl != null) {
+        if (resourceUrl != null) {
             File resourceFile = new File(resourceUrl.getFile());
-            if(resourceFile.exists()) {
+            if (resourceFile.exists()) {
                 return resourceFile.getAbsolutePath();
             }
         }
@@ -114,7 +113,7 @@ class SentryCliProvider {
 
             FileOutputStream outputStream = new FileOutputStream(tempFile);
 
-            if(inputStream != null) {
+            if (inputStream != null) {
                 inputStream.transferTo(outputStream);
                 outputStream.close();
                 return tempFile.getAbsolutePath();

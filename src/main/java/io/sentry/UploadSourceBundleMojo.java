@@ -13,14 +13,12 @@ import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import static io.sentry.SentryCliProvider.getCliPath;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
@@ -54,10 +52,10 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     @Parameter(property = "project.build.directory")
     private File outputDirectory;
 
-    @Parameter( defaultValue = "${project}", readonly = true )
+    @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject mavenProject;
 
-    @Parameter( defaultValue = "${session}", readonly = true )
+    @Parameter(defaultValue = "${session}", readonly = true)
     private MavenSession mavenSession;
 
     @Component
@@ -201,8 +199,8 @@ public class UploadSourceBundleMojo extends AbstractMojo {
             resource.setDirectory(sentryBuildDir.getPath());
             resource.setFiltering(false);
             mavenProject.addResource(resource);
-        } catch ( IOException e ) {
-            throw new MojoExecutionException( "Error creating file " + debugMetaFile, e );
+        } catch (IOException e) {
+            throw new MojoExecutionException("Error creating file " + debugMetaFile, e);
         }
     }
 
