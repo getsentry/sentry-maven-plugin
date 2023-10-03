@@ -7,6 +7,7 @@ import io.sentry.autoinstall.graphql.GraphqlInstallStrategy;
 import io.sentry.autoinstall.jdbc.JdbcInstallStrategy;
 import io.sentry.autoinstall.log4j2.Log4j2InstallStrategy;
 import io.sentry.autoinstall.logback.LogbackInstallStrategy;
+import io.sentry.autoinstall.quartz.QuartzInstallStrategy;
 import io.sentry.autoinstall.spring.Spring5InstallStrategy;
 import io.sentry.autoinstall.spring.Spring6InstallStrategy;
 import io.sentry.autoinstall.spring.SpringBoot2InstallStrategy;
@@ -52,7 +53,8 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         Log4j2InstallStrategy.class,
         LogbackInstallStrategy.class,
         GraphqlInstallStrategy.class,
-        JdbcInstallStrategy.class
+        JdbcInstallStrategy.class,
+        QuartzInstallStrategy.class
     ).collect(Collectors.toList());
 
     @Inject

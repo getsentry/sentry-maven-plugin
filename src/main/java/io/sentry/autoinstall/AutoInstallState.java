@@ -9,6 +9,8 @@ public class AutoInstallState {
     private boolean installJdbc = false;
     private boolean installGraphql = false;
 
+    private boolean installQuartz = false;
+
     public String getSentryVersion() {
         return sentryVersion;
     }
@@ -55,5 +57,13 @@ public class AutoInstallState {
 
     public void setInstallGraphql(boolean installGraphql) {
         this.installGraphql = installGraphql;
+    }
+
+    public boolean isInstallQuartz() {
+        return installQuartz;
+    }
+
+    public void setInstallQuartz(boolean installQuartz) {
+        this.installQuartz = installQuartz;
     }
 }
