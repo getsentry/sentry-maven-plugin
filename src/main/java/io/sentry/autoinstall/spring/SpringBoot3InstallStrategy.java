@@ -4,7 +4,7 @@ import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
 import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.semver.Version;
-import org.apache.maven.model.Dependency;
+import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +30,8 @@ public class SpringBoot3InstallStrategy extends AbstractIntegrationInstaller {
     }
 
     @Override
-    protected Dependency findThirdPartyDependency(List<Dependency> dependencyList) {
-        return dependencyList.stream().filter((dep) ->
+    protected Artifact findThirdPartyDependency(List<Artifact> resolvedArtifacts) {
+        return resolvedArtifacts.stream().filter((dep) ->
             dep.getGroupId().equals(SPRING_GROUP) && dep.getArtifactId().equals(SPRING_BOOT_3_ID)
         ).findFirst().orElse(null);
     }

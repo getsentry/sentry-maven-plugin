@@ -3,6 +3,8 @@ package io.sentry.autoinstall.spring
 import io.sentry.autoinstall.AutoInstallState
 import io.sentry.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
+import org.eclipse.aether.artifact.Artifact
+import org.eclipse.aether.artifact.DefaultArtifact
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import kotlin.test.assertTrue
@@ -12,6 +14,7 @@ class SpringBoot2AutoInstallTest {
     class Fixture {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
+        val resolvedArtifacts = ArrayList<Artifact>()
         val installState = AutoInstallState()
 
 
@@ -20,12 +23,14 @@ class SpringBoot2AutoInstallTest {
             springVersion: String = "2.1.0"
 
         ): SpringBoot2InstallStrategy {
-            dependencies.add(
-                Dependency().apply {
-                    groupId = "org.springframework.boot"
-                    artifactId = "spring-boot-starter"
-                    version = springVersion
-                }
+
+            resolvedArtifacts.add(
+                DefaultArtifact(
+                    "org.springframework.boot",
+                    "spring-boot-starter",
+                    null,
+                    springVersion
+                )
             )
 
             installState.isInstallSpring = installSpring
@@ -40,7 +45,7 @@ class SpringBoot2AutoInstallTest {
     @Test
     fun `when sentry-spring-boot is a direct dependency logs a message and does nothing`() {
         val sut = fixture.getSut(installSpring = false)
-        sut.install(fixture.dependencies, fixture.installState)
+        sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==
@@ -54,7 +59,7 @@ class SpringBoot2AutoInstallTest {
     @Test
     fun `when spring version is too low logs a message and does nothing`() {
         val sut = fixture.getSut(springVersion = "2.0.0")
-        sut.install(fixture.dependencies, fixture.installState)
+        sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==
@@ -68,7 +73,7 @@ class SpringBoot2AutoInstallTest {
     @Test
     fun `when spring version is too high logs a message and does nothing`() {
         val sut = fixture.getSut(springVersion = "3.0.0")
-        sut.install(fixture.dependencies, fixture.installState)
+        sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==
@@ -82,7 +87,7 @@ class SpringBoot2AutoInstallTest {
     @Test
     fun `installs sentry-spring-boot with info message`() {
         val sut = fixture.getSut()
-        sut.install(fixture.dependencies, fixture.installState)
+        sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==

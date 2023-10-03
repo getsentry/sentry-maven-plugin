@@ -1,6 +1,7 @@
 package io.sentry.autoinstall;
 
 import org.apache.maven.model.Dependency;
+import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +23,9 @@ public class SentryInstaller {
         this.logger = logger;
     }
 
-    public String install(List<Dependency> dependencyList) {
+    public String install(List<Dependency> dependencyList, List<Artifact> resolvedArtifacts) {
 
-        Dependency sentryDependency = dependencyList.stream().filter((dep) ->
+        Artifact sentryDependency = resolvedArtifacts.stream().filter((dep) ->
             dep.getGroupId().equals(SENTRY_GROUP_ID) && dep.getArtifactId().equals(SENTRY_ARTIFACT_ID)
         ).findFirst().orElse(null);
 

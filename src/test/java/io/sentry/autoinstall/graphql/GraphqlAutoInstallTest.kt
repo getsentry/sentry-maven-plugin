@@ -3,6 +3,8 @@ package io.sentry.autoinstall.graphql
 import io.sentry.autoinstall.AutoInstallState
 import io.sentry.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
+import org.eclipse.aether.artifact.Artifact
+import org.eclipse.aether.artifact.DefaultArtifact
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import kotlin.test.assertTrue
@@ -12,6 +14,7 @@ class GraphqlAutoInstallTest {
     class Fixture {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
+        val resolvedArtifacts = ArrayList<Artifact>()
         val installState = AutoInstallState()
 
 
@@ -20,12 +23,13 @@ class GraphqlAutoInstallTest {
             graphqlVersion: String = "2.0.0"
 
         ): GraphqlInstallStrategy {
-            dependencies.add(
-                Dependency().apply {
-                    groupId = "com.graphql-java"
-                    artifactId = "graphql-java"
-                    version = graphqlVersion
-                }
+            resolvedArtifacts.add(
+                DefaultArtifact(
+                    "com.graphql-java",
+                    "graphql-java",
+                    null,
+                    graphqlVersion
+                )
             )
 
             installState.isInstallGraphql = installGraphql
@@ -41,7 +45,7 @@ class GraphqlAutoInstallTest {
     fun `when sentry-graphql is a direct dependency logs a message and does nothing`() {
         val sut = fixture.getSut(false)
 
-        sut.install(fixture.dependencies, fixture.installState)
+        sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==
@@ -55,7 +59,7 @@ class GraphqlAutoInstallTest {
     fun `installs sentry-graphql with info message`() {
         val sut = fixture.getSut()
 
-        sut.install(fixture.dependencies, fixture.installState)
+        sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==

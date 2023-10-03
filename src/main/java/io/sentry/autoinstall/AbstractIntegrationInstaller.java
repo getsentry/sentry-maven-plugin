@@ -2,6 +2,7 @@ package io.sentry.autoinstall;
 
 import io.sentry.semver.Version;
 import org.apache.maven.model.Dependency;
+import org.eclipse.aether.artifact.Artifact;
 
 import java.util.List;
 
@@ -23,13 +24,13 @@ public abstract class AbstractIntegrationInstaller {
         return Version.create(0, 0, 0);
     }
 
-    protected abstract Dependency findThirdPartyDependency(List<Dependency> dependencyList);
+    protected abstract Artifact findThirdPartyDependency(List<Artifact> resolvedArtifacts);
 
     protected abstract boolean shouldInstallModule(AutoInstallState autoInstallState);
 
     protected abstract String sentryModuleId();
 
-    public void install(List<Dependency> dependencyList, AutoInstallState autoInstallState) {
+    public void install(List<Dependency> dependencyList, List<Artifact> resolvedArtifacts, AutoInstallState autoInstallState) {
         if (!shouldInstallModule(autoInstallState)) {
             logger.info(sentryModuleId() + " won't be installed because it was already installed directly");
             return;
@@ -37,7 +38,7 @@ public abstract class AbstractIntegrationInstaller {
 
         String sentryVersion = autoInstallState.getSentryVersion();
 
-        Dependency thirdPartyDependency = findThirdPartyDependency(dependencyList);
+        Artifact thirdPartyDependency = findThirdPartyDependency(resolvedArtifacts);
 
         if (thirdPartyDependency == null) {
             logger.info(sentryModuleId() + " won't be installed because its third party dependency could not be found ");

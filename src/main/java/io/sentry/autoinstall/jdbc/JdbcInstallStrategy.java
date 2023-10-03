@@ -4,7 +4,7 @@ import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
 import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.semver.Version;
-import org.apache.maven.model.Dependency;
+import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class JdbcInstallStrategy extends AbstractIntegrationInstaller {
     }
 
     @Override
-    protected Dependency findThirdPartyDependency(List<Dependency> dependencyList) {
+    protected Artifact findThirdPartyDependency(List<Artifact> resolvedArtifacts) {
         List<String> oracleDependencyList = new ArrayList<>();
 
         for (int i = 5; i <= 15; i++) {
@@ -55,7 +55,7 @@ public class JdbcInstallStrategy extends AbstractIntegrationInstaller {
             oracleDependencyList.add(ORACLE_DATABASE_GROUP + ":" + ORACLE_OJDBC_ID_PREFIX + i);
         }
 
-        return dependencyList.stream().filter((dep) ->
+        return resolvedArtifacts.stream().filter((dep) ->
             (dep.getGroupId().equals(SPRING_JDBC_GROUP) && dep.getArtifactId().equals(SPRING_JDBC_ID))
                 || (dep.getGroupId().equals(HSQL_GROUP) && dep.getArtifactId().equals(HSQL_ID))
                 || (dep.getGroupId().equals(MYSQL_GROUP) && dep.getArtifactId().equals(MYSQL_ID))

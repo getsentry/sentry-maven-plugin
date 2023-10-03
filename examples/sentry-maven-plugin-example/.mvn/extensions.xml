@@ -5,9 +5,4 @@
         <artifactId>sentry-maven-plugin</artifactId>
         <version>1.0-SNAPSHOT</version>
     </extension>
-    <extension>
-        <groupId>org.commonjava.maven.ext</groupId>
-        <artifactId>pom-manipulation-ext</artifactId>
-        <version>4.16</version>
-    </extension>
 </extensions>

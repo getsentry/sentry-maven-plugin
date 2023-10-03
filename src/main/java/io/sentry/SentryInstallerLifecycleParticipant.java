@@ -16,9 +16,14 @@ import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.project.DefaultDependencyResolutionRequest;
+import org.apache.maven.project.DependencyResolutionException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectDependenciesResolver;
+import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.List;
@@ -35,6 +40,7 @@ import static io.sentry.autoinstall.spring.Spring6InstallStrategy.SENTRY_SPRING_
 import static io.sentry.autoinstall.spring.SpringBoot2InstallStrategy.SENTRY_SPRING_BOOT_2_ID;
 import static io.sentry.autoinstall.spring.SpringBoot3InstallStrategy.SENTRY_SPRING_BOOT_3_ID;
 
+
 @Named("sentry-installer")
 @Singleton
 public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleParticipant {
@@ -49,7 +55,8 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         JdbcInstallStrategy.class
     ).collect(Collectors.toList());
 
-    private static final String SENTRY_MAVEN_PLUGIN_ARTIFACT_ID = "sentry-maven-plugin";
+    @Inject
+    ProjectDependenciesResolver resolver;
 
     private static org.slf4j.Logger logger = LoggerFactory.getLogger(SentryInstallerLifecycleParticipant.class);
 
@@ -59,36 +66,33 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         for (MavenProject project : session.getProjects()) {
             logger.info("Checking project '" + project.getId() + "'");
 
-
-//            Plugin sentryPlugin = project.getBuildPlugins().stream().filter((plugin) -> plugin.getGroupId().equals(SENTRY_GROUP_ID) && plugin.getArtifactId().equals(SENTRY_MAVEN_PLUGIN_ARTIFACT_ID)).findFirst().orElse(null);
-//
-//            if(sentryPlugin == null) {
-//                continue;
-//            }
-
-//            PlexusConfiguration pomConfiguration = new XmlPlexusConfiguration(((Xpp3Dom) sentryPlugin.getConfiguration()));
-//            boolean autoInstall = Boolean.parseBoolean(pomConfiguration.getChild("autoInstall").getValue());
-//
-//            if(!autoInstall) {
-//                logger.info("Auto Install disabled, not installing dependencies");
-//            }
+            List<Artifact> resolvedArtifacts;
+            try {
+                var request = new DefaultDependencyResolutionRequest(project, session.getRepositorySession());
+                var result = resolver.resolve(request);
+                resolvedArtifacts = result.getDependencies().stream().map(it -> it.getArtifact()).collect(Collectors.toList());
+            } catch (DependencyResolutionException e) {
+                logger.error("Unable to resolve all dependencies", e);
+                throw new RuntimeException(e);
+            }
 
             Model currModel = project.getModel();
+
             List<Dependency> dependencyList = currModel.getDependencies();
-            String sentryVersion = new SentryInstaller().install(dependencyList);
+            String sentryVersion = new SentryInstaller().install(dependencyList, resolvedArtifacts);
 
             AutoInstallState autoInstallState = new AutoInstallState();
             autoInstallState.setSentryVersion(sentryVersion);
-            autoInstallState.setInstallSpring(shouldInstallSpring(dependencyList));
-            autoInstallState.setInstallLogback(!isModuleAvailable(dependencyList, SENTRY_LOGBACK_ID));
-            autoInstallState.setInstallLog4j2(!isModuleAvailable(dependencyList, SENTRY_LOG4J2_ID));
-            autoInstallState.setInstallGraphql(!isModuleAvailable(dependencyList, SENTRY_GRAPHQL_ID));
-            autoInstallState.setInstallJdbc(!isModuleAvailable(dependencyList, SENTRY_JDBC_ID));
+            autoInstallState.setInstallSpring(shouldInstallSpring(resolvedArtifacts));
+            autoInstallState.setInstallLogback(!isModuleAvailable(resolvedArtifacts, SENTRY_LOGBACK_ID));
+            autoInstallState.setInstallLog4j2(!isModuleAvailable(resolvedArtifacts, SENTRY_LOG4J2_ID));
+            autoInstallState.setInstallGraphql(!isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_ID));
+            autoInstallState.setInstallJdbc(!isModuleAvailable(resolvedArtifacts, SENTRY_JDBC_ID));
 
             for (Class<? extends AbstractIntegrationInstaller> installerClass : installers) {
                 try {
                     AbstractIntegrationInstaller installer = installerClass.getDeclaredConstructor().newInstance();
-                    installer.install(currModel.getDependencies(), autoInstallState);
+                    installer.install(dependencyList, resolvedArtifacts, autoInstallState);
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
@@ -98,12 +102,12 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         }
     }
 
-    private boolean shouldInstallSpring(List<Dependency> dependencies) {
+    private boolean shouldInstallSpring(List<Artifact> resolvedArtifacts) {
         return !(
-            isModuleAvailable(dependencies, SENTRY_SPRING_5_ID) &&
-                isModuleAvailable(dependencies, SENTRY_SPRING_6_ID) &&
-                isModuleAvailable(dependencies, SENTRY_SPRING_BOOT_2_ID) &&
-                isModuleAvailable(dependencies, SENTRY_SPRING_BOOT_3_ID)
+            isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_5_ID) &&
+                isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_6_ID) &&
+                isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_2_ID) &&
+                isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_3_ID)
         );
     }
 
@@ -113,8 +117,8 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         super.afterSessionEnd(session);
     }
 
-    public static boolean isModuleAvailable(List<Dependency> dependencyList, String artifactId) {
-        return dependencyList.stream().anyMatch((dep) ->
+    public static boolean isModuleAvailable(List<Artifact> resolvedArtifacts, String artifactId) {
+        return resolvedArtifacts.stream().anyMatch((dep) ->
             dep.getGroupId().equals(SENTRY_GROUP_ID) && dep.getArtifactId().equals(artifactId)
         );
     }

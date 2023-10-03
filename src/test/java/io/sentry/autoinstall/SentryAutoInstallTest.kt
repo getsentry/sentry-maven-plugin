@@ -2,6 +2,8 @@ package io.sentry.autoinstall
 
 import io.sentry.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
+import org.eclipse.aether.artifact.Artifact
+import org.eclipse.aether.artifact.DefaultArtifact
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import kotlin.test.assertEquals
@@ -12,6 +14,7 @@ class SentryAutoInstallTest {
     class Fixture {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
+        val resolvedArtifacts = ArrayList<Artifact>()
 
         fun getSut(
             installSentry: Boolean = true,
@@ -19,12 +22,13 @@ class SentryAutoInstallTest {
 
         ): SentryInstaller {
             if (!installSentry) {
-                dependencies.add(
-                    Dependency().apply {
-                        groupId = "io.sentry"
-                        artifactId = "sentry"
-                        version = sentryVersion
-                    }
+                resolvedArtifacts.add(
+                    DefaultArtifact(
+                        "io.sentry",
+                        "sentry",
+                        null,
+                        sentryVersion
+                    )
                 )
             }
 
@@ -37,7 +41,7 @@ class SentryAutoInstallTest {
     @Test
     fun `when sentry-log4j2 is a direct dependency logs a message and does nothing`() {
         val sut = fixture.getSut(false, sentryVersion = "6.25.2")
-        val sentryVersion = sut.install(fixture.dependencies)
+        val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
 
         assertEquals("6.25.2", sentryVersion)
 
@@ -53,7 +57,7 @@ class SentryAutoInstallTest {
     fun `installs sentry with info message`() {
         val sut = fixture.getSut()
 
-        val sentryVersion = sut.install(fixture.dependencies)
+        val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
 
         assertEquals(SentryInstaller.SENTRY_VERSION, sentryVersion)
 
