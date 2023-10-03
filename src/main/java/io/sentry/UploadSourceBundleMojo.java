@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 import static io.sentry.SentryCliProvider.getCliPath;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
@@ -62,11 +63,11 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     private BuildPluginManager pluginManager;
 
     public void execute() throws MojoExecutionException {
-//        String bundleId = UUID.randomUUID().toString();
-//        File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
-//        createDebugMetaPropertiesFile(bundleId);
-//        bundleSources(bundleId, sourceBundleTargetDir);
-//        uploadSourceBundle(sourceBundleTargetDir);
+        String bundleId = UUID.randomUUID().toString();
+        File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
+        createDebugMetaPropertiesFile(bundleId);
+        bundleSources(bundleId, sourceBundleTargetDir);
+        uploadSourceBundle(sourceBundleTargetDir);
     }
 
     private File sentryBuildDir() {

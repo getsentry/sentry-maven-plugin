@@ -36,6 +36,7 @@ import static io.sentry.autoinstall.graphql.GraphqlInstallStrategy.SENTRY_GRAPHQ
 import static io.sentry.autoinstall.jdbc.JdbcInstallStrategy.SENTRY_JDBC_ID;
 import static io.sentry.autoinstall.log4j2.Log4j2InstallStrategy.SENTRY_LOG4J2_ID;
 import static io.sentry.autoinstall.logback.LogbackInstallStrategy.SENTRY_LOGBACK_ID;
+import static io.sentry.autoinstall.quartz.QuartzInstallStrategy.SENTRY_QUARTZ_ID;
 import static io.sentry.autoinstall.spring.Spring5InstallStrategy.SENTRY_SPRING_5_ID;
 import static io.sentry.autoinstall.spring.Spring6InstallStrategy.SENTRY_SPRING_6_ID;
 import static io.sentry.autoinstall.spring.SpringBoot2InstallStrategy.SENTRY_SPRING_BOOT_2_ID;
@@ -90,6 +91,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
             autoInstallState.setInstallLog4j2(!isModuleAvailable(resolvedArtifacts, SENTRY_LOG4J2_ID));
             autoInstallState.setInstallGraphql(!isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_ID));
             autoInstallState.setInstallJdbc(!isModuleAvailable(resolvedArtifacts, SENTRY_JDBC_ID));
+            autoInstallState.setInstallQuartz(!isModuleAvailable(resolvedArtifacts, SENTRY_QUARTZ_ID));
 
             for (Class<? extends AbstractIntegrationInstaller> installerClass : installers) {
                 try {
