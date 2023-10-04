@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Auto-Install Sentry and Sentry Integrations using maven extension ([#10](https://github.com/getsentry/sentry-maven-plugin/pull/10))
+- Auto-Update cli and sentry sdk version ([#12](https://github.com/getsentry/sentry-maven-plugin/pull/12))
 
 ## 0.0.4
 
