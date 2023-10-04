@@ -23,6 +23,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectDependenciesResolver;
 import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.LoggerFactory;
+import java.util.Properties;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -46,6 +47,9 @@ import static io.sentry.autoinstall.spring.SpringBoot3InstallStrategy.SENTRY_SPR
 @Named("sentry-installer")
 @Singleton
 public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleParticipant {
+
+    private static final String AUTO_INSTALL_ENABLED_PROPERTY = "sentry.autoinstall.enabled";
+
     private static final List<Class<? extends AbstractIntegrationInstaller>> installers = Stream.of(
         Spring5InstallStrategy.class,
         Spring6InstallStrategy.class,
@@ -81,6 +85,13 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
             Model currModel = project.getModel();
 
+            Properties properties = project.getProperties();
+
+            if(!isEnabled(properties)) {
+                logger.info("Auto Install disabled, not installing dependencies");
+                continue;
+            }
+
             List<Dependency> dependencyList = currModel.getDependencies();
             String sentryVersion = new SentryInstaller().install(dependencyList, resolvedArtifacts);
 
@@ -106,6 +117,10 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         }
     }
 
+    private boolean isEnabled(Properties userProperties) {
+        return Boolean.parseBoolean( userProperties.getProperty( AUTO_INSTALL_ENABLED_PROPERTY, "true" ) );
+    }
+
     private boolean shouldInstallSpring(List<Artifact> resolvedArtifacts) {
         return !(
             isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_5_ID) &&
@@ -113,12 +128,6 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
                 isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_2_ID) &&
                 isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_3_ID)
         );
-    }
-
-    @Override
-    public void afterSessionEnd(MavenSession session) throws MavenExecutionException {
-
-        super.afterSessionEnd(session);
     }
 
     public static boolean isModuleAvailable(List<Artifact> resolvedArtifacts, String artifactId) {
