@@ -5,6 +5,9 @@ import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.Properties;
+
 import java.util.List;
 
 import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
@@ -33,14 +36,23 @@ public class SentryInstaller {
             logger.info("Sentry already installed " + sentryDependency.getVersion());
             return sentryDependency.getVersion();
         } else {
-            logger.info("Installing Sentry with version " + SENTRY_VERSION);
+            String sentryVersion = SENTRY_VERSION;
+            try {
+                Properties prop = new Properties();
+                prop.load(SentryInstaller.class.getResourceAsStream("/sentry-sdk.properties"));
+                sentryVersion = prop.getProperty("sdk_version");
+            } catch (NullPointerException | IOException e) {
+                logger.error("Unable to load sentry version, using fallback");
+            }
+
+            logger.info("Installing Sentry with version " + sentryVersion);
             Dependency newDep = new Dependency();
             newDep.setGroupId(SENTRY_GROUP_ID);
             newDep.setArtifactId(SENTRY_ARTIFACT_ID);
-            newDep.setVersion(SENTRY_VERSION);
+            newDep.setVersion(sentryVersion);
 
             dependencyList.add(newDep);
+            return sentryVersion;
         }
-        return SENTRY_VERSION;
     }
 }
