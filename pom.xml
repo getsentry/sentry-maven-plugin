@@ -33,16 +33,6 @@
         <url>https://github.com/getsentry/sentry-maven-plugin</url>
     </scm>
     <build>
-        <resources>
-            <resource>
-                <directory>.</directory>
-                <includes>
-                    <include>
-                        sentry-sdk.properties
-                    </include>
-                </includes>
-            </resource>
-        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>

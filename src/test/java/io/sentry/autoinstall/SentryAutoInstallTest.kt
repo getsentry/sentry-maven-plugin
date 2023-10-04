@@ -6,6 +6,7 @@ import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -39,7 +40,7 @@ class SentryAutoInstallTest {
     private val fixture = Fixture()
 
     @Test
-    fun `when sentry-log4j2 is a direct dependency logs a message and does nothing`() {
+    fun `when sentry is already installed logs a message and does nothing`() {
         val sut = fixture.getSut(false, sentryVersion = "6.25.2")
         val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
 
@@ -50,7 +51,7 @@ class SentryAutoInstallTest {
                 "Sentry already installed 6.25.2"
         }
 
-        assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry-log4j2" })
+        assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry" })
     }
 
     @Test
@@ -59,11 +60,15 @@ class SentryAutoInstallTest {
 
         val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
 
-        assertEquals(SentryInstaller.SENTRY_VERSION, sentryVersion)
+        val prop = Properties()
+        prop.load(SentryInstaller::class.java.getResourceAsStream("/sentry-sdk.properties"))
+        val expectedSentryVersion = prop.getProperty("sdk_version")
+
+        assertEquals(expectedSentryVersion, sentryVersion)
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "Installing Sentry with version " + SentryInstaller.SENTRY_VERSION
+                "Installing Sentry with version $expectedSentryVersion"
         }
 
         assertTrue(fixture.dependencies.any { it.groupId == "io.sentry" && it.artifactId == "sentry" })

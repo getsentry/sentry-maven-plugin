@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd $(dirname "$0")/../
-file='sentry-sdk.properties'
+file='src/main/resources/sentry-sdk.properties'
 content=$(cat $file)
 
 regex='(sdk_version = *)([0-9\.]+)'

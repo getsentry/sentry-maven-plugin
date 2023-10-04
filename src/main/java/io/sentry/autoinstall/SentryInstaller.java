@@ -42,7 +42,7 @@ public class SentryInstaller {
                 prop.load(SentryInstaller.class.getResourceAsStream("/sentry-sdk.properties"));
                 sentryVersion = prop.getProperty("sdk_version");
             } catch (NullPointerException | IOException e) {
-                logger.error("Unable to load sentry version, using fallback");
+                logger.warn("Unable to load sentry version, using fallback");
             }
 
             logger.info("Installing Sentry with version " + sentryVersion);
