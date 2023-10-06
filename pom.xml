@@ -8,6 +8,7 @@
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
+    <spotless.version>2.40.0</spotless.version>
   </properties>
   <name>sentry-maven-plugin Maven Mojo</name>
   <url>https://github.com/getsentry/sentry-maven-plugin</url>
@@ -108,6 +109,28 @@
                     </configuration>
                 </execution>
             </executions>
+        </plugin>
+        <plugin>
+            <groupId>com.diffplug.spotless</groupId>
+            <artifactId>spotless-maven-plugin</artifactId>
+            <version>${spotless.version}</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>check</goal>
+                    </goals>
+                    <phase>compile</phase>
+                </execution>
+            </executions>
+            <configuration>
+                <java>
+                    <googleJavaFormat />
+                    <removeUnusedImports />
+                </java>
+                <kotlin>
+                    <ktlint />
+                </kotlin>
+            </configuration>
         </plugin>
       </plugins>
   </build>
