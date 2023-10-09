@@ -6,6 +6,12 @@
 
 - Add spotless formatter maven plugin ([#14](https://github.com/getsentry/sentry-maven-plugin/pull/14))
 
+### Dependencies
+
+- Bump CLI from v2.19.1 to v2.21.2 ([#16](https://github.com/getsentry/sentry-maven-plugin/pull/16))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2212)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.19.1...2.21.2)
+
 ## 0.0.4
 
 - Download and Bundle sentry-cli with maven plugin ([#8](https://github.com/getsentry/sentry-maven-plugin/pull/8))
