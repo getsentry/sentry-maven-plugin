@@ -33,6 +33,12 @@
       <url>https://github.com/getsentry/sentry-maven-plugin</url>
   </scm>
   <build>
+      <testResources>
+          <testResource>
+              <directory>src/test/resources</directory>
+              <filtering>true</filtering>
+          </testResource>
+      </testResources>
     <pluginManagement>
       <plugins>
         <plugin>
@@ -130,6 +136,9 @@
                     <removeUnusedImports />
                 </java>
                 <kotlin>
+                    <includes>
+                        <include>src/test/java/**/*.kt</include>
+                    </includes>
                     <ktlint />
                 </kotlin>
             </configuration>
@@ -162,6 +171,34 @@
                 <configuration>
                     <jvmTarget>${maven.compiler.target}</jvmTarget>
                 </configuration>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-invoker-plugin</artifactId>
+            <version>3.6.0</version>
+            <executions>
+            <execution>
+            <goals>
+            <goal>install</goal>
+            <goal>run</goal>
+            </goals>
+            </execution>
+            </executions>
+            <configuration>
+                <projectsDirectory>src/integrationTest</projectsDirectory>
+            </configuration>
+        </plugin>
+        <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>3.1.2</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>integration-test</goal>
+                        <goal>verify</goal>
+                    </goals>
+                </execution>
+            </executions>
         </plugin>
       </plugins>
   </build>
