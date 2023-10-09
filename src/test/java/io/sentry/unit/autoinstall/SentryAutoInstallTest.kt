@@ -1,5 +1,6 @@
 package io.sentry.unit.autoinstall
 
+import io.sentry.SdkVersionInfo
 import io.sentry.autoinstall.SentryInstaller
 import io.sentry.unit.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
@@ -7,7 +8,6 @@ import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
-import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -59,15 +59,11 @@ class SentryAutoInstallTest {
 
         val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
 
-        val prop = Properties()
-        prop.load(SentryInstaller::class.java.getResourceAsStream("/sentry-sdk.properties"))
-        val expectedSentryVersion = prop.getProperty("sdk_version")
-
-        assertEquals(expectedSentryVersion, sentryVersion)
+        assertEquals(SdkVersionInfo.sentryVersion, sentryVersion)
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "Installing Sentry with version $expectedSentryVersion"
+                "Installing Sentry with version ${SdkVersionInfo.sentryVersion}"
         }
 
         assertTrue(fixture.dependencies.any { it.groupId == "io.sentry" && it.artifactId == "sentry" })
