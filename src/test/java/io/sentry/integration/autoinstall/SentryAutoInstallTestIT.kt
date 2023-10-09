@@ -2,6 +2,7 @@ package io.sentry.autoinstall
 
 import basePom
 import createExtensionInFolder
+import io.sentry.SdkVersionInfo
 import org.apache.maven.shared.verifier.VerificationException
 import org.apache.maven.shared.verifier.Verifier
 import org.junit.jupiter.api.Test
@@ -39,7 +40,7 @@ class SentryAutoInstallTestIT {
         verifier.isAutoclean = false
         verifier.addCliArgument("install")
         verifier.execute()
-        verifier.verifyFilePresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyFilePresent("target/lib/sentry-${SdkVersionInfo.sentryVersion}.jar")
         verifier.resetStreams()
     }
 

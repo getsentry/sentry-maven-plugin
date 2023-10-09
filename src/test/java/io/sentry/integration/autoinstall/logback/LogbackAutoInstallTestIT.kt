@@ -2,7 +2,7 @@ package io.sentry.autoinstall.logback
 
 import basePom
 import createExtensionInFolder
-import io.sentry.autoinstall.SentryInstaller
+import io.sentry.SdkVersionInfo
 import org.apache.maven.shared.verifier.VerificationException
 import org.apache.maven.shared.verifier.Verifier
 import org.junit.jupiter.api.Test
@@ -81,7 +81,7 @@ class LogbackAutoInstallTestIT {
             "sentry-logback won't be installed because the current version is " +
                 "lower than the minimum supported version 1.0.0",
         )
-        verifier.verifyFileNotPresent("target/lib/sentry-logback-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyFileNotPresent("target/lib/sentry-logback-${SdkVersionInfo.sentryVersion}.jar")
         verifier.resetStreams()
     }
 
@@ -94,8 +94,8 @@ class LogbackAutoInstallTestIT {
         verifier.isAutoclean = false
         verifier.addCliArgument("install")
         verifier.execute()
-        verifier.verifyTextInLog("sentry-logback was successfully installed with version: ${SentryInstaller.SENTRY_VERSION}")
-        verifier.verifyFilePresent("target/lib/sentry-logback-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyTextInLog("sentry-logback was successfully installed with version: ${SdkVersionInfo.sentryVersion}")
+        verifier.verifyFilePresent("target/lib/sentry-logback-${SdkVersionInfo.sentryVersion}.jar")
         verifier.resetStreams()
         verifier.deleteDirectory(path)
     }

@@ -12,7 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SentryInstaller {
-  public static final String SENTRY_VERSION = "6.28.0";
+
+  private static final String SENTRY_FALLBACK_VERSION = "6.28.0";
 
   private final Logger logger;
 
@@ -39,13 +40,14 @@ public class SentryInstaller {
       logger.info("Sentry already installed " + sentryDependency.getVersion());
       return sentryDependency.getVersion();
     } else {
-      String sentryVersion = SENTRY_VERSION;
+      String sentryVersion = SENTRY_FALLBACK_VERSION;
       try {
         Properties prop = new Properties();
         prop.load(SentryInstaller.class.getResourceAsStream("/sentry-sdk.properties"));
         sentryVersion = prop.getProperty("sdk_version");
       } catch (NullPointerException | IOException e) {
-        logger.warn("Unable to load sentry version, using fallback");
+        logger.warn(
+            "Unable to load sentry version, using fallback version " + SENTRY_FALLBACK_VERSION);
       }
 
       logger.info("Installing Sentry with version " + sentryVersion);
