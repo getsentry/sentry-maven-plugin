@@ -5,6 +5,7 @@
 ### Features
 
 - Add spotless formatter maven plugin ([#14](https://github.com/getsentry/sentry-maven-plugin/pull/14))
+- Add parameter to skip plugin execution ([#17](https://github.com/getsentry/sentry-maven-plugin/pull/17))
 
 ## 0.0.4
 
