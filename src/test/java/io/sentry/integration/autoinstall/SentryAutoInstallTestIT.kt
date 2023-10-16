@@ -1,10 +1,11 @@
 package io.sentry.autoinstall
 
 import basePom
-import createExtensionInFolder
+import installMavenWrapper
 import io.sentry.SdkVersionInfo
 import org.apache.maven.shared.verifier.VerificationException
 import org.apache.maven.shared.verifier.Verifier
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -17,17 +18,15 @@ class SentryAutoInstallTestIT {
     @TempDir()
     lateinit var file: File
 
-    fun getPOM(
-        withExtension: Boolean = true,
-        installedSentryVersion: String? = null,
-    ): String {
+    @BeforeEach
+    fun installWrapper() {
+        installMavenWrapper(file, "3.6.3")
+    }
+
+    fun getPOM(installedSentryVersion: String? = null): String {
         val pomContent = basePom("", installedSentryVersion)
 
         Files.write(Path("${file.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
-
-        if (withExtension) {
-            createExtensionInFolder(file)
-        }
 
         return file.absolutePath
     }
@@ -35,7 +34,7 @@ class SentryAutoInstallTestIT {
     @Test
     @Throws(VerificationException::class, IOException::class)
     fun verifySentryInstalled() {
-        val path = getPOM(true)
+        val path = getPOM()
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.addCliArgument("install")
@@ -48,7 +47,7 @@ class SentryAutoInstallTestIT {
     @Throws(VerificationException::class, IOException::class)
     fun verifySentryNotInstalledIfAlreadyInDependencies() {
         val alreadyInstalledSentryVersion = "6.25.2"
-        val path = getPOM(true, installedSentryVersion = alreadyInstalledSentryVersion)
+        val path = getPOM(alreadyInstalledSentryVersion)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.addCliArgument("install")

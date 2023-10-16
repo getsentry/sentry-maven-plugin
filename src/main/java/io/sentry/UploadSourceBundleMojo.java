@@ -56,9 +56,17 @@ public class UploadSourceBundleMojo extends AbstractMojo {
   @Parameter(defaultValue = "${session}", readonly = true)
   private MavenSession mavenSession;
 
+  @Parameter(defaultValue = "false")
+  private boolean skip;
+
   @Component private BuildPluginManager pluginManager;
 
   public void execute() throws MojoExecutionException {
+    if (skip) {
+      logger.info("Upload Source Bundle skipped");
+      return;
+    }
+
     String bundleId = UUID.randomUUID().toString();
     File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
     createDebugMetaPropertiesFile(bundleId);

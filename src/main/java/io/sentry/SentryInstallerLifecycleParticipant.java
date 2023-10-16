@@ -69,6 +69,13 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
   @Override
   public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
     for (MavenProject project : session.getProjects()) {
+      Properties properties = project.getProperties();
+
+      if (!isEnabled(properties)) {
+        logger.info("Auto Install disabled, not installing dependencies");
+        continue;
+      }
+
       logger.info("Checking project '" + project.getId() + "'");
 
       List<Artifact> resolvedArtifacts;
@@ -86,13 +93,6 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
       }
 
       Model currModel = project.getModel();
-
-      Properties properties = project.getProperties();
-
-      if (!isEnabled(properties)) {
-        logger.info("Auto Install disabled, not installing dependencies");
-        continue;
-      }
 
       List<Dependency> dependencyList = currModel.getDependencies();
       String sentryVersion = new SentryInstaller().install(dependencyList, resolvedArtifacts);

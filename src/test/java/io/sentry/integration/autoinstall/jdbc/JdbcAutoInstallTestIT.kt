@@ -1,10 +1,11 @@
 package io.sentry.integration.autoinstall.jdbc
 
 import basePom
-import createExtensionInFolder
+import installMavenWrapper
 import io.sentry.SdkVersionInfo
 import org.apache.maven.shared.verifier.VerificationException
 import org.apache.maven.shared.verifier.Verifier
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -17,10 +18,14 @@ class JdbcAutoInstallTestIT {
     @TempDir()
     lateinit var file: File
 
+    @BeforeEach
+    fun installWrapper() {
+        installMavenWrapper(file, "3.8.6")
+    }
+
     fun getPOM(
         installJdbc: Boolean = true,
         jdbcVersion: String = "3.1.3",
-        withExtension: Boolean = true,
         sentryJdbcVersion: String = "6.25.2",
         installedSentryVersion: String? = null,
     ): String {
@@ -49,10 +54,6 @@ class JdbcAutoInstallTestIT {
         val pomContent = basePom(dependencies, installedSentryVersion)
 
         Files.write(Path("${file.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
-
-        if (withExtension) {
-            createExtensionInFolder(file)
-        }
 
         return file.absolutePath
     }

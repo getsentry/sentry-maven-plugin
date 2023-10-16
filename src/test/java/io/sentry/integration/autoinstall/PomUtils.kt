@@ -1,33 +1,36 @@
 import io.sentry.autoinstall.Constants
-import io.sentry.integration.autoinstall.BuildInfo
+import org.apache.maven.shared.verifier.Verifier
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.Path
 
-fun createExtensionInFolder(file: File) {
-    val mvnDir =
-        File(file, ".mvn").apply {
-            mkdirs()
-        }
+fun installMavenWrapper(
+    file: File,
+    version: String,
+) {
+    val mavenVersionToUse = System.getProperty("maven.test.version") ?: version
 
-    val extensionString =
+    val emptyPom =
         """
-        <extensions xmlns="http://maven.apache.org/EXTENSIONS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xsi:schemaLocation="http://maven.apache.org/EXTENSIONS/1.0.0 http://maven.apache.org/xsd/core-extensions-1.0.0.xsd">
-            <extension>
-                <groupId>io.sentry</groupId>
-                <artifactId>sentry-maven-plugin</artifactId>
-                <version>${BuildInfo.projectVersion}</version>
-            </extension>
-        </extensions>
+        <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+            <groupId>io.sentry.autoinstall</groupId>
+            <artifactId>installmaven</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </project>
         """.trimIndent()
 
-    Files.write(
-        Path("${mvnDir.absolutePath}/extensions.xml"),
-        extensionString.toByteArray(),
-        StandardOpenOption.CREATE,
-    )
+    Files.write(Path("${file.absolutePath}/pom.xml"), emptyPom.toByteArray(), StandardOpenOption.CREATE)
+
+    Verifier(file.absolutePath).apply {
+        addCliArgument("wrapper:wrapper")
+        addCliArgument("-N")
+        addCliArgument("-Dmaven=$mavenVersionToUse")
+        execute()
+    }
+    Files.delete(Path("${file.absolutePath}/pom.xml"))
 }
 
 fun basePom(
@@ -68,6 +71,12 @@ fun basePom(
 
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>io.sentry</groupId>
+                        <artifactId>sentry-maven-plugin</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <extensions>true</extensions>
+                    </plugin>
                     <plugin>
                         <artifactId>maven-dependency-plugin</artifactId>
                         <executions>

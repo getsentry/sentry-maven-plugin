@@ -1,10 +1,11 @@
 package io.sentry.autoinstall.log4j2
 
 import basePom
-import createExtensionInFolder
+import installMavenWrapper
 import io.sentry.SdkVersionInfo
 import org.apache.maven.shared.verifier.VerificationException
 import org.apache.maven.shared.verifier.Verifier
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -17,10 +18,14 @@ class Log4jAutoInstallTestIT {
     @TempDir()
     lateinit var file: File
 
+    @BeforeEach
+    fun installWrapper() {
+        installMavenWrapper(file, "3.8.6")
+    }
+
     fun getPOM(
         installLog4j2: Boolean = true,
         log4j2Version: String = "2.17.0",
-        withExtension: Boolean = true,
         sentryLog4j2Version: String = "6.25.2",
         installedSentryVersion: String? = null,
     ): String {
@@ -49,10 +54,6 @@ class Log4jAutoInstallTestIT {
         val pomContent = basePom(dependencies, installedSentryVersion)
 
         Files.write(Path("${file.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
-
-        if (withExtension) {
-            createExtensionInFolder(file)
-        }
 
         return file.absolutePath
     }
