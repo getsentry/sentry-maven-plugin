@@ -1,11 +1,12 @@
 package io.sentry.integration.autoinstall.graphql
 
 import basePom
-import createExtensionInFolder
+import installMavenWrapper
 import io.sentry.autoinstall.SentryInstaller
 import io.sentry.autoinstall.graphql.GraphqlInstallStrategy
 import org.apache.maven.shared.verifier.VerificationException
 import org.apache.maven.shared.verifier.Verifier
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.slf4j.Logger
@@ -19,10 +20,14 @@ class GraphqlAutoInstallTestIT {
     @TempDir()
     lateinit var file: File
 
+    @BeforeEach
+    fun installWrapper() {
+        installMavenWrapper(file, "3.8.6")
+    }
+
     fun getPOM(
         installGraphql: Boolean = true,
         graphqlVersion: String = "2.0.0",
-        withExtension: Boolean = true,
         sentryGraphqlVersion: String = "6.25.2",
         installedSentryVersion: String? = null,
     ): String {
@@ -52,10 +57,6 @@ class GraphqlAutoInstallTestIT {
 
         Files.write(Path("${file.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
 
-        if (withExtension) {
-            createExtensionInFolder(file)
-        }
-
         return file.absolutePath
     }
 
@@ -64,6 +65,7 @@ class GraphqlAutoInstallTestIT {
     fun `when sentry-graphql is a direct dependency logs a message and does nothing`() {
         val path = getPOM(false)
         val verifier = Verifier(path)
+
         verifier.isAutoclean = false
         verifier.addCliArgument("install")
         verifier.execute()
