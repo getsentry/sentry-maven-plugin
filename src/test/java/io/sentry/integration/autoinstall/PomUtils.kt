@@ -1,33 +1,8 @@
 import io.sentry.autoinstall.Constants
-import io.sentry.integration.autoinstall.BuildInfo
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
-import kotlin.io.path.Path
 
 fun createExtensionInFolder(file: File) {
-    val mvnDir =
-        File(file, ".mvn").apply {
-            mkdirs()
-        }
-
-    val extensionString =
-        """
-        <extensions xmlns="http://maven.apache.org/EXTENSIONS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xsi:schemaLocation="http://maven.apache.org/EXTENSIONS/1.0.0 http://maven.apache.org/xsd/core-extensions-1.0.0.xsd">
-            <extension>
-                <groupId>io.sentry</groupId>
-                <artifactId>sentry-maven-plugin</artifactId>
-                <version>${BuildInfo.projectVersion}</version>
-            </extension>
-        </extensions>
-        """.trimIndent()
-
-    Files.write(
-        Path("${mvnDir.absolutePath}/extensions.xml"),
-        extensionString.toByteArray(),
-        StandardOpenOption.CREATE,
-    )
+    return
 }
 
 fun basePom(
@@ -68,6 +43,12 @@ fun basePom(
 
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>io.sentry</groupId>
+                        <artifactId>sentry-maven-plugin</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <extensions>true</extensions>
+                    </plugin>
                     <plugin>
                         <artifactId>maven-dependency-plugin</artifactId>
                         <executions>
