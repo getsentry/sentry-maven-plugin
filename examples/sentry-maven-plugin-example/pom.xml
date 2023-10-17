@@ -10,7 +10,6 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <sentry.autoinstall.enabled>true</sentry.autoinstall.enabled>
         <!--        <sentry.cli.debug>true</sentry.cli.debug>-->
     </properties>
     <build>

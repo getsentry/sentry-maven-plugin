@@ -3,8 +3,8 @@ package io.sentry.integration.autoinstall.jdbc
 import basePom
 import installMavenWrapper
 import io.sentry.autoinstall.SentryInstaller
-import org.apache.maven.shared.verifier.VerificationException
-import org.apache.maven.shared.verifier.Verifier
+import org.apache.maven.it.VerificationException
+import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -64,8 +64,7 @@ class JdbcAutoInstallTestIT {
         val path = getPOM(false)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("won't be installed because it was already installed directly")
         verifier.resetStreams()
     }
@@ -77,8 +76,7 @@ class JdbcAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-jdbc was successfully installed with version: ${SentryInstaller.SENTRY_VERSION}")
         verifier.verifyFilePresent("target/lib/sentry-jdbc-${SentryInstaller.SENTRY_VERSION}.jar")
         verifier.resetStreams()
@@ -93,8 +91,7 @@ class JdbcAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-jdbc was successfully installed with version: $sentryVersion")
         verifier.verifyFilePresent("target/lib/sentry-jdbc-$sentryVersion.jar")
         verifier.resetStreams()

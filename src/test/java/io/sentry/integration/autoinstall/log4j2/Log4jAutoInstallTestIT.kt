@@ -3,8 +3,8 @@ package io.sentry.autoinstall.log4j2
 import basePom
 import installMavenWrapper
 import io.sentry.autoinstall.SentryInstaller
-import org.apache.maven.shared.verifier.VerificationException
-import org.apache.maven.shared.verifier.Verifier
+import org.apache.maven.it.VerificationException
+import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -64,25 +64,10 @@ class Log4jAutoInstallTestIT {
         val path = getPOM(false)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-log4j2 won't be installed because it was already installed directly")
         verifier.resetStreams()
     }
-
-//    @Test
-//    @Throws(VerificationException::class, IOException::class)
-//    fun `when log4j2 version is unsupported logs a message and does nothing`() {
-//        val path = getPOM(log4j2Version = "1.2.17")
-//        val verifier = Verifier(path)
-//        verifier.isAutoclean = false
-//        verifier.addCliArgument("install")
-//        verifier.execute()
-//        verifier.verifyTextInLog("[sentry] sentry-log4j2 won't be installed because the current " +
-//            "version is lower than the minimum supported version (2.0.0)")
-//        verifier.verifyFileNotPresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
-//        verifier.resetStreams()
-//    }
 
     @Test
     @Throws(VerificationException::class, IOException::class)
@@ -91,8 +76,7 @@ class Log4jAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-log4j2 was successfully installed with version: ${SentryInstaller.SENTRY_VERSION}")
         verifier.verifyFilePresent("target/lib/sentry-log4j2-${SentryInstaller.SENTRY_VERSION}.jar")
         verifier.resetStreams()
@@ -107,8 +91,7 @@ class Log4jAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-log4j2 was successfully installed with version: $sentryVersion")
         verifier.verifyFilePresent("target/lib/sentry-log4j2-$sentryVersion.jar")
         verifier.resetStreams()

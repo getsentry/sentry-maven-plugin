@@ -3,8 +3,8 @@ package io.sentry.autoinstall.logback
 import basePom
 import installMavenWrapper
 import io.sentry.autoinstall.SentryInstaller
-import org.apache.maven.shared.verifier.VerificationException
-import org.apache.maven.shared.verifier.Verifier
+import org.apache.maven.it.VerificationException
+import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -64,8 +64,7 @@ class LogbackAutoInstallTestIT {
         val path = getPOM(false)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-logback won't be installed because it was already installed directly")
         verifier.resetStreams()
     }
@@ -76,8 +75,7 @@ class LogbackAutoInstallTestIT {
         val path = getPOM(logbackVersion = "0.9.30")
         val verifier = Verifier(path)
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog(
             "sentry-logback won't be installed because the current version is " +
                 "lower than the minimum supported version 1.0.0",
@@ -93,8 +91,7 @@ class LogbackAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-logback was successfully installed with version: ${SentryInstaller.SENTRY_VERSION}")
         verifier.verifyFilePresent("target/lib/sentry-logback-${SentryInstaller.SENTRY_VERSION}.jar")
         verifier.resetStreams()
@@ -109,8 +106,7 @@ class LogbackAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-logback was successfully installed with version: $sentryVersion")
         verifier.verifyFilePresent("target/lib/sentry-logback-$sentryVersion.jar")
         verifier.resetStreams()

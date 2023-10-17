@@ -4,8 +4,8 @@ import basePom
 import installMavenWrapper
 import io.sentry.autoinstall.SentryInstaller
 import io.sentry.autoinstall.graphql.GraphqlInstallStrategy
-import org.apache.maven.shared.verifier.VerificationException
-import org.apache.maven.shared.verifier.Verifier
+import org.apache.maven.it.VerificationException
+import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -67,8 +67,7 @@ class GraphqlAutoInstallTestIT {
         val verifier = Verifier(path)
 
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-graphql won't be installed because it was already installed directly")
         verifier.resetStreams()
     }
@@ -80,8 +79,7 @@ class GraphqlAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-graphql was successfully installed with version: ${SentryInstaller.SENTRY_VERSION}")
         verifier.verifyFilePresent("target/lib/sentry-graphql-${SentryInstaller.SENTRY_VERSION}.jar")
         verifier.resetStreams()
@@ -96,8 +94,7 @@ class GraphqlAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyTextInLog("sentry-graphql was successfully installed with version: $sentryVersion")
         verifier.verifyFilePresent("target/lib/sentry-graphql-$sentryVersion.jar")
         verifier.resetStreams()

@@ -2,8 +2,8 @@ package io.sentry.autoinstall
 
 import basePom
 import installMavenWrapper
-import org.apache.maven.shared.verifier.VerificationException
-import org.apache.maven.shared.verifier.Verifier
+import org.apache.maven.it.VerificationException
+import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -39,8 +39,7 @@ class SentryAutoInstallTestIT {
         val path = getPOM()
         val verifier = Verifier(path)
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyFilePresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
         verifier.resetStreams()
     }
@@ -52,8 +51,7 @@ class SentryAutoInstallTestIT {
         val path = getPOM(alreadyInstalledSentryVersion)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyFilePresent("target/lib/sentry-$alreadyInstalledSentryVersion.jar")
         verifier.verifyTextInLog("Sentry already installed $alreadyInstalledSentryVersion")
         verifier.resetStreams()
@@ -73,8 +71,7 @@ class SentryAutoInstallTestIT {
         val path = getPOM(pluginConfiguration = pluginConfiguration)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyFileNotPresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
         verifier.verifyTextInLog("Auto Install disabled for project ")
         verifier.resetStreams()
@@ -93,8 +90,7 @@ class SentryAutoInstallTestIT {
         val path = getPOM(pluginConfiguration = pluginConfiguration)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyFileNotPresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
         verifier.verifyTextInLog("Auto Install disabled for project ")
         verifier.resetStreams()
@@ -113,8 +109,7 @@ class SentryAutoInstallTestIT {
         val path = getPOM(pluginConfiguration = pluginConfiguration)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
-        verifier.addCliArgument("install")
-        verifier.execute()
+        verifier.executeGoal("install")
         verifier.verifyFilePresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
         verifier.resetStreams()
     }
