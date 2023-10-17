@@ -24,7 +24,6 @@ import io.sentry.autoinstall.spring.Spring6InstallStrategy;
 import io.sentry.autoinstall.spring.SpringBoot2InstallStrategy;
 import io.sentry.autoinstall.spring.SpringBoot3InstallStrategy;
 import java.util.List;
-import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -35,10 +34,12 @@ import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.project.DefaultDependencyResolutionRequest;
 import org.apache.maven.project.DependencyResolutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectDependenciesResolver;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,9 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleParticipant {
 
-  private static final String AUTO_INSTALL_ENABLED_PROPERTY = "sentry.autoinstall.enabled";
+  private static final String SENTRY_PLUGIN_ARTIFACT = "sentry-maven-plugin";
+  private static final String SKIP_ALL_FLAG = "skip";
+  private static final String SKIP_AUTO_INSTALL_FLAG = "skipAutoInstall";
 
   private static final List<Class<? extends AbstractIntegrationInstaller>> installers =
       Stream.of(
@@ -68,15 +71,17 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
   @Override
   public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-    for (MavenProject project : session.getProjects()) {
-      Properties properties = project.getProperties();
 
-      if (!isEnabled(properties)) {
-        logger.info("Auto Install disabled, not installing dependencies");
+    for (MavenProject project : session.getProjects()) {
+      logger.info("Checking project '" + project.getId() + "'");
+
+      if (shouldSkip(project)) {
+        logger.info(
+            "Auto Install disabled for project "
+                + project.getId()
+                + " , not installing dependencies");
         continue;
       }
-
-      logger.info("Checking project '" + project.getId() + "'");
 
       List<Artifact> resolvedArtifacts;
       try {
@@ -120,8 +125,35 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
     }
   }
 
-  private boolean isEnabled(Properties userProperties) {
-    return Boolean.parseBoolean(userProperties.getProperty(AUTO_INSTALL_ENABLED_PROPERTY, "true"));
+  private boolean shouldSkip(MavenProject project) {
+    Plugin sentryPlugin =
+        project.getBuildPlugins().stream()
+            .filter(
+                (plugin) ->
+                    plugin.getGroupId().equals(SENTRY_GROUP_ID)
+                        && plugin.getArtifactId().equals(SENTRY_PLUGIN_ARTIFACT))
+            .findFirst()
+            .orElse(null);
+
+    if (sentryPlugin == null) {
+      return true;
+    }
+
+    Xpp3Dom dom = (Xpp3Dom) sentryPlugin.getConfiguration();
+
+    if (dom == null) {
+      return false;
+    }
+
+    boolean skipAutoInstall =
+        dom.getChild(SKIP_AUTO_INSTALL_FLAG) != null
+            && Boolean.parseBoolean(dom.getChild(SKIP_AUTO_INSTALL_FLAG).getValue());
+
+    boolean skip =
+        dom.getChild(SKIP_ALL_FLAG) != null
+            && Boolean.parseBoolean(dom.getChild(SKIP_ALL_FLAG).getValue());
+
+    return skipAutoInstall || skip;
   }
 
   private boolean shouldInstallSpring(List<Artifact> resolvedArtifacts) {

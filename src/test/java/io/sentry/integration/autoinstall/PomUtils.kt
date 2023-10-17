@@ -36,7 +36,19 @@ fun installMavenWrapper(
 fun basePom(
     dependencies: String?,
     installedSentryVersion: String? = null,
+    pluginConfiguration: String = "",
 ): String {
+    val sentryPlugin =
+        """
+        <plugin>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-maven-plugin</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <extensions>true</extensions>
+            $pluginConfiguration
+        </plugin>
+        """.trimIndent()
+
     val sentryDependency =
         installedSentryVersion?.let {
             """
@@ -71,12 +83,7 @@ fun basePom(
 
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>io.sentry</groupId>
-                        <artifactId>sentry-maven-plugin</artifactId>
-                        <version>1.0-SNAPSHOT</version>
-                        <extensions>true</extensions>
-                    </plugin>
+                    $sentryPlugin
                     <plugin>
                         <artifactId>maven-dependency-plugin</artifactId>
                         <executions>

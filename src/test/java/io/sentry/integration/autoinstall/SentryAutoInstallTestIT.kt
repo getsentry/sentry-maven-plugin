@@ -23,8 +23,11 @@ class SentryAutoInstallTestIT {
         installMavenWrapper(file, "3.6.3")
     }
 
-    fun getPOM(installedSentryVersion: String? = null): String {
-        val pomContent = basePom("", installedSentryVersion)
+    fun getPOM(
+        installedSentryVersion: String? = null,
+        pluginConfiguration: String = "",
+    ): String {
+        val pomContent = basePom("", installedSentryVersion, pluginConfiguration)
 
         Files.write(Path("${file.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
 
@@ -54,6 +57,66 @@ class SentryAutoInstallTestIT {
         verifier.execute()
         verifier.verifyFilePresent("target/lib/sentry-$alreadyInstalledSentryVersion.jar")
         verifier.verifyTextInLog("Sentry already installed $alreadyInstalledSentryVersion")
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun verifyNoActionIfWholePluginIsSkippedButAutoInstallIsNot() {
+        val pluginConfiguration =
+            """
+            <configuration>
+                <skip>true</skip>
+                <skipAutoInstall>false</skipAutoInstall>
+            </configuration>
+            """.trimIndent()
+
+        val path = getPOM(pluginConfiguration = pluginConfiguration)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.addCliArgument("install")
+        verifier.execute()
+        verifier.verifyFileNotPresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyTextInLog("Auto Install disabled for project ")
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun verifyNoActionIfAutoInstallIsSkipped() {
+        val pluginConfiguration =
+            """
+            <configuration>
+                <skipAutoInstall>true</skipAutoInstall>
+            </configuration>
+            """.trimIndent()
+
+        val path = getPOM(pluginConfiguration = pluginConfiguration)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.addCliArgument("install")
+        verifier.execute()
+        verifier.verifyFileNotPresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyTextInLog("Auto Install disabled for project ")
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun verifySentryInstalledIfSkipFlagSetToFalse() {
+        val pluginConfiguration =
+            """
+            <configuration>
+                <skipAutoInstall>false</skipAutoInstall>
+            </configuration>
+            """.trimIndent()
+
+        val path = getPOM(pluginConfiguration = pluginConfiguration)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.addCliArgument("install")
+        verifier.execute()
+        verifier.verifyFilePresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
         verifier.resetStreams()
     }
 }
