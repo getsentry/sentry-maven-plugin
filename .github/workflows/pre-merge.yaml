@@ -26,4 +26,4 @@ jobs:
           java-version: '17'
 
       - name: Build the Release variant
-        run: ./mvnw clean install package -PintegrationTests
+        run: ./mvnw clean verify -PintegrationTests
