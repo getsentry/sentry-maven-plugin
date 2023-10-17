@@ -12,7 +12,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 public class ExtensionConfigurationHolderMojo extends AbstractMojo {
 
   @Parameter(property = "skipAutoInstall", defaultValue = "false")
-  private boolean autoInstall;
+  private boolean skipAutoInstall;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {}
