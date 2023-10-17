@@ -59,10 +59,13 @@ public class UploadSourceBundleMojo extends AbstractMojo {
   @Parameter(defaultValue = "false")
   private boolean skip;
 
+  @Parameter(defaultValue = "false")
+  private boolean skipSourceBundle;
+
   @Component private BuildPluginManager pluginManager;
 
   public void execute() throws MojoExecutionException {
-    if (skip) {
+    if (skip || skipSourceBundle) {
       logger.info("Upload Source Bundle skipped");
       return;
     }

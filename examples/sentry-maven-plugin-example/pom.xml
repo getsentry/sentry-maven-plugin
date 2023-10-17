@@ -43,6 +43,8 @@
 
                     <!-- Flag to skip Plugin execution -->
                     <skip>false</skip>
+                    <skipSourceBundle>false</skipSourceBundle>
+                    <skipAutoInstall>false</skipAutoInstall>
                 </configuration>
                 <executions>
                     <execution>
