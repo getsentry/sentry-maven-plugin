@@ -76,7 +76,7 @@ class SentryAutoInstallTestIT {
         verifier.isAutoclean = false
         verifier.addCliArgument("install")
         verifier.execute()
-        verifier.verifyFileNotPresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyFileNotPresent("target/lib/sentry-${SdkVersionInfo.sentryVersion}.jar")
         verifier.verifyTextInLog("Auto Install disabled for project ")
         verifier.resetStreams()
     }
@@ -96,7 +96,7 @@ class SentryAutoInstallTestIT {
         verifier.isAutoclean = false
         verifier.addCliArgument("install")
         verifier.execute()
-        verifier.verifyFileNotPresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyFileNotPresent("target/lib/sentry-${SdkVersionInfo.sentryVersion}.jar")
         verifier.verifyTextInLog("Auto Install disabled for project ")
         verifier.resetStreams()
     }
@@ -116,7 +116,7 @@ class SentryAutoInstallTestIT {
         verifier.isAutoclean = false
         verifier.addCliArgument("install")
         verifier.execute()
-        verifier.verifyFilePresent("target/lib/sentry-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyFilePresent("target/lib/sentry-${SdkVersionInfo.sentryVersion}.jar")
         verifier.resetStreams()
     }
 }
