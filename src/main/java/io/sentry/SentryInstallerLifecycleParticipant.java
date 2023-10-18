@@ -94,7 +94,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
                 .collect(Collectors.toList());
       } catch (DependencyResolutionException e) {
         logger.error("Unable to resolve all dependencies", e);
-        throw new RuntimeException(e);
+        continue;
       }
 
       Model currModel = project.getModel();
@@ -117,12 +117,11 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
               installerClass.getDeclaredConstructor().newInstance();
           installer.install(dependencyList, resolvedArtifacts, autoInstallState);
         } catch (Throwable e) {
-          throw new RuntimeException(e);
+          logger.error("Unable to instantiate installer class: " + installerClass.getName(), e);
         }
       }
-
-      super.afterProjectsRead(session);
     }
+    super.afterProjectsRead(session);
   }
 
   private boolean shouldSkip(MavenProject project) {
