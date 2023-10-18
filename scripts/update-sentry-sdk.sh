@@ -7,7 +7,7 @@ content=$(cat $file)
 
 regex='(sdk_version = *)([0-9\.]+)'
 if ! [[ $content =~ $regex ]]; then
-    echo "Failed to find the Android SDK version in $file"
+    echo "Failed to find the Java SDK version in $file"
     exit 1
 fi
 
