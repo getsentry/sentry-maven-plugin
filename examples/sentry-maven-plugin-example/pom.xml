@@ -19,6 +19,7 @@
                 <groupId>io.sentry</groupId>
                 <artifactId>sentry-maven-plugin</artifactId>
                 <version>1.0-SNAPSHOT</version>
+                <extensions>true</extensions>
                 <configuration>
                     <!-- for showing output of sentry-cli -->
                     <debugSentryCli>true</debugSentryCli>
@@ -41,6 +42,8 @@
 
                     <!-- Flag to skip Plugin execution -->
                     <skip>false</skip>
+                    <skipSourceBundle>false</skipSourceBundle>
+                    <skipAutoInstall>false</skipAutoInstall>
                 </configuration>
                 <executions>
                     <execution>
@@ -79,11 +82,6 @@
         </plugins>
     </build>
     <dependencies>
-        <dependency>
-            <groupId>io.sentry</groupId>
-            <artifactId>sentry</artifactId>
-            <version>6.24.0</version>
-        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
