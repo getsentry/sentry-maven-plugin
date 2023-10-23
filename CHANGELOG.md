@@ -9,6 +9,12 @@
 - Auto-Install Sentry and Sentry Integrations using maven build extension ([#10](https://github.com/getsentry/sentry-maven-plugin/pull/10))
 - Auto-Update cli and sentry sdk version ([#12](https://github.com/getsentry/sentry-maven-plugin/pull/12))
 
+### Dependencies
+
+- Bump CLI from v2.19.1 to v2.21.2 ([#19](https://github.com/getsentry/sentry-maven-plugin/pull/19))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2212)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.19.1...2.21.2)
+
 ## 0.0.4
 
 - Download and Bundle sentry-cli with maven plugin ([#8](https://github.com/getsentry/sentry-maven-plugin/pull/8))
