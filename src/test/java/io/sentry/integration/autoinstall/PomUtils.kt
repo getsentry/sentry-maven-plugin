@@ -1,5 +1,5 @@
 import io.sentry.autoinstall.Constants
-import org.apache.maven.shared.verifier.Verifier
+import org.apache.maven.it.Verifier
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -23,12 +23,10 @@ fun installMavenWrapper(
         """.trimIndent()
 
     Files.write(Path("${file.absolutePath}/pom.xml"), emptyPom.toByteArray(), StandardOpenOption.CREATE)
-
     Verifier(file.absolutePath).apply {
-        addCliArgument("wrapper:wrapper")
-        addCliArgument("-N")
-        addCliArgument("-Dmaven=$mavenVersionToUse")
-        execute()
+        addCliOption("-N")
+        addCliOption("-Dmaven=$mavenVersionToUse")
+        executeGoal("wrapper:wrapper")
     }
     Files.delete(Path("${file.absolutePath}/pom.xml"))
 }
