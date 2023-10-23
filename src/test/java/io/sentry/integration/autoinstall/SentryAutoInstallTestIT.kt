@@ -1,8 +1,8 @@
 package io.sentry.integration.autoinstall
 
 import basePom
-import installMavenWrapper
 import io.sentry.autoinstall.util.SdkVersionInfo
+import io.sentry.integration.installMavenWrapper
 import org.apache.maven.it.VerificationException
 import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach

@@ -35,10 +35,8 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
-import org.apache.maven.project.DefaultDependencyResolutionRequest;
 import org.apache.maven.project.DependencyResolutionException;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.ProjectDependenciesResolver;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.LoggerFactory;
@@ -64,7 +62,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
               QuartzInstallStrategy.class)
           .collect(Collectors.toList());
 
-  @Inject ProjectDependenciesResolver resolver;
+  @Inject ArtifactResolver resolver;
 
   private static org.slf4j.Logger logger =
       LoggerFactory.getLogger(SentryInstallerLifecycleParticipant.class);
@@ -85,13 +83,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
       List<Artifact> resolvedArtifacts;
       try {
-        var request =
-            new DefaultDependencyResolutionRequest(project, session.getRepositorySession());
-        var result = resolver.resolve(request);
-        resolvedArtifacts =
-            result.getDependencies().stream()
-                .map(it -> it.getArtifact())
-                .collect(Collectors.toList());
+        resolvedArtifacts = resolver.resolveArtifactsForProject(project, session);
       } catch (DependencyResolutionException e) {
         logger.error("Unable to resolve all dependencies", e);
         continue;
