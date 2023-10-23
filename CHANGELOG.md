@@ -14,6 +14,9 @@
 - Bump CLI from v2.19.1 to v2.21.2 ([#19](https://github.com/getsentry/sentry-maven-plugin/pull/19))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2212)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.19.1...2.21.2)
+- Bump Sentry SDK from v6.25.2 to v6.32.0 ([#20](https://github.com/getsentry/sentry-maven-plugin/pull/20))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6320)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.25.2...6.32.0)
 
 ## 0.0.4
 
