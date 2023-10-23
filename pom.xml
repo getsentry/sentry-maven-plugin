@@ -90,7 +90,7 @@
           <artifactId>maven-release-plugin</artifactId>
           <version>3.0.0</version>
           <configuration>
-              <releaseVersion>0.0.4</releaseVersion>
+              <releaseVersion>0.0.5</releaseVersion>
               <pushChanges>false</pushChanges>
               <tagNameFormat>@{project.version}</tagNameFormat>
               <autoVersionSubmodules>true</autoVersionSubmodules>
