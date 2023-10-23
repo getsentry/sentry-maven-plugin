@@ -4,10 +4,9 @@
 
 ### Features
 
-- Add spotless formatter maven plugin ([#14](https://github.com/getsentry/sentry-maven-plugin/pull/14))
 - Add parameter to skip plugin execution ([#17](https://github.com/getsentry/sentry-maven-plugin/pull/17))
-- Auto-Install Sentry and Sentry Integrations using maven build extension ([#10](https://github.com/getsentry/sentry-maven-plugin/pull/10))
-- Auto-Update cli and sentry sdk version ([#12](https://github.com/getsentry/sentry-maven-plugin/pull/12))
+- Auto-Install Sentry and Sentry integrations using Maven build extension ([#10](https://github.com/getsentry/sentry-maven-plugin/pull/10))
+- Auto-Update `sentry-cli` and Sentry Java SDK version ([#12](https://github.com/getsentry/sentry-maven-plugin/pull/12))
 
 ### Dependencies
 
