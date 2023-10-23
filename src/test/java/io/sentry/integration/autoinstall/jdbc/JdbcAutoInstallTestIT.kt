@@ -2,7 +2,7 @@ package io.sentry.integration.autoinstall.jdbc
 
 import basePom
 import installMavenWrapper
-import io.sentry.autoinstall.SentryInstaller
+import io.sentry.autoinstall.util.SdkVersionInfo
 import org.apache.maven.it.VerificationException
 import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach
@@ -77,8 +77,8 @@ class JdbcAutoInstallTestIT {
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyTextInLog("sentry-jdbc was successfully installed with version: ${SentryInstaller.SENTRY_VERSION}")
-        verifier.verifyFilePresent("target/lib/sentry-jdbc-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyTextInLog("sentry-jdbc was successfully installed with version: ${SdkVersionInfo.getSentryVersion()}")
+        verifier.verifyFilePresent("target/lib/sentry-jdbc-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.resetStreams()
         verifier.deleteDirectory(path)
     }

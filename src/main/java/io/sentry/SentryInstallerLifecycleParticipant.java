@@ -102,6 +102,13 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
       List<Dependency> dependencyList = currModel.getDependencies();
       String sentryVersion = new SentryInstaller().install(dependencyList, resolvedArtifacts);
 
+      if (sentryVersion == null) {
+        logger.error(
+            "No Sentry SDK Version found, cannot auto-install sentry integrations for project + "
+                + project.getId());
+        continue;
+      }
+
       AutoInstallState autoInstallState = new AutoInstallState();
       autoInstallState.setSentryVersion(sentryVersion);
       autoInstallState.setInstallSpring(shouldInstallSpring(resolvedArtifacts));

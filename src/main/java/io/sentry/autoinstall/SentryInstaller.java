@@ -3,6 +3,7 @@ package io.sentry.autoinstall;
 import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
 import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
 
+import io.sentry.autoinstall.util.SdkVersionInfo;
 import java.util.List;
 import org.apache.maven.model.Dependency;
 import org.eclipse.aether.artifact.Artifact;
@@ -10,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SentryInstaller {
-  public static final String SENTRY_VERSION = "6.28.0";
-
   private final Logger logger;
 
   public SentryInstaller() {
@@ -37,14 +36,21 @@ public class SentryInstaller {
       logger.info("Sentry already installed " + sentryDependency.getVersion());
       return sentryDependency.getVersion();
     } else {
-      logger.info("Installing Sentry with version " + SENTRY_VERSION);
+      String sentryVersion = SdkVersionInfo.getSentryVersion();
+
+      if (sentryVersion == null) {
+        logger.error("Unable to load sentry version, Sentry SDK cannot be auto-installed");
+        return null;
+      }
+
+      logger.info("Installing Sentry with version " + sentryVersion);
       Dependency newDep = new Dependency();
       newDep.setGroupId(SENTRY_GROUP_ID);
       newDep.setArtifactId(SENTRY_ARTIFACT_ID);
-      newDep.setVersion(SENTRY_VERSION);
+      newDep.setVersion(sentryVersion);
 
       dependencyList.add(newDep);
+      return sentryVersion;
     }
-    return SENTRY_VERSION;
   }
 }

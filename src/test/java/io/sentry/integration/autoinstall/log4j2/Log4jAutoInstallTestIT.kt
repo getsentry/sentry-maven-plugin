@@ -1,8 +1,8 @@
-package io.sentry.autoinstall.log4j2
+package io.sentry.integration.autoinstall.log4j2
 
 import basePom
 import installMavenWrapper
-import io.sentry.autoinstall.SentryInstaller
+import io.sentry.autoinstall.util.SdkVersionInfo
 import org.apache.maven.it.VerificationException
 import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach
@@ -77,8 +77,8 @@ class Log4jAutoInstallTestIT {
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyTextInLog("sentry-log4j2 was successfully installed with version: ${SentryInstaller.SENTRY_VERSION}")
-        verifier.verifyFilePresent("target/lib/sentry-log4j2-${SentryInstaller.SENTRY_VERSION}.jar")
+        verifier.verifyTextInLog("sentry-log4j2 was successfully installed with version: ${SdkVersionInfo.getSentryVersion()}")
+        verifier.verifyFilePresent("target/lib/sentry-log4j2-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.resetStreams()
         verifier.deleteDirectory(path)
     }
