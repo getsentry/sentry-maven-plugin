@@ -1,8 +1,8 @@
-package io.sentry.autoinstall
+package io.sentry.integration.autoinstall
 
 import basePom
 import installMavenWrapper
-import io.sentry.SdkVersionInfo
+import io.sentry.autoinstall.util.SdkVersionInfo
 import org.apache.maven.it.VerificationException
 import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach
@@ -41,7 +41,7 @@ class SentryAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyFilePresent("target/lib/sentry-${SdkVersionInfo.sentryVersion}.jar")
+        verifier.verifyFilePresent("target/lib/sentry-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.resetStreams()
     }
 
@@ -73,7 +73,7 @@ class SentryAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyFileNotPresent("target/lib/sentry-${SdkVersionInfo.sentryVersion}.jar")
+        verifier.verifyFileNotPresent("target/lib/sentry-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.verifyTextInLog("Auto Install disabled for project ")
         verifier.resetStreams()
     }
@@ -92,7 +92,7 @@ class SentryAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyFileNotPresent("target/lib/sentry-${SdkVersionInfo.sentryVersion}.jar")
+        verifier.verifyFileNotPresent("target/lib/sentry-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.verifyTextInLog("Auto Install disabled for project ")
         verifier.resetStreams()
     }
@@ -111,7 +111,18 @@ class SentryAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyFilePresent("target/lib/sentry-${SdkVersionInfo.sentryVersion}.jar")
+        verifier.verifyFilePresent("target/lib/sentry-${SdkVersionInfo.getSentryVersion()}.jar")
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun verifyLogAndNoActionIfSentryVersionCannotBeResolved() {
+        val path = getPOM()
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyFilePresent("target/lib/sentry-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.resetStreams()
     }
 }

@@ -3,18 +3,14 @@ package io.sentry.autoinstall;
 import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
 import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
 
-import java.io.IOException;
+import io.sentry.autoinstall.util.SdkVersionInfo;
 import java.util.List;
-import java.util.Properties;
 import org.apache.maven.model.Dependency;
 import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SentryInstaller {
-
-  private static final String SENTRY_FALLBACK_VERSION = "6.28.0";
-
   private final Logger logger;
 
   public SentryInstaller() {
@@ -40,14 +36,11 @@ public class SentryInstaller {
       logger.info("Sentry already installed " + sentryDependency.getVersion());
       return sentryDependency.getVersion();
     } else {
-      String sentryVersion = SENTRY_FALLBACK_VERSION;
-      try {
-        Properties prop = new Properties();
-        prop.load(SentryInstaller.class.getResourceAsStream("/sentry-sdk.properties"));
-        sentryVersion = prop.getProperty("sdk_version");
-      } catch (NullPointerException | IOException e) {
-        logger.warn(
-            "Unable to load sentry version, using fallback version " + SENTRY_FALLBACK_VERSION);
+      String sentryVersion = SdkVersionInfo.getSentryVersion();
+
+      if (sentryVersion == null) {
+        logger.error("Unable to load sentry version, Sentry SDK cannot be auto-installed");
+        return null;
       }
 
       logger.info("Installing Sentry with version " + sentryVersion);

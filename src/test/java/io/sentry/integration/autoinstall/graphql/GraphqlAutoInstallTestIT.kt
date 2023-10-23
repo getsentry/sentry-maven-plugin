@@ -2,7 +2,7 @@ package io.sentry.integration.autoinstall.graphql
 
 import basePom
 import installMavenWrapper
-import io.sentry.SdkVersionInfo
+import io.sentry.autoinstall.util.SdkVersionInfo
 import org.apache.maven.it.VerificationException
 import org.apache.maven.it.Verifier
 import org.junit.jupiter.api.BeforeEach
@@ -77,8 +77,8 @@ class GraphqlAutoInstallTestIT {
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyTextInLog("sentry-graphql was successfully installed with version: ${SdkVersionInfo.sentryVersion}")
-        verifier.verifyFilePresent("target/lib/sentry-graphql-${SdkVersionInfo.sentryVersion}.jar")
+        verifier.verifyTextInLog("sentry-graphql was successfully installed with version: ${SdkVersionInfo.getSentryVersion()}")
+        verifier.verifyFilePresent("target/lib/sentry-graphql-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.resetStreams()
         verifier.deleteDirectory(path)
     }

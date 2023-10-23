@@ -1,12 +1,13 @@
 package io.sentry.unit.autoinstall
 
-import io.sentry.SdkVersionInfo
 import io.sentry.autoinstall.SentryInstaller
+import io.sentry.autoinstall.util.SdkVersionInfo
 import io.sentry.unit.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
 import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.slf4j.Logger
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -59,14 +60,34 @@ class SentryAutoInstallTest {
 
         val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
 
-        assertEquals(SdkVersionInfo.sentryVersion, sentryVersion)
+        assertEquals(SdkVersionInfo.getSentryVersion(), sentryVersion)
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "Installing Sentry with version ${SdkVersionInfo.sentryVersion}"
+                "Installing Sentry with version ${SdkVersionInfo.getSentryVersion()}"
         }
 
         assertTrue(fixture.dependencies.any { it.groupId == "io.sentry" && it.artifactId == "sentry" })
+    }
+
+    @Test
+    fun `if sentry version cannot be resolved, don't install sentry and return null`() {
+        val sut = fixture.getSut()
+
+        Mockito.mockStatic(SdkVersionInfo::class.java).use { utilities ->
+            utilities.`when`<String>(SdkVersionInfo::getSentryVersion).thenReturn(null)
+
+            val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
+
+            assertEquals(null, sentryVersion)
+
+            assertTrue {
+                fixture.logger.capturedMessage ==
+                    "Unable to load sentry version, Sentry SDK cannot be auto-installed"
+            }
+
+            assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry" })
+        }
     }
 
     private class SentryInstallerImpl(logger: Logger) : SentryInstaller(logger)

@@ -14,6 +14,10 @@ class CapturingTestLogger : BaseTestLogger() {
         capturedThrowable = throwable
     }
 
+    override fun error(msg: String) {
+        capturedMessage = msg
+    }
+
     override fun warn(
         msg: String,
         throwable: Throwable?,
