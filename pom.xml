@@ -241,7 +241,6 @@
         <scope>test</scope>
     </dependency>
   </dependencies>
-
     <profiles>
         <profile>
             <id>integrationTests</id>
