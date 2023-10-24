@@ -2,6 +2,7 @@ package io.sentry;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
@@ -74,7 +75,8 @@ public class ReportDependenciesMojo extends AbstractMojo {
         resolvedArtifacts.stream()
             .map(it -> it.getGroupId() + ":" + it.getArtifactId() + ":" + it.getVersion())
             .sorted()
-            .collect(Collectors.toList()),
+            .collect(Collectors.joining("\n"))
+            .getBytes(StandardCharsets.UTF_8),
         StandardOpenOption.CREATE,
         StandardOpenOption.TRUNCATE_EXISTING);
 
