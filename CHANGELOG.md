@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Report dependencies ([#22](https://github.com/getsentry/sentry-maven-plugin/pull/22))
+
 ## 0.0.5
 
 ### Features
