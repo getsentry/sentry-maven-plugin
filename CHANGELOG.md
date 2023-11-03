@@ -6,6 +6,12 @@
 
 - Report dependencies ([#22](https://github.com/getsentry/sentry-maven-plugin/pull/22))
 
+### Dependencies
+
+- Bump Sentry SDK from v6.32.0 to v6.33.0 ([#23](https://github.com/getsentry/sentry-maven-plugin/pull/23))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#6330)
+  - [diff](https://github.com/getsentry/sentry-java/compare/6.32.0...6.33.0)
+
 ## 0.0.5
 
 ### Features
