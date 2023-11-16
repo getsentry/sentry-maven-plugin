@@ -15,12 +15,15 @@ class SpringBoot3AutoInstallTest {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
         val resolvedArtifacts = ArrayList<Artifact>()
-        val installState = AutoInstallState()
+        lateinit var installState: AutoInstallState
 
         fun getSut(
             installSpring: Boolean = true,
             springVersion: String = "3.0.0",
         ): SpringBoot3InstallStrategy {
+            installState = AutoInstallState("6.28.0")
+            installState.isInstallSpring = installSpring
+
             resolvedArtifacts.add(
                 DefaultArtifact(
                     "org.springframework.boot",
@@ -29,9 +32,6 @@ class SpringBoot3AutoInstallTest {
                     springVersion,
                 ),
             )
-
-            installState.isInstallSpring = installSpring
-            installState.sentryVersion = "6.28.0"
 
             return SpringBoot3InstallStrategyImpl(logger)
         }

@@ -7,47 +7,51 @@ import io.sentry.semver.Version;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.aether.artifact.Artifact;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JdbcInstallStrategy extends AbstractIntegrationInstaller {
 
-  private static final String SPRING_JDBC_GROUP = "org.springframework";
-  private static final String SPRING_JDBC_ID = "spring-jdbc";
+  private static final @NotNull String SPRING_JDBC_GROUP = "org.springframework";
+  private static final @NotNull String SPRING_JDBC_ID = "spring-jdbc";
 
-  private static final String HSQL_GROUP = "org.hsqldb";
-  private static final String HSQL_ID = "hsqldb";
+  private static final @NotNull String HSQL_GROUP = "org.hsqldb";
+  private static final @NotNull String HSQL_ID = "hsqldb";
 
-  private static final String MYSQL_GROUP = "mysql";
-  private static final String MYSQL_ID = "mysql-connector-java";
+  private static final @NotNull String MYSQL_GROUP = "mysql";
+  private static final @NotNull String MYSQL_ID = "mysql-connector-java";
 
-  private static final String MARIADB_GROUP = "org.mariadb.jdbc";
-  private static final String MARIADB_ID = "mariadb-java-client";
+  private static final @NotNull String MARIADB_GROUP = "org.mariadb.jdbc";
+  private static final @NotNull String MARIADB_ID = "mariadb-java-client";
 
-  private static final String POSTGRES_GROUP = "org.postgresql";
-  private static final String POSTGRES_ID = "postgresql";
+  private static final @NotNull String POSTGRES_GROUP = "org.postgresql";
+  private static final @NotNull String POSTGRES_ID = "postgresql";
 
-  private static final String ORACLE_GROUP = "com.oracle.jdbc";
-  private static final String ORACLE_DATABASE_GROUP = "com.oracle.database.jdbc";
-  private static final String ORACLE_OJDBC_ID_PREFIX = "ojdbc";
+  private static final @NotNull String ORACLE_GROUP = "com.oracle.jdbc";
+  private static final @NotNull String ORACLE_DATABASE_GROUP = "com.oracle.database.jdbc";
+  private static final @NotNull String ORACLE_OJDBC_ID_PREFIX = "ojdbc";
 
-  public static final String SENTRY_JDBC_ID = "sentry-jdbc";
+  public static final @NotNull String SENTRY_JDBC_ID = "sentry-jdbc";
 
   public JdbcInstallStrategy() {
     this(LoggerFactory.getLogger(SentryInstaller.class));
   }
 
-  public JdbcInstallStrategy(Logger logger) {
-    this.logger = logger;
+  public JdbcInstallStrategy(final @NotNull Logger logger) {
+    super(logger);
   }
 
-  protected Version minSupportedSentryVersion() {
+  @Override
+  protected @NotNull Version minSupportedSentryVersion() {
     return Version.create(5, 3, 0);
   }
 
   @Override
-  protected Artifact findThirdPartyDependency(List<Artifact> resolvedArtifacts) {
-    List<String> oracleDependencyList = new ArrayList<>();
+  protected @Nullable Artifact findThirdPartyDependency(
+      final @NotNull List<Artifact> resolvedArtifacts) {
+    final @NotNull List<String> oracleDependencyList = new ArrayList<>();
 
     for (int i = 5; i <= 15; i++) {
       oracleDependencyList.add(ORACLE_GROUP + ":" + ORACLE_OJDBC_ID_PREFIX + i);
@@ -74,12 +78,12 @@ public class JdbcInstallStrategy extends AbstractIntegrationInstaller {
   }
 
   @Override
-  protected boolean shouldInstallModule(AutoInstallState autoInstallState) {
+  protected boolean shouldInstallModule(final @NotNull AutoInstallState autoInstallState) {
     return autoInstallState.isInstallJdbc();
   }
 
   @Override
-  protected String sentryModuleId() {
+  protected @NotNull String sentryModuleId() {
     return SENTRY_JDBC_ID;
   }
 }

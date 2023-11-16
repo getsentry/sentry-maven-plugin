@@ -6,42 +6,49 @@ import io.sentry.semver.Version;
 import java.util.List;
 import org.apache.maven.model.Dependency;
 import org.eclipse.aether.artifact.Artifact;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractIntegrationInstaller {
 
-  protected org.slf4j.Logger logger;
+  protected @NotNull org.slf4j.Logger logger;
 
-  protected Version minSupportedThirdPartyVersion() {
+  protected @Nullable Version minSupportedThirdPartyVersion() {
     return null;
   }
 
-  protected Version maxSupportedThirdPartyVersion() {
+  protected @Nullable Version maxSupportedThirdPartyVersion() {
     return null;
   }
 
-  protected Version minSupportedSentryVersion() {
+  protected @NotNull Version minSupportedSentryVersion() {
     return Version.create(0, 0, 0);
   }
 
-  protected abstract Artifact findThirdPartyDependency(List<Artifact> resolvedArtifacts);
+  protected abstract @Nullable Artifact findThirdPartyDependency(
+      final @NotNull List<Artifact> resolvedArtifacts);
 
-  protected abstract boolean shouldInstallModule(AutoInstallState autoInstallState);
+  protected abstract boolean shouldInstallModule(final @NotNull AutoInstallState autoInstallState);
 
-  protected abstract String sentryModuleId();
+  protected abstract @NotNull String sentryModuleId();
+
+  protected AbstractIntegrationInstaller(final @NotNull org.slf4j.Logger logger) {
+    this.logger = logger;
+  }
 
   public void install(
-      List<Dependency> dependencyList,
-      List<Artifact> resolvedArtifacts,
-      AutoInstallState autoInstallState) {
+      final @NotNull List<Dependency> dependencyList,
+      final @NotNull List<Artifact> resolvedArtifacts,
+      final @NotNull AutoInstallState autoInstallState) {
     if (!shouldInstallModule(autoInstallState)) {
       logger.info(
           sentryModuleId() + " won't be installed because it was already installed directly");
       return;
     }
 
-    String sentryVersion = autoInstallState.getSentryVersion();
+    final @NotNull String sentryVersion = autoInstallState.getSentryVersion();
 
-    Artifact thirdPartyDependency = findThirdPartyDependency(resolvedArtifacts);
+    final @Nullable Artifact thirdPartyDependency = findThirdPartyDependency(resolvedArtifacts);
 
     if (thirdPartyDependency == null) {
       logger.info(
@@ -76,7 +83,7 @@ public abstract class AbstractIntegrationInstaller {
 
     if (minSupportedSentryVersion().getMajor() > 0) {
       try {
-        Version sentrySemVersion = Version.parseVersion(sentryVersion);
+        final @NotNull Version sentrySemVersion = Version.parseVersion(sentryVersion);
         if (sentrySemVersion.isLowerThan(minSupportedSentryVersion())) {
           logger.warn(
               sentryModuleId()
@@ -96,7 +103,7 @@ public abstract class AbstractIntegrationInstaller {
     }
 
     logger.info("Installing " + sentryModuleId());
-    Dependency newDep = new Dependency();
+    final @NotNull Dependency newDep = new Dependency();
     newDep.setGroupId(SENTRY_GROUP_ID);
     newDep.setArtifactId(sentryModuleId());
     newDep.setVersion(sentryVersion);
@@ -106,8 +113,8 @@ public abstract class AbstractIntegrationInstaller {
     logger.info(sentryModuleId() + " was successfully installed with version: " + sentryVersion);
   }
 
-  private Version parseVersion(String version) {
-    final String suffix = ".RELEASE";
+  private @NotNull Version parseVersion(final @NotNull String version) {
+    final @NotNull String suffix = ".RELEASE";
     return Version.parseVersion(
         version.endsWith(suffix)
             ? version.substring(0, version.length() - suffix.length())

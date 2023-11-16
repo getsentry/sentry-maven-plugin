@@ -1,13 +1,14 @@
 package io.sentry;
 
-import static io.sentry.SentryCliProvider.getCliPath;
+import static io.sentry.config.PluginConfig.*;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
+import io.sentry.cli.SentryCliRunner;
+import io.sentry.telemetry.SentryTelemetryService;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.util.*;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
@@ -18,6 +19,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,193 +29,213 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
   private static Logger logger = LoggerFactory.getLogger(UploadSourceBundleMojo.class);
 
-  @Parameter(property = "sentry.cli.debug", defaultValue = "false")
+  @Parameter(property = "sentry.cli.debug", defaultValue = DEFAULT_DEBUG_SENTRY_CLI_STRING)
   private boolean debugSentryCli;
 
   @Parameter(property = "sentry.cli.path")
-  private String sentryCliExecutablePath;
+  private @Nullable String sentryCliExecutablePath;
 
-  @Parameter(property = "sentry.cli.properties.path")
-  private String sentryPropertiesPath;
+  //  @Parameter(property = "sentry.cli.properties.path")
+  //  private @Nullable String sentryPropertiesPath;
 
   @Parameter(property = "sentry.org")
-  private String org;
+  private @Nullable String org;
 
   @Parameter(property = "sentry.project")
-  private String project;
+  private @Nullable String project;
 
   @Parameter(property = "sentry.url")
-  private String url;
+  private @Nullable String url;
 
   @Parameter(property = "sentry.authToken")
-  private String authToken;
+  private @Nullable String authToken;
 
+  @SuppressWarnings("NullAway")
   @Parameter(property = "project.build.directory")
-  private File outputDirectory;
+  private @NotNull File outputDirectory;
 
+  @SuppressWarnings("NullAway")
   @Parameter(defaultValue = "${project}", readonly = true)
-  private MavenProject mavenProject;
+  private @NotNull MavenProject mavenProject;
 
+  @SuppressWarnings("NullAway")
   @Parameter(defaultValue = "${session}", readonly = true)
-  private MavenSession mavenSession;
+  private @NotNull MavenSession mavenSession;
 
-  @Parameter(defaultValue = "false")
+  @Parameter(defaultValue = DEFAULT_SKIP_STRING)
   private boolean skip;
 
-  @Parameter(defaultValue = "false")
+  @Parameter(defaultValue = DEFAULT_SKIP_SOURCE_BUNDLE_STRING)
   private boolean skipSourceBundle;
 
-  @Component private BuildPluginManager pluginManager;
+  @SuppressWarnings("NullAway")
+  @Component
+  private @NotNull BuildPluginManager pluginManager;
 
+  @Override
   public void execute() throws MojoExecutionException {
     if (skip || skipSourceBundle) {
       logger.info("Upload Source Bundle skipped");
       return;
     }
 
-    String bundleId = UUID.randomUUID().toString();
-    File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
+    final @NotNull String bundleId = UUID.randomUUID().toString();
+    final @NotNull File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
+    final @NotNull SentryCliRunner cliRunner =
+        new SentryCliRunner(
+            debugSentryCli, sentryCliExecutablePath, mavenProject, mavenSession, pluginManager);
     createDebugMetaPropertiesFile(bundleId);
-    bundleSources(bundleId, sourceBundleTargetDir);
-    uploadSourceBundle(sourceBundleTargetDir);
+    bundleSources(cliRunner, bundleId, sourceBundleTargetDir);
+    uploadSourceBundle(cliRunner, sourceBundleTargetDir);
   }
 
-  private File sentryBuildDir() {
+  private @NotNull File sentryBuildDir() {
     return new File(outputDirectory, "sentry");
   }
 
-  private void bundleSources(String bundleId, File sourceBundleTargetDir)
+  private void bundleSources(
+      final @NotNull SentryCliRunner cliRunner,
+      final @NotNull String bundleId,
+      final @NotNull File sourceBundleTargetDir)
       throws MojoExecutionException {
-    if (!sourceBundleTargetDir.exists()) {
-      sourceBundleTargetDir.mkdirs();
-    }
-
-    List<String> bundleSourcesCommand = new ArrayList<>();
-    List<String> sourceRoots = mavenProject.getCompileSourceRoots();
-
-    if (sourceRoots != null && sourceRoots.size() > 0) {
-      String sourceRoot = sourceRoots.get(0);
-      if (sourceRoots.size() > 1) {
-        logger.warn("There's more than one source root, using {}", sourceRoot);
+    final @Nullable ISpan span = SentryTelemetryService.getInstance().startTask("bundleSources");
+    try {
+      if (!sourceBundleTargetDir.exists()) {
+        sourceBundleTargetDir.mkdirs();
       }
+
+      final @NotNull List<String> bundleSourcesCommand = new ArrayList<>();
+      final @NotNull List<String> sourceRoots = mavenProject.getCompileSourceRoots();
+
+      if (sourceRoots != null && sourceRoots.size() > 0) {
+        final @Nullable String sourceRoot = sourceRoots.get(0);
+        if (sourceRoots.size() > 1) {
+          logger.warn("There's more than one source root, using {}", sourceRoot);
+        }
+
+        if (debugSentryCli) {
+          bundleSourcesCommand.add("--log-level=debug");
+        }
+
+        final @NotNull List<String> tracingArgs = SentryTelemetryService.getInstance().traceCli();
+        for (final @NotNull String tracingArg : tracingArgs) {
+          bundleSourcesCommand.add(tracingArg);
+        }
+
+        /*
+         * TODO maybe at some point copy all of them into one dir and pass that to
+         *  sentry-cli or allow sentry-cli to take more than one dir
+         */
+        logger.debug("Bundling sources located in {}", sourceRoot);
+
+        if (url != null) {
+          bundleSourcesCommand.add("--url=" + url);
+        }
+        if (authToken != null) {
+          bundleSourcesCommand.add("--auth-token=" + authToken);
+        }
+
+        bundleSourcesCommand.add("debug-files");
+        bundleSourcesCommand.add("bundle-jvm");
+        bundleSourcesCommand.add("--output=" + sourceBundleTargetDir.getAbsolutePath());
+        bundleSourcesCommand.add("--debug-id=" + bundleId);
+        if (org != null) {
+          bundleSourcesCommand.add("--org=" + org);
+        }
+        if (project != null) {
+          bundleSourcesCommand.add("--project=" + project);
+        }
+        bundleSourcesCommand.add(sourceRoot);
+
+        cliRunner.runSentryCli(String.join(" ", bundleSourcesCommand), true);
+      } else {
+        throw new MojoExecutionException("Unable to find source root");
+      }
+    } catch (Throwable t) {
+      SentryTelemetryService.getInstance().captureError(t, "bundleSources");
+      throw t;
+    } finally {
+      SentryTelemetryService.getInstance().endTask(span);
+    }
+  }
+
+  private void uploadSourceBundle(
+      final @NotNull SentryCliRunner cliRunner, final @NotNull File sourceBundleTargetDir)
+      throws MojoExecutionException {
+    final @Nullable ISpan span =
+        SentryTelemetryService.getInstance().startTask("uploadSourceBundle");
+    try {
+      final @NotNull List<String> command = new ArrayList<>();
 
       if (debugSentryCli) {
-        bundleSourcesCommand.add("--log-level=debug");
+        command.add("--log-level=debug");
       }
 
-      /*
-       * TODO maybe at some point copy all of them into one dir and pass that to
-       *  sentry-cli or allow sentry-cli to take more than one dir
-       */
-      logger.debug("Bundling sources located in {}", sourceRoot);
+      final @NotNull List<String> tracingArgs = SentryTelemetryService.getInstance().traceCli();
+      for (final @NotNull String tracingArg : tracingArgs) {
+        command.add(tracingArg);
+      }
 
       if (url != null) {
-        bundleSourcesCommand.add("--url=" + url);
+        command.add("--url=" + url);
       }
       if (authToken != null) {
-        bundleSourcesCommand.add("--auth-token=" + authToken);
+        command.add("--auth-token=" + authToken);
       }
 
-      bundleSourcesCommand.add("debug-files");
-      bundleSourcesCommand.add("bundle-jvm");
-      bundleSourcesCommand.add("--output=" + sourceBundleTargetDir.getAbsolutePath());
-      bundleSourcesCommand.add("--debug-id=" + bundleId);
+      command.add("debug-files");
+      command.add("upload");
+      command.add("--type=jvm");
       if (org != null) {
-        bundleSourcesCommand.add("--org=" + org);
+        command.add("--org=" + org);
       }
       if (project != null) {
-        bundleSourcesCommand.add("--project=" + project);
+        command.add("--project=" + project);
       }
-      bundleSourcesCommand.add(sourceRoot);
+      command.add(sourceBundleTargetDir.getAbsolutePath());
 
-      runSentryCli(String.join(" ", bundleSourcesCommand));
-    } else {
-      throw new MojoExecutionException("Unable to find source root");
+      cliRunner.runSentryCli(String.join(" ", command), true);
+    } catch (Throwable t) {
+      SentryTelemetryService.getInstance().captureError(t, "uploadSourceBundle");
+      throw t;
+    } finally {
+      SentryTelemetryService.getInstance().endTask(span);
     }
   }
 
-  private void uploadSourceBundle(File sourceBundleTargetDir) throws MojoExecutionException {
-    List<String> command = new ArrayList<>();
-
-    if (debugSentryCli) {
-      command.add("--log-level=debug");
-    }
-
-    if (url != null) {
-      command.add("--url=" + url);
-    }
-    if (authToken != null) {
-      command.add("--auth-token=" + authToken);
-    }
-
-    command.add("debug-files");
-    command.add("upload");
-    command.add("--type=jvm");
-    if (org != null) {
-      command.add("--org=" + org);
-    }
-    if (project != null) {
-      command.add("--project=" + project);
-    }
-    command.add(sourceBundleTargetDir.getAbsolutePath());
-
-    runSentryCli(String.join(" ", command));
-  }
-
-  private void runSentryCli(String sentryCliCommand) throws MojoExecutionException {
-    boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
-
-    String executable = isWindows ? "cmd.exe" : "/bin/sh";
-    String cArg = isWindows ? "/c" : "-c";
-
-    executeMojo(
-        plugin(
-            groupId("org.apache.maven.plugins"),
-            artifactId("maven-antrun-plugin"),
-            version("3.1.0")),
-        goal("run"),
-        configuration(
-            element(
-                name("target"),
-                element(
-                    name("exec"),
-                    attributes(
-                        attribute("executable", executable), attribute("failOnError", "true")),
-                    element(name("arg"), attributes(attribute("value", cArg))),
-                    element(
-                        name("arg"),
-                        attributes(
-                            attribute(
-                                "value",
-                                getCliPath(mavenProject, sentryCliExecutablePath)
-                                    + " "
-                                    + sentryCliCommand)))))),
-        executionEnvironment(mavenProject, mavenSession, pluginManager));
-  }
-
-  private void createDebugMetaPropertiesFile(String bundleId) throws MojoExecutionException {
-    File sentryBuildDir = new File(sentryBuildDir(), "properties");
+  private void createDebugMetaPropertiesFile(final @NotNull String bundleId)
+      throws MojoExecutionException {
+    final @Nullable ISpan span =
+        SentryTelemetryService.getInstance().startTask("createDebugMetaPropertiesFile");
+    final @NotNull File sentryBuildDir = new File(sentryBuildDir(), "properties");
     if (!sentryBuildDir.exists()) {
       sentryBuildDir.mkdirs();
     }
 
-    File debugMetaFile = new File(sentryBuildDir, "sentry-debug-meta.properties");
-    Properties properties = createDebugMetaProperties(bundleId);
+    final @NotNull File debugMetaFile = new File(sentryBuildDir, "sentry-debug-meta.properties");
+    final @NotNull Properties properties = createDebugMetaProperties(bundleId);
 
-    try (FileWriter fileWriter = new FileWriter(debugMetaFile)) {
+    try (final @NotNull BufferedWriter fileWriter =
+            Files.newBufferedWriter(debugMetaFile.toPath(), Charset.defaultCharset())) {
       properties.store(fileWriter, "Generated by sentry-maven-plugin");
 
-      final Resource resource = new Resource();
+      final @NotNull Resource resource = new Resource();
       resource.setDirectory(sentryBuildDir.getPath());
       resource.setFiltering(false);
       mavenProject.addResource(resource);
     } catch (IOException e) {
+      SentryTelemetryService.getInstance().captureError(e, "createDebugMetaPropertiesFile");
       throw new MojoExecutionException("Error creating file " + debugMetaFile, e);
+    } catch (Throwable t) {
+      SentryTelemetryService.getInstance().captureError(t, "createDebugMetaPropertiesFile");
+      throw t;
+    } finally {
+      SentryTelemetryService.getInstance().endTask(span);
     }
   }
 
-  private Properties createDebugMetaProperties(String bundleId) {
-    Properties properties = new Properties();
+  private @NotNull Properties createDebugMetaProperties(final @NotNull String bundleId) {
+    final @NotNull Properties properties = new Properties();
 
     properties.setProperty("io.sentry.bundle-ids", bundleId);
     properties.setProperty("io.sentry.build-tool", "maven");

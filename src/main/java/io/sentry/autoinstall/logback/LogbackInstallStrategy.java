@@ -6,24 +6,27 @@ import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.semver.Version;
 import java.util.List;
 import org.eclipse.aether.artifact.Artifact;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LogbackInstallStrategy extends AbstractIntegrationInstaller {
-  private static final String LOGBACK_GROUP = "ch.qos.logback";
-  private static final String LOGBACK_ID = "logback-classic";
-  public static final String SENTRY_LOGBACK_ID = "sentry-logback";
+  private static final @NotNull String LOGBACK_GROUP = "ch.qos.logback";
+  private static final @NotNull String LOGBACK_ID = "logback-classic";
+  public static final @NotNull String SENTRY_LOGBACK_ID = "sentry-logback";
 
   public LogbackInstallStrategy() {
     this(LoggerFactory.getLogger(SentryInstaller.class));
   }
 
-  public LogbackInstallStrategy(Logger logger) {
-    this.logger = logger;
+  public LogbackInstallStrategy(final @NotNull Logger logger) {
+    super(logger);
   }
 
   @Override
-  protected Artifact findThirdPartyDependency(List<Artifact> resolvedArtifacts) {
+  protected @Nullable Artifact findThirdPartyDependency(
+      final @NotNull List<Artifact> resolvedArtifacts) {
     return resolvedArtifacts.stream()
         .filter(
             (dep) ->
@@ -33,22 +36,22 @@ public class LogbackInstallStrategy extends AbstractIntegrationInstaller {
   }
 
   @Override
-  protected boolean shouldInstallModule(AutoInstallState autoInstallState) {
+  protected boolean shouldInstallModule(final @NotNull AutoInstallState autoInstallState) {
     return autoInstallState.isInstallLogback();
   }
 
   @Override
-  protected Version minSupportedThirdPartyVersion() {
+  protected @Nullable Version minSupportedThirdPartyVersion() {
     return Version.create(1, 0, 0);
   }
 
   @Override
-  protected Version minSupportedSentryVersion() {
+  protected @NotNull Version minSupportedSentryVersion() {
     return Version.create(6, 25, 2);
   }
 
   @Override
-  protected String sentryModuleId() {
+  protected @NotNull String sentryModuleId() {
     return SENTRY_LOGBACK_ID;
   }
 }

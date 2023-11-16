@@ -1,5 +1,8 @@
 package io.sentry;
 
+import static io.sentry.config.PluginConfig.*;
+
+import io.sentry.telemetry.SentryTelemetryService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,31 +22,37 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.DependencyResolutionException;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.artifact.Artifact;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Mojo(name = "reportDependencies", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
 public class ReportDependenciesMojo extends AbstractMojo {
 
-  public static final String EXTERNAL_MODULES_FILE = "external-modules.txt";
+  public static final @NotNull String EXTERNAL_MODULES_FILE = "external-modules.txt";
 
-  private static Logger logger = LoggerFactory.getLogger(ReportDependenciesMojo.class);
+  private static final @NotNull Logger logger =
+      LoggerFactory.getLogger(ReportDependenciesMojo.class);
 
+  @SuppressWarnings("NullAway")
   @Parameter(defaultValue = "${project}", readonly = true)
-  private MavenProject mavenProject;
+  private @NotNull MavenProject mavenProject;
 
+  @SuppressWarnings("NullAway")
   @Parameter(defaultValue = "${session}", readonly = true)
-  private MavenSession mavenSession;
+  private @NotNull MavenSession mavenSession;
 
+  @SuppressWarnings("NullAway")
   @Parameter(property = "project.build.directory")
-  private File outputDirectory;
+  private @NotNull File outputDirectory;
 
-  @Inject protected ArtifactResolver artifactResolver;
+  @Inject protected @NotNull ArtifactResolver artifactResolver;
 
-  @Parameter(defaultValue = "false")
+  @Parameter(defaultValue = DEFAULT_SKIP_STRING)
   private boolean skip;
 
-  @Parameter(defaultValue = "false")
+  @Parameter(defaultValue = DEFAULT_SKIP_REPORT_DEPENDENCIES_STRING)
   private boolean skipReportDependencies;
 
   @Override
@@ -53,22 +62,31 @@ public class ReportDependenciesMojo extends AbstractMojo {
       return;
     }
 
+    final @Nullable ISpan span =
+        SentryTelemetryService.getInstance().startTask("reportDependencies");
     try {
       collectDependencies(
           mavenProject, artifactResolver.resolveArtifactsForProject(mavenProject, mavenSession));
     } catch (IOException | DependencyResolutionException e) {
+      SentryTelemetryService.getInstance().captureError(e, "bundleSources");
       throw new RuntimeException(e);
+    } catch (Throwable t) {
+      SentryTelemetryService.getInstance().captureError(t, "bundleSources");
+      throw t;
+    } finally {
+      SentryTelemetryService.getInstance().endTask(span);
     }
   }
 
-  private void collectDependencies(MavenProject mavenProject, List<Artifact> resolvedArtifacts)
+  private void collectDependencies(
+      final @NotNull MavenProject mavenProject, final @NotNull List<Artifact> resolvedArtifacts)
       throws IOException {
-    File sentryBuildDir = new File(outputDirectory, "external");
+    final @NotNull File sentryBuildDir = new File(outputDirectory, "external");
     if (!sentryBuildDir.exists()) {
       sentryBuildDir.mkdirs();
     }
 
-    File modulesFile = new File(sentryBuildDir, EXTERNAL_MODULES_FILE);
+    final @NotNull File modulesFile = new File(sentryBuildDir, EXTERNAL_MODULES_FILE);
 
     Files.write(
         modulesFile.toPath(),
@@ -80,7 +98,7 @@ public class ReportDependenciesMojo extends AbstractMojo {
         StandardOpenOption.CREATE,
         StandardOpenOption.TRUNCATE_EXISTING);
 
-    final Resource resource = new Resource();
+    final @NotNull Resource resource = new Resource();
     resource.setDirectory(sentryBuildDir.getPath());
     resource.setFiltering(false);
     mavenProject.addResource(resource);

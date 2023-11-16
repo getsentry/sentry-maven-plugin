@@ -1,8 +1,10 @@
 package io.sentry.autoinstall;
 
+import org.jetbrains.annotations.NotNull;
+
 public class AutoInstallState {
 
-  private String sentryVersion;
+  private @NotNull String sentryVersion;
   private boolean installSpring = false;
   private boolean installLogback = false;
   private boolean installLog4j2 = false;
@@ -11,11 +13,15 @@ public class AutoInstallState {
 
   private boolean installQuartz = false;
 
-  public String getSentryVersion() {
+  public AutoInstallState(final @NotNull String sentryVersion) {
+    this.sentryVersion = sentryVersion;
+  }
+
+  public @NotNull String getSentryVersion() {
     return sentryVersion;
   }
 
-  public void setSentryVersion(String sentryVersion) {
+  public void setSentryVersion(@NotNull String sentryVersion) {
     this.sentryVersion = sentryVersion;
   }
 
