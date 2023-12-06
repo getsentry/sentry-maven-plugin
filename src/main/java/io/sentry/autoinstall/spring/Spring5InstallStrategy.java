@@ -18,7 +18,7 @@ public class Spring5InstallStrategy extends AbstractIntegrationInstaller {
   private static final @NotNull String SPRING_5_ID = "spring-core";
 
   public Spring5InstallStrategy() {
-    this(LoggerFactory.getLogger(SentryInstaller.class));
+    this(LoggerFactory.getLogger(Spring5InstallStrategy.class));
   }
 
   public Spring5InstallStrategy(final @NotNull Logger logger) {

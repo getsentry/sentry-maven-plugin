@@ -18,7 +18,7 @@ public class Spring6InstallStrategy extends AbstractIntegrationInstaller {
   private static final @NotNull String SPRING_6_ID = "spring-core";
 
   public Spring6InstallStrategy() {
-    this(LoggerFactory.getLogger(SentryInstaller.class));
+    this(LoggerFactory.getLogger(Spring6InstallStrategy.class));
   }
 
   public Spring6InstallStrategy(final @NotNull Logger logger) {

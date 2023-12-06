@@ -17,7 +17,7 @@ public class LogbackInstallStrategy extends AbstractIntegrationInstaller {
   public static final @NotNull String SENTRY_LOGBACK_ID = "sentry-logback";
 
   public LogbackInstallStrategy() {
-    this(LoggerFactory.getLogger(SentryInstaller.class));
+    this(LoggerFactory.getLogger(LogbackInstallStrategy.class));
   }
 
   public LogbackInstallStrategy(final @NotNull Logger logger) {

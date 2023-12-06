@@ -17,7 +17,7 @@ public class Log4j2InstallStrategy extends AbstractIntegrationInstaller {
   public static final @NotNull String SENTRY_LOG4J2_ID = "sentry-log4j2";
 
   public Log4j2InstallStrategy() {
-    this(LoggerFactory.getLogger(SentryInstaller.class));
+    this(LoggerFactory.getLogger(Log4j2InstallStrategy.class));
   }
 
   public Log4j2InstallStrategy(final @NotNull Logger logger) {

@@ -18,7 +18,7 @@ public class SpringBoot2InstallStrategy extends AbstractIntegrationInstaller {
   private static final @NotNull String SPRING_BOOT_2_ID = "spring-boot-starter";
 
   public SpringBoot2InstallStrategy() {
-    this(LoggerFactory.getLogger(SentryInstaller.class));
+    this(LoggerFactory.getLogger(SpringBoot2InstallStrategy.class));
   }
 
   public SpringBoot2InstallStrategy(final @NotNull Logger logger) {

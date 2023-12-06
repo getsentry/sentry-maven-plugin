@@ -100,7 +100,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
         final @NotNull Model currModel = project.getModel();
 
-        List<Dependency> dependencyList = currModel.getDependencies();
+        final @NotNull List<Dependency> dependencyList = currModel.getDependencies();
         final @Nullable String sentryVersion =
             new SentryInstaller().install(dependencyList, resolvedArtifacts);
 

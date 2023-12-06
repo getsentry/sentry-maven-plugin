@@ -68,10 +68,10 @@ public class ReportDependenciesMojo extends AbstractMojo {
       collectDependencies(
           mavenProject, artifactResolver.resolveArtifactsForProject(mavenProject, mavenSession));
     } catch (IOException | DependencyResolutionException e) {
-      SentryTelemetryService.getInstance().captureError(e, "bundleSources");
+      SentryTelemetryService.getInstance().captureError(e, "reportDependencies");
       throw new RuntimeException(e);
     } catch (Throwable t) {
-      SentryTelemetryService.getInstance().captureError(t, "bundleSources");
+      SentryTelemetryService.getInstance().captureError(t, "reportDependencies");
       throw t;
     } finally {
       SentryTelemetryService.getInstance().endTask(span);

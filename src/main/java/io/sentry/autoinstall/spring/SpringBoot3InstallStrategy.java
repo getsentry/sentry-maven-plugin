@@ -18,7 +18,7 @@ public class SpringBoot3InstallStrategy extends AbstractIntegrationInstaller {
   private static final @NotNull String SPRING_BOOT_3_ID = "spring-boot-starter";
 
   public SpringBoot3InstallStrategy() {
-    this(LoggerFactory.getLogger(SentryInstaller.class));
+    this(LoggerFactory.getLogger(SpringBoot3InstallStrategy.class));
   }
 
   public SpringBoot3InstallStrategy(final @NotNull Logger logger) {

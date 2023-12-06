@@ -36,7 +36,7 @@ public class JdbcInstallStrategy extends AbstractIntegrationInstaller {
   public static final @NotNull String SENTRY_JDBC_ID = "sentry-jdbc";
 
   public JdbcInstallStrategy() {
-    this(LoggerFactory.getLogger(SentryInstaller.class));
+    this(LoggerFactory.getLogger(JdbcInstallStrategy.class));
   }
 
   public JdbcInstallStrategy(final @NotNull Logger logger) {

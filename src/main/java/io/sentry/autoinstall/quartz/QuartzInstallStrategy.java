@@ -17,7 +17,7 @@ public class QuartzInstallStrategy extends AbstractIntegrationInstaller {
   public static final @NotNull String SENTRY_QUARTZ_ID = "sentry-quartz";
 
   public QuartzInstallStrategy() {
-    this(LoggerFactory.getLogger(SentryInstaller.class));
+    this(LoggerFactory.getLogger(QuartzInstallStrategy.class));
   }
 
   public QuartzInstallStrategy(final @NotNull Logger logger) {
