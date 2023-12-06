@@ -2,7 +2,6 @@ package io.sentry.autoinstall.graphql;
 
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
-import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.semver.Version;
 import java.util.List;
 import org.eclipse.aether.artifact.Artifact;
@@ -17,7 +16,7 @@ public class GraphqlInstallStrategy extends AbstractIntegrationInstaller {
   public static final @NotNull String SENTRY_GRAPHQL_ID = "sentry-graphql";
 
   public GraphqlInstallStrategy() {
-    this(LoggerFactory.getLogger(SentryInstaller.class));
+    this(LoggerFactory.getLogger(GraphqlInstallStrategy.class));
   }
 
   public GraphqlInstallStrategy(final @NotNull Logger logger) {

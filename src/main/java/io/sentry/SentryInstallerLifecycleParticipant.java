@@ -104,16 +104,14 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         final @Nullable String sentryVersion =
             new SentryInstaller().install(dependencyList, resolvedArtifacts);
 
-        if (sentryVersion != null) {
-          SentryTelemetryService.getInstance().addTag("SDK_VERSION", sentryVersion);
-        }
-
         if (sentryVersion == null) {
           logger.error(
               "No Sentry SDK Version found, cannot auto-install sentry integrations for project + "
                   + project.getId());
           continue;
         }
+
+        SentryTelemetryService.getInstance().addTag("SDK_VERSION", sentryVersion);
 
         final @NotNull AutoInstallState autoInstallState = new AutoInstallState(sentryVersion);
         autoInstallState.setInstallSpring(shouldInstallSpring(resolvedArtifacts));
@@ -125,9 +123,10 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         autoInstallState.setInstallJdbc(!isModuleAvailable(resolvedArtifacts, SENTRY_JDBC_ID));
         autoInstallState.setInstallQuartz(!isModuleAvailable(resolvedArtifacts, SENTRY_QUARTZ_ID));
 
-        for (Class<? extends AbstractIntegrationInstaller> installerClass : installers) {
+        for (final @NotNull Class<? extends AbstractIntegrationInstaller> installerClass :
+            installers) {
           try {
-            AbstractIntegrationInstaller installer =
+            final @NotNull AbstractIntegrationInstaller installer =
                 installerClass.getDeclaredConstructor().newInstance();
             installer.install(dependencyList, resolvedArtifacts, autoInstallState);
           } catch (Throwable e) {

@@ -2,7 +2,6 @@ package io.sentry.autoinstall.jdbc;
 
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
-import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.semver.Version;
 import java.util.ArrayList;
 import java.util.List;

@@ -2,7 +2,6 @@ package io.sentry.autoinstall.quartz;
 
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
-import io.sentry.autoinstall.SentryInstaller;
 import io.sentry.semver.Version;
 import java.util.List;
 import org.eclipse.aether.artifact.Artifact;

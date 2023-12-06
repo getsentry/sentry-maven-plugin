@@ -35,9 +35,6 @@ public class UploadSourceBundleMojo extends AbstractMojo {
   @Parameter(property = "sentry.cli.path")
   private @Nullable String sentryCliExecutablePath;
 
-  //  @Parameter(property = "sentry.cli.properties.path")
-  //  private @Nullable String sentryPropertiesPath;
-
   @Parameter(property = "sentry.org")
   private @Nullable String org;
 
