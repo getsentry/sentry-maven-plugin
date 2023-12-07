@@ -203,7 +203,9 @@ public class SentryTelemetryService {
 
   private void startRun(final @NotNull String transactionName) {
     hub.startSession();
-    transaction = hub.startTransaction(transactionName, "build", true);
+    final @NotNull TransactionOptions transactionOptions = new TransactionOptions();
+    transactionOptions.setBindToScope(true);
+    transaction = hub.startTransaction(transactionName, "build", transactionOptions);
   }
 
   private void endRun() {

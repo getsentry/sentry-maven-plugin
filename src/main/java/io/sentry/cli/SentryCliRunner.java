@@ -42,7 +42,6 @@ public class SentryCliRunner {
   public @Nullable String runSentryCli(
       final @NotNull String sentryCliCommand, final boolean failOnError)
       throws MojoExecutionException {
-    logger.error("running sentry cli command " + sentryCliCommand);
     final boolean isWindows =
         System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
 
