@@ -11,6 +11,7 @@
     <maven.compiler.target>11</maven.compiler.target>
     <kotlin.version>1.9.10</kotlin.version>
     <spotless.version>2.40.0</spotless.version>
+    <nullaway.version>0.10.15</nullaway.version>
   </properties>
   <name>sentry-maven-plugin Maven Mojo</name>
   <url>https://github.com/getsentry/sentry-maven-plugin</url>
@@ -48,6 +49,73 @@
       </plugins>
     </pluginManagement>
     <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.11.0</version>
+            <configuration>
+                <source>${maven.compiler.source}</source>
+                <target>${maven.compiler.target}</target>
+                <encoding>UTF-8</encoding>
+                <compilerArgs>
+                    <arg>-XDcompilePolicy=simple</arg>
+                    <arg>-Xplugin:ErrorProne
+                        -XepOpt:NullAway:AnnotatedPackages=io.sentry
+                        -XepExcludedPaths:.*/src/main/java/io/sentry/semver/.*
+                    </arg>
+                    <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
+                    <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+                    <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+                    <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+                    <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+                    <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+                    <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+                    <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+                    <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+                    <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+
+                </compilerArgs>
+                <annotationProcessorPaths>
+                    <path>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_core</artifactId>
+                        <version>2.23.0</version>
+                    </path>
+                    <path>
+                        <groupId>com.uber.nullaway</groupId>
+                        <artifactId>nullaway</artifactId>
+                        <version>0.10.15</version>
+                    </path>
+                </annotationProcessorPaths>
+            </configuration>
+        </plugin>
+        <!-- with annotationProcessorPaths set in maven-compiler-plugin sisu-maven-plugin is needed explicitly -->
+        <plugin>
+            <groupId>org.eclipse.sisu</groupId>
+            <artifactId>sisu-maven-plugin</artifactId>
+            <version>0.3.5</version>
+            <executions>
+                <execution>
+                    <id>generate-index</id>
+                    <goals>
+                        <goal>main-index</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+        <!-- so we can easily get the version of the plugin at plugin runtime -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>3.3.0</version>
+            <configuration>
+                <archive>
+                    <manifest>
+                        <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                    </manifest>
+                </archive>
+            </configuration>
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
@@ -176,6 +244,11 @@
   </build>
   <dependencies>
     <dependency>
+      <groupId>io.sentry</groupId>
+      <artifactId>sentry</artifactId>
+      <version>7.0.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
       <version>3.9.1</version>
@@ -239,6 +312,12 @@
         <artifactId>junit-jupiter</artifactId>
         <version>5.8.0</version>
         <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.jetbrains</groupId>
+        <artifactId>annotations</artifactId>
+        <version>23.0.0</version>
+        <scope>compile</scope>
     </dependency>
   </dependencies>
     <profiles>

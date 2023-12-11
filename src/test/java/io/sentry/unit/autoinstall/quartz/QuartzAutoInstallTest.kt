@@ -15,13 +15,16 @@ class QuartzAutoInstallTest {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
         val resolvedArtifacts = ArrayList<Artifact>()
-        val installState = AutoInstallState()
+        lateinit var installState: AutoInstallState
 
         fun getSut(
             installQuartz: Boolean = true,
             quartzVersion: String = "2.0.0",
             sentryVersion: String = "6.30.0",
         ): QuartzInstallStrategy {
+            installState = AutoInstallState(sentryVersion)
+            installState.isInstallQuartz = installQuartz
+
             resolvedArtifacts.add(
                 DefaultArtifact(
                     "org.quartz-scheduler",
@@ -30,9 +33,6 @@ class QuartzAutoInstallTest {
                     quartzVersion,
                 ),
             )
-
-            installState.isInstallQuartz = installQuartz
-            installState.sentryVersion = sentryVersion
 
             return QuartzInstallStrategyImpl(logger)
         }

@@ -15,12 +15,15 @@ class LogbackAutoInstallTest {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
         val resolvedArtifacts = ArrayList<Artifact>()
-        val installState = AutoInstallState()
+        lateinit var installState: AutoInstallState
 
         fun getSut(
             installLogback: Boolean = true,
             logbackVersion: String = "2.0.0",
         ): LogbackInstallStrategy {
+            installState = AutoInstallState("6.25.2")
+            installState.isInstallLogback = installLogback
+
             resolvedArtifacts.add(
                 DefaultArtifact(
                     "ch.qos.logback",
@@ -29,9 +32,6 @@ class LogbackAutoInstallTest {
                     logbackVersion,
                 ),
             )
-
-            installState.isInstallLogback = installLogback
-            installState.sentryVersion = "6.25.2"
 
             return LogbackInstallStrategyImpl(logger)
         }

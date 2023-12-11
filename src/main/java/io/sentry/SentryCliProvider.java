@@ -5,6 +5,8 @@ import java.net.URL;
 import java.util.Locale;
 import java.util.Properties;
 import org.apache.maven.project.MavenProject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,35 +14,35 @@ import org.slf4j.LoggerFactory;
  * Helper class to find sentry-cli
  * Ported from sentry-android-gradle-plugin
  */
-class SentryCliProvider {
+public class SentryCliProvider {
 
-  private static Logger logger = LoggerFactory.getLogger(SentryCliProvider.class);
+  private static final @NotNull Logger logger = LoggerFactory.getLogger(SentryCliProvider.class);
 
-  protected static String getCliPath(MavenProject mavenProject, String cliPathParameter) {
-
+  public static @NotNull String getCliPath(
+      final @NotNull MavenProject mavenProject, final @Nullable String cliPathParameter) {
     if (cliPathParameter != null && !cliPathParameter.isBlank()) {
       return cliPathParameter;
     }
 
-    String pathFromProperties = searchCliInPropertiesFile(mavenProject);
+    final @Nullable String pathFromProperties = searchCliInPropertiesFile(mavenProject);
 
     if (pathFromProperties != null && !pathFromProperties.isBlank()) {
       logger.info("Cli found in sentry properties, using " + pathFromProperties);
       return pathFromProperties;
     }
 
-    String cliSuffix = getCliSuffix();
+    final @Nullable String cliSuffix = getCliSuffix();
 
     if (cliSuffix != null && !cliSuffix.isBlank()) {
-      String resourcePath = "/bin/sentry-cli-" + cliSuffix;
-      String cliAbsolutePath = searchCliInResources(resourcePath);
+      final @NotNull String resourcePath = "/bin/sentry-cli-" + cliSuffix;
+      final @Nullable String cliAbsolutePath = searchCliInResources(resourcePath);
 
       if (cliAbsolutePath != null) {
         logger.info("Cli found in " + cliAbsolutePath);
         return cliAbsolutePath;
       }
 
-      String cliTempPath = loadCliFromResourcesToTemp(resourcePath);
+      final @Nullable String cliTempPath = loadCliFromResourcesToTemp(resourcePath);
 
       if (cliTempPath != null) {
         logger.info("Cli found in .jar using " + cliTempPath);
@@ -51,15 +53,16 @@ class SentryCliProvider {
     return "sentry-cli";
   }
 
-  private static String searchCliInPropertiesFile(MavenProject mavenProject) {
-    File propertiesFileToUse = new File(mavenProject.getBasedir(), "sentry.properties");
+  private static @Nullable String searchCliInPropertiesFile(
+      final @NotNull MavenProject mavenProject) {
+    @NotNull File propertiesFileToUse = new File(mavenProject.getBasedir(), "sentry.properties");
 
     if (!propertiesFileToUse.exists() && mavenProject.getParent() != null) {
       propertiesFileToUse = new File(mavenProject.getParent().getBasedir(), "sentry.properties");
     }
 
     try {
-      Properties sentryProperties = new Properties();
+      final @NotNull Properties sentryProperties = new Properties();
       sentryProperties.load(new FileInputStream(propertiesFileToUse));
 
       return sentryProperties.getProperty("cli.executable");
@@ -70,9 +73,9 @@ class SentryCliProvider {
     }
   }
 
-  private static String getCliSuffix() {
-    String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-    String osArch = System.getProperty("os.arch");
+  private static @Nullable String getCliSuffix() {
+    final @NotNull String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+    final @NotNull String osArch = System.getProperty("os.arch");
 
     if (osName.contains("mac")) {
       return "Darwin-universal";
@@ -89,11 +92,11 @@ class SentryCliProvider {
     return null;
   }
 
-  private static String searchCliInResources(String resourcePath) {
-    URL resourceUrl = SentryCliProvider.class.getResource(resourcePath);
+  private static @Nullable String searchCliInResources(final @NotNull String resourcePath) {
+    final @Nullable URL resourceUrl = SentryCliProvider.class.getResource(resourcePath);
 
     if (resourceUrl != null) {
-      File resourceFile = new File(resourceUrl.getFile());
+      final @NotNull File resourceFile = new File(resourceUrl.getFile());
       if (resourceFile.exists()) {
         return resourceFile.getAbsolutePath();
       }
@@ -101,14 +104,15 @@ class SentryCliProvider {
     return null;
   }
 
-  private static String loadCliFromResourcesToTemp(String resourcePath) {
+  private static @Nullable String loadCliFromResourcesToTemp(final @NotNull String resourcePath) {
 
-    try (InputStream inputStream = SentryCliProvider.class.getResourceAsStream(resourcePath)) {
-      File tempFile = File.createTempFile(".sentry-cli", ".exe");
+    try (final @Nullable InputStream inputStream =
+            SentryCliProvider.class.getResourceAsStream(resourcePath)) {
+      final @NotNull File tempFile = File.createTempFile(".sentry-cli", ".exe");
       tempFile.deleteOnExit();
       tempFile.setExecutable(true);
 
-      FileOutputStream outputStream = new FileOutputStream(tempFile);
+      final @NotNull FileOutputStream outputStream = new FileOutputStream(tempFile);
 
       if (inputStream != null) {
         inputStream.transferTo(outputStream);

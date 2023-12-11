@@ -7,23 +7,27 @@ import io.sentry.autoinstall.util.SdkVersionInfo;
 import java.util.List;
 import org.apache.maven.model.Dependency;
 import org.eclipse.aether.artifact.Artifact;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SentryInstaller {
-  private final Logger logger;
+  private final @NotNull Logger logger;
 
   public SentryInstaller() {
     this(LoggerFactory.getLogger(SentryInstaller.class));
   }
 
-  public SentryInstaller(Logger logger) {
+  public SentryInstaller(final @NotNull Logger logger) {
     this.logger = logger;
   }
 
-  public String install(List<Dependency> dependencyList, List<Artifact> resolvedArtifacts) {
+  public @Nullable String install(
+      final @NotNull List<Dependency> dependencyList,
+      final @NotNull List<Artifact> resolvedArtifacts) {
 
-    Artifact sentryDependency =
+    final @Nullable Artifact sentryDependency =
         resolvedArtifacts.stream()
             .filter(
                 (dep) ->
@@ -36,7 +40,7 @@ public class SentryInstaller {
       logger.info("Sentry already installed " + sentryDependency.getVersion());
       return sentryDependency.getVersion();
     } else {
-      String sentryVersion = SdkVersionInfo.getSentryVersion();
+      final @Nullable String sentryVersion = SdkVersionInfo.getSentryVersion();
 
       if (sentryVersion == null) {
         logger.error("Unable to load sentry version, Sentry SDK cannot be auto-installed");
@@ -44,7 +48,7 @@ public class SentryInstaller {
       }
 
       logger.info("Installing Sentry with version " + sentryVersion);
-      Dependency newDep = new Dependency();
+      final @NotNull Dependency newDep = new Dependency();
       newDep.setGroupId(SENTRY_GROUP_ID);
       newDep.setArtifactId(SENTRY_ARTIFACT_ID);
       newDep.setVersion(sentryVersion);

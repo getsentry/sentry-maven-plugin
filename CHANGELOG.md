@@ -5,6 +5,8 @@
 ### Features
 
 - Report dependencies ([#22](https://github.com/getsentry/sentry-maven-plugin/pull/22))
+- Send telemetry data for plugin usage ([#28](https://github.com/getsentry/sentry-maven-plugin/pull/28))
+  - This will collect errors and timings of the plugin and its tasks (anonymized, except the sentry org id), so we can better understand how the plugin is performing. If you wish to opt-out of this behavior, set `<skipTelemetry>true</skipTelemetry>` in the sentry plugin configuration block.
 
 ### Dependencies
 

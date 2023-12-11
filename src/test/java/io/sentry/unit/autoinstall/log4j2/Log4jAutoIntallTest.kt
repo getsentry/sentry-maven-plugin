@@ -15,12 +15,15 @@ class Log4jAutoIntallTest {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
         val resolvedArtifacts = ArrayList<Artifact>()
-        val installState = AutoInstallState()
+        lateinit var installState: AutoInstallState
 
         fun getSut(
             installLog4j2: Boolean = true,
             log4j2Version: String = "2.0.0",
         ): Log4j2InstallStrategy {
+            installState = AutoInstallState("6.25.2")
+            installState.isInstallLog4j2 = installLog4j2
+
             resolvedArtifacts.add(
                 DefaultArtifact(
                     "org.apache.logging.log4j",
@@ -29,9 +32,6 @@ class Log4jAutoIntallTest {
                     log4j2Version,
                 ),
             )
-
-            installState.isInstallLog4j2 = installLog4j2
-            installState.sentryVersion = "6.25.2"
 
             return Log4j2InstallStrategyImpl(logger)
         }

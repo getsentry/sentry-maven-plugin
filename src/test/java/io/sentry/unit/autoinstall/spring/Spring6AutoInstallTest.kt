@@ -15,12 +15,15 @@ class Spring6AutoInstallTest {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
         val resolvedArtifacts = ArrayList<Artifact>()
-        val installState = AutoInstallState()
+        lateinit var installState: AutoInstallState
 
         fun getSut(
             installSpring: Boolean = true,
             springVersion: String = "6.0.0",
         ): Spring6InstallStrategy {
+            installState = AutoInstallState("6.25.2")
+            installState.isInstallSpring = installSpring
+
             resolvedArtifacts.add(
                 DefaultArtifact(
                     "org.springframework",
@@ -29,9 +32,6 @@ class Spring6AutoInstallTest {
                     springVersion,
                 ),
             )
-
-            installState.isInstallSpring = installSpring
-            installState.sentryVersion = "6.25.2"
 
             return Spring6InstallStrategyImpl(logger)
         }

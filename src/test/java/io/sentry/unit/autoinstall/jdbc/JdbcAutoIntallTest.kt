@@ -15,12 +15,15 @@ class JdbcAutoIntallTest {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
         val resolvedArtifacts = ArrayList<Artifact>()
-        val installState = AutoInstallState()
+        lateinit var installState: AutoInstallState
 
         fun getSut(
             installJdbc: Boolean = true,
             jdbcVersion: String = "2.0.0",
         ): JdbcInstallStrategy {
+            installState = AutoInstallState("6.25.2")
+            installState.isInstallJdbc = installJdbc
+
             resolvedArtifacts.add(
                 DefaultArtifact(
                     "org.mariadb.jdbc",
@@ -29,9 +32,6 @@ class JdbcAutoIntallTest {
                     jdbcVersion,
                 ),
             )
-
-            installState.isInstallJdbc = installJdbc
-            installState.sentryVersion = "6.25.2"
 
             return JdbcInstallStrategyImpl(logger)
         }

@@ -15,12 +15,15 @@ class GraphqlAutoInstallTest {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
         val resolvedArtifacts = ArrayList<Artifact>()
-        val installState = AutoInstallState()
+        lateinit var installState: AutoInstallState
 
         fun getSut(
             installGraphql: Boolean = true,
             graphqlVersion: String = "2.0.0",
         ): GraphqlInstallStrategy {
+            installState = AutoInstallState("6.25.2")
+            installState.isInstallGraphql = installGraphql
+
             resolvedArtifacts.add(
                 DefaultArtifact(
                     "com.graphql-java",
@@ -29,9 +32,6 @@ class GraphqlAutoInstallTest {
                     graphqlVersion,
                 ),
             )
-
-            installState.isInstallGraphql = installGraphql
-            installState.sentryVersion = "6.25.2"
 
             return GraphqlInstallStrategyImpl(logger)
         }
