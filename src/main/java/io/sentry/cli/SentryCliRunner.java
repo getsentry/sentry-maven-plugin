@@ -95,7 +95,7 @@ public class SentryCliRunner {
   private @Nullable String collectAndMaybePrintOutput(
       final @NotNull File logFile, final boolean shouldPrint) {
     try {
-      final @NotNull String output = Files.readString(logFile.toPath());
+      final @NotNull String output = new String(Files.readAllBytes(logFile.toPath()));
       if (shouldPrint) {
         logger.info(output);
       }
