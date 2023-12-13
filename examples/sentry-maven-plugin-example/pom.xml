@@ -21,6 +21,8 @@
                 <version>1.0-SNAPSHOT</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <!-- for showing debug output -->
+                    <debug>false</debug>
                     <!-- for showing output of sentry-cli -->
                     <debugSentryCli>true</debugSentryCli>
 
