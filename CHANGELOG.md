@@ -9,6 +9,7 @@
   - This will collect errors and timings of the plugin and its tasks (anonymized, except the sentry org id), so we can better understand how the plugin is performing. If you wish to opt-out of this behavior, set `<skipTelemetry>true</skipTelemetry>` in the sentry plugin configuration block.
 - Add `aarch64` sentry-cli ([#39](https://github.com/getsentry/sentry-maven-plugin/pull/39))
   - This is used when the build is executed inside a docker container on an Apple silicon chip (e.g. M1)
+- Allow usage of the plugin with JDK 8 ([#37](https://github.com/getsentry/sentry-maven-plugin/pull/37))
 
 ### Dependencies
 
