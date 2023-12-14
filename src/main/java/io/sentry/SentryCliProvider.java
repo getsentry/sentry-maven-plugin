@@ -34,6 +34,7 @@ public class SentryCliProvider {
     final @Nullable String cliSuffix = getCliSuffix();
 
     if (cliSuffix != null && !cliSuffix.isBlank()) {
+      logger.info("Looking for CLI with suffix " + cliSuffix);
       final @NotNull String resourcePath = "/bin/sentry-cli-" + cliSuffix;
       final @Nullable String cliAbsolutePath = searchCliInResources(resourcePath);
 
