@@ -38,7 +38,7 @@ public class PluginConfig {
   }
 
   public boolean isDebugSentryCli() {
-    return debugSentryCli;
+    return debugSentryCli || debug;
   }
 
   public void setDebug(final boolean debug) {
