@@ -20,20 +20,21 @@ public class SentryCliProvider {
 
   public static @NotNull String getCliPath(
       final @NotNull MavenProject mavenProject, final @Nullable String cliPathParameter) {
-    if (cliPathParameter != null && !cliPathParameter.isBlank()) {
+    if (cliPathParameter != null && !cliPathParameter.isEmpty()) {
       return cliPathParameter;
     }
 
     final @Nullable String pathFromProperties = searchCliInPropertiesFile(mavenProject);
 
-    if (pathFromProperties != null && !pathFromProperties.isBlank()) {
+    if (pathFromProperties != null && !pathFromProperties.isEmpty()) {
       logger.info("Cli found in sentry properties, using " + pathFromProperties);
       return pathFromProperties;
     }
 
     final @Nullable String cliSuffix = getCliSuffix();
 
-    if (cliSuffix != null && !cliSuffix.isBlank()) {
+    if (cliSuffix != null && !cliSuffix.isEmpty()) {
+      logger.info("Looking for CLI with suffix " + cliSuffix);
       final @NotNull String resourcePath = "/bin/sentry-cli-" + cliSuffix;
       final @Nullable String cliAbsolutePath = searchCliInResources(resourcePath);
 
@@ -112,19 +113,26 @@ public class SentryCliProvider {
       tempFile.deleteOnExit();
       tempFile.setExecutable(true);
 
-      final @NotNull FileOutputStream outputStream = new FileOutputStream(tempFile);
-
-      if (inputStream != null) {
-        inputStream.transferTo(outputStream);
-        outputStream.close();
-        return tempFile.getAbsolutePath();
-      } else {
-        return null;
+      try (final @NotNull FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+        if (inputStream != null) {
+          copy(inputStream, outputStream);
+          return tempFile.getAbsolutePath();
+        } else {
+          return null;
+        }
       }
 
     } catch (IOException e) {
       logger.error(e.getMessage(), e);
       return null;
+    }
+  }
+
+  private static void copy(InputStream source, OutputStream target) throws IOException {
+    byte[] buf = new byte[8192];
+    int length;
+    while ((length = source.read(buf)) != -1) {
+      target.write(buf, 0, length);
     }
   }
 }
