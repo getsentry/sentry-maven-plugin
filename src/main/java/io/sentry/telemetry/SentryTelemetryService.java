@@ -85,7 +85,7 @@ public class SentryTelemetryService {
         Sentry.init(
             (options) -> {
               options.setDsn(SENTRY_SAAS_DSN);
-              options.setDebug(true);
+              options.setDebug(pluginConfig.isDebug());
               options.setEnablePrettySerializationOutput(false);
               options.setEnvironment("JVM");
               options.setSendModules(false);

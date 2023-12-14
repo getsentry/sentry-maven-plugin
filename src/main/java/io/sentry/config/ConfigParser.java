@@ -17,6 +17,7 @@ public class ConfigParser {
   private static final @NotNull String SKIP_REPORT_DEPENDENCIES_FLAG = "skipReportDependencies";
   private static final @NotNull String SKIP_SOURCE_BUNDLE_FLAG = "skipSourceBundle";
   private static final @NotNull String DEBUG_SENTRY_CLI_FLAG = "debugSentryCli";
+  private static final @NotNull String DEBUG_FLAG = "debug";
   private static final @NotNull String ORG_OPTION = "org";
   private static final @NotNull String PROJECT_OPTION = "project";
   private static final @NotNull String URL_OPTION = "url";
@@ -64,6 +65,10 @@ public class ConfigParser {
       pluginConfig.setDebugSentryCli(
           dom.getChild(DEBUG_SENTRY_CLI_FLAG) != null
               && Boolean.parseBoolean(dom.getChild(DEBUG_SENTRY_CLI_FLAG).getValue()));
+
+      pluginConfig.setDebug(
+          dom.getChild(DEBUG_FLAG) != null
+              && Boolean.parseBoolean(dom.getChild(DEBUG_FLAG).getValue()));
 
       pluginConfig.setOrg(
           dom.getChild(ORG_OPTION) == null ? null : dom.getChild(ORG_OPTION).getValue());

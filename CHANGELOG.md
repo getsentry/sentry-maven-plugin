@@ -10,6 +10,7 @@
 - Add `aarch64` sentry-cli ([#39](https://github.com/getsentry/sentry-maven-plugin/pull/39))
   - This is used when the build is executed inside a docker container on an Apple silicon chip (e.g. M1)
 - Allow usage of the plugin with JDK 8 ([#37](https://github.com/getsentry/sentry-maven-plugin/pull/37))
+- Add `debug` flag ([#38](https://github.com/getsentry/sentry-maven-plugin/pull/38))
 
 ### Dependencies
 

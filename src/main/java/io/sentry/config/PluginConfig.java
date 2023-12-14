@@ -16,6 +16,8 @@ public class PluginConfig {
   public static final @NotNull String DEFAULT_SKIP_TELEMETRY_STRING = "false";
   public static final boolean DEFAULT_DEBUG_SENTRY_CLI = false;
   public static final @NotNull String DEFAULT_DEBUG_SENTRY_CLI_STRING = "false";
+  public static final boolean DEFAULT_DEBUG = false;
+  public static final @NotNull String DEFAULT_DEBUG_STRING = "false";
 
   private boolean skip = DEFAULT_SKIP;
   private boolean skipAutoInstall = DEFAULT_SKIP_AUTO_INSTALL;
@@ -23,6 +25,7 @@ public class PluginConfig {
   private boolean skipReportDependencies = DEFAULT_SKIP_REPORT_DEPENDENCIES;
   private boolean skipSourceBundle = DEFAULT_SKIP_SOURCE_BUNDLE;
   private boolean debugSentryCli = DEFAULT_DEBUG_SENTRY_CLI;
+  private boolean debug = DEFAULT_DEBUG;
 
   private @Nullable String org;
   private @Nullable String project;
@@ -35,7 +38,15 @@ public class PluginConfig {
   }
 
   public boolean isDebugSentryCli() {
-    return debugSentryCli;
+    return debugSentryCli || debug;
+  }
+
+  public void setDebug(final boolean debug) {
+    this.debug = debug;
+  }
+
+  public boolean isDebug() {
+    return debug;
   }
 
   public void setSentryCliExecutablePath(final @Nullable String sentryCliExecutablePath) {
