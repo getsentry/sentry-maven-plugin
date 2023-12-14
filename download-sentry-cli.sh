@@ -10,7 +10,7 @@ function prop {
 base_url="$(prop 'repo' $props_file)/releases/download/$(prop 'version' $props_file)"
 target_dir="src/main/resources/bin/"
 actual_props_file="$target_dir${props_file}"
-PLATFORMS="Darwin-universal Linux-i686 Linux-x86_64 Windows-i686"
+PLATFORMS="Darwin-universal Linux-i686 Linux-x86_64 Linux-aarch64 Windows-i686"
 
 function shouldDownload {
     if ! cmp -s "$props_file" "$actual_props_file"; then
