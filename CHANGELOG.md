@@ -7,9 +7,9 @@
 - Bump Sentry SDK from v7.0.0 to v7.3.0 ([#40](https://github.com/getsentry/sentry-maven-plugin/pull/40), [#45](https://github.com/getsentry/sentry-maven-plugin/pull/45), [#49](https://github.com/getsentry/sentry-maven-plugin/pull/49))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#730)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.0.0...7.3.0)
-- Bump CLI from v2.23.0 to v2.28.0 ([#41](https://github.com/getsentry/sentry-maven-plugin/pull/41), [#42](https://github.com/getsentry/sentry-maven-plugin/pull/42), [#43](https://github.com/getsentry/sentry-maven-plugin/pull/43), [#44](https://github.com/getsentry/sentry-maven-plugin/pull/44), [#46](https://github.com/getsentry/sentry-maven-plugin/pull/46), [#47](https://github.com/getsentry/sentry-maven-plugin/pull/47), [#48](https://github.com/getsentry/sentry-maven-plugin/pull/48), [#50](https://github.com/getsentry/sentry-maven-plugin/pull/50), [#51](https://github.com/getsentry/sentry-maven-plugin/pull/51))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2280)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.23.0...2.28.0)
+- Bump CLI from v2.23.0 to v2.28.5 ([#41](https://github.com/getsentry/sentry-maven-plugin/pull/41), [#42](https://github.com/getsentry/sentry-maven-plugin/pull/42), [#43](https://github.com/getsentry/sentry-maven-plugin/pull/43), [#44](https://github.com/getsentry/sentry-maven-plugin/pull/44), [#46](https://github.com/getsentry/sentry-maven-plugin/pull/46), [#47](https://github.com/getsentry/sentry-maven-plugin/pull/47), [#48](https://github.com/getsentry/sentry-maven-plugin/pull/48), [#50](https://github.com/getsentry/sentry-maven-plugin/pull/50), [#51](https://github.com/getsentry/sentry-maven-plugin/pull/51), [#52](https://github.com/getsentry/sentry-maven-plugin/pull/52))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2285)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.23.0...2.28.5)
 
 ## 0.0.6
 
