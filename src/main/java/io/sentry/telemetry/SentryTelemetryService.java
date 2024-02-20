@@ -41,7 +41,7 @@ public class SentryTelemetryService {
   }
 
   public static final @NotNull String SENTRY_SAAS_DSN =
-      "https://dd1f82ad30a331bd7def2a0dce926c6e@o447951.ingest.sentry.io/4506031723446272";
+      "https://000e5dea9770b4537055f8a6d28c021e@o1.ingest.sentry.io/4506241308295168";
   public static final @NotNull String MECHANISM_TYPE = "MavenTelemetry";
   private @NotNull IHub hub = NoOpHub.getInstance();
   private @NotNull ITransaction transaction = NoOpTransaction.getInstance();

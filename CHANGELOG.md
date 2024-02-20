@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Change telemetry DSN to point to production project ([#54](https://github.com/getsentry/sentry-maven-plugin/pull/54))
+
 ### Dependencies
 
 - Bump Sentry SDK from v7.0.0 to v7.3.0 ([#40](https://github.com/getsentry/sentry-maven-plugin/pull/40), [#45](https://github.com/getsentry/sentry-maven-plugin/pull/45), [#49](https://github.com/getsentry/sentry-maven-plugin/pull/49))
