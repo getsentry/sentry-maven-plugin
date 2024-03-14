@@ -65,16 +65,18 @@ public class SentryCliRunner {
                       attributes(
                           attribute("executable", executable),
                           attribute("failOnError", String.valueOf(failOnError)),
-                          attribute("output", logFile.getAbsolutePath())),
+                          attribute("output", escape(logFile.getAbsolutePath(), isWindows))),
                       element(name("arg"), attributes(attribute("value", cArg))),
                       element(
                           name("arg"),
                           attributes(
                               attribute(
                                   "value",
-                                  getCliPath(mavenProject, sentryCliExecutablePath)
-                                      + " "
-                                      + sentryCliCommand)))))),
+                                  escape(
+                                      getCliPath(mavenProject, sentryCliExecutablePath)
+                                          + " "
+                                          + sentryCliCommand,
+                                      isWindows))))))),
           executionEnvironment(mavenProject, mavenSession, pluginManager));
 
       return collectAndMaybePrintOutput(logFile, debugSentryCli);
@@ -89,6 +91,17 @@ public class SentryCliRunner {
       throw e;
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private @Nullable String escape(final @Nullable String toEscape, final boolean isWindows) {
+    if (toEscape == null) {
+      return null;
+    }
+    if (isWindows) {
+      return toEscape.replaceAll(" ", "^ ");
+    } else {
+      return toEscape.replaceAll(" ", "\\ ");
     }
   }
 
