@@ -71,9 +71,10 @@ public class SentryCliRunner {
                           attributes(
                               attribute(
                                   "value",
-                                  escape(getCliPath(mavenProject, sentryCliExecutablePath))
-                                      + " "
-                                      + sentryCliCommand)))))),
+                                  wrapForWindows(
+                                      escape(getCliPath(mavenProject, sentryCliExecutablePath))
+                                          + " "
+                                          + sentryCliCommand))))))),
           executionEnvironment(mavenProject, mavenSession, pluginManager));
 
       return collectAndMaybePrintOutput(logFile, debugSentryCli);
@@ -97,12 +98,26 @@ public class SentryCliRunner {
     return isWindows;
   }
 
+  private @Nullable String wrapForWindows(final @Nullable String toWrap) {
+      // Wrap whole command in double quotes as Windows cmd will remove the first and last double quote
+    if (toWrap != null && isWindows()) {
+      return "\"" + toWrap + "\"";
+    } else {
+      return toWrap;
+    }
+  }
+
   public @Nullable String escape(final @Nullable String toEscape) {
     if (toEscape == null) {
       return null;
     }
     if (isWindows()) {
-      return toEscape.replaceAll(" ", "^ ");
+        // Wrap paths that contain a whitespace in double quotes
+        // For some reason wrapping paths that do not contain a whitespace lead to an error
+      if (toEscape.contains(" ")) {
+        return "\"" + toEscape + "\"";
+      }
+      return toEscape;
     } else {
       return toEscape.replaceAll(" ", "\\\\ ");
     }
