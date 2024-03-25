@@ -6,6 +6,10 @@
 
 - Fix `isSaas` check for telemetry ([#66](https://github.com/getsentry/sentry-maven-plugin/pull/66))
 
+### Features
+
+- Disable source upload via `SENTRY_SKIP_SOURCE_UPLOAD` environment variable ([#65](https://github.com/getsentry/sentry-maven-plugin/pull/65))
+
 ### Dependencies
 
 - Bump Sentry SDK from v7.3.0 to v7.6.0 ([#55](https://github.com/getsentry/sentry-maven-plugin/pull/55), [#56](https://github.com/getsentry/sentry-maven-plugin/pull/56), [#59](https://github.com/getsentry/sentry-maven-plugin/pull/59))
