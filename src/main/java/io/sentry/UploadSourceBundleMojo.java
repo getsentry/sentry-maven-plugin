@@ -71,7 +71,8 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException {
-    if (skip || skipSourceBundle) {
+    final @Nullable String sentrySkipSourceUpload = System.getenv("SENTRY_SKIP_SOURCE_UPLOAD");
+    if (skip || skipSourceBundle || "true".equalsIgnoreCase(sentrySkipSourceUpload)) {
       logger.info("Upload Source Bundle skipped");
       return;
     }

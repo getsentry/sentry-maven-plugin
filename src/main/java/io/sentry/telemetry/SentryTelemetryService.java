@@ -74,7 +74,7 @@ public class SentryTelemetryService {
                 pluginManager);
         final @Nullable InfoOutput infoOutput = determineSentryCliInfo(cliRunner, pluginConfig);
 
-        if (infoOutput != null && infoOutput.isSaas) {
+        if (infoOutput != null && !infoOutput.isSaas) {
           logger.info(
               "Sentry telemetry has been disabled because this build is running against a self hosted instance.");
           return;
@@ -160,10 +160,11 @@ public class SentryTelemetryService {
       final @Nullable String infoOutput = cliRunner.runSentryCli(String.join(" ", command), false);
       if (infoOutput != null) {
         final InfoOutput info = new InfoOutput();
-        info.isSaas = infoOutput.matches("(?m)Sentry Server: .*sentry.io$");
+        Pattern serverPattern = Pattern.compile("Sentry Server: .*sentry.io$", Pattern.MULTILINE);
+        info.isSaas = serverPattern.matcher(infoOutput).find();
 
         final @NotNull Pattern orgRegex =
-            Pattern.compile("(?m)Default Organization: (.*)$", Pattern.MULTILINE);
+            Pattern.compile("Default Organization: (.*)$", Pattern.MULTILINE);
 
         final @NotNull Matcher matcher = orgRegex.matcher(infoOutput);
         if (matcher.find()) {
