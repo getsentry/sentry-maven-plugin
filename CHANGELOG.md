@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fix `isSaas` check for telemetry ([#66](https://github.com/getsentry/sentry-maven-plugin/pull/66))
+
 ### Features
 
 - Disable source upload via `SENTRY_SKIP_SOURCE_UPLOAD` environment variable ([#65](https://github.com/getsentry/sentry-maven-plugin/pull/65))
