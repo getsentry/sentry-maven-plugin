@@ -42,8 +42,7 @@ public class SentryCliRunner {
   public @Nullable String runSentryCli(
       final @NotNull String sentryCliCommand, final boolean failOnError)
       throws MojoExecutionException {
-    final boolean isWindows =
-        System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
+    final boolean isWindows = isWindows();
 
     final @NotNull String executable = isWindows ? "cmd.exe" : "/bin/sh";
     final @NotNull String cArg = isWindows ? "/c" : "-c";
@@ -65,18 +64,16 @@ public class SentryCliRunner {
                       attributes(
                           attribute("executable", executable),
                           attribute("failOnError", String.valueOf(failOnError)),
-                          attribute("output", escape(logFile.getAbsolutePath(), isWindows))),
+                          attribute("output", escape(logFile.getAbsolutePath()))),
                       element(name("arg"), attributes(attribute("value", cArg))),
                       element(
                           name("arg"),
                           attributes(
                               attribute(
                                   "value",
-                                  escape(
-                                      getCliPath(mavenProject, sentryCliExecutablePath)
-                                          + " "
-                                          + sentryCliCommand,
-                                      isWindows))))))),
+                                  escape(getCliPath(mavenProject, sentryCliExecutablePath))
+                                      + " "
+                                      + sentryCliCommand)))))),
           executionEnvironment(mavenProject, mavenSession, pluginManager));
 
       return collectAndMaybePrintOutput(logFile, debugSentryCli);
@@ -94,14 +91,20 @@ public class SentryCliRunner {
     }
   }
 
-  private @Nullable String escape(final @Nullable String toEscape, final boolean isWindows) {
+  private static boolean isWindows() {
+    final boolean isWindows =
+        System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
+    return isWindows;
+  }
+
+  public @Nullable String escape(final @Nullable String toEscape) {
     if (toEscape == null) {
       return null;
     }
-    if (isWindows) {
+    if (isWindows()) {
       return toEscape.replaceAll(" ", "^ ");
     } else {
-      return toEscape.replaceAll(" ", "\\ ");
+      return toEscape.replaceAll(" ", "\\\\ ");
     }
   }
 
