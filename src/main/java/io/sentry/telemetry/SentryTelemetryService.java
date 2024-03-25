@@ -164,7 +164,7 @@ public class SentryTelemetryService {
         info.isSaas = serverPattern.matcher(infoOutput).find();
 
         final @NotNull Pattern orgRegex =
-            Pattern.compile("(?m)Default Organization: (.*)$", Pattern.MULTILINE);
+            Pattern.compile("Default Organization: (.*)$", Pattern.MULTILINE);
 
         final @NotNull Matcher matcher = orgRegex.matcher(infoOutput);
         if (matcher.find()) {
