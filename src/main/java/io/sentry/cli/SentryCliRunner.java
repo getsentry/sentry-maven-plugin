@@ -99,7 +99,8 @@ public class SentryCliRunner {
   }
 
   private @Nullable String wrapForWindows(final @Nullable String toWrap) {
-      // Wrap whole command in double quotes as Windows cmd will remove the first and last double quote
+    // Wrap whole command in double quotes as Windows cmd will remove the first and last double
+    // quote
     if (toWrap != null && isWindows()) {
       return "\"" + toWrap + "\"";
     } else {
@@ -112,8 +113,8 @@ public class SentryCliRunner {
       return null;
     }
     if (isWindows()) {
-        // Wrap paths that contain a whitespace in double quotes
-        // For some reason wrapping paths that do not contain a whitespace lead to an error
+      // Wrap paths that contain a whitespace in double quotes
+      // For some reason wrapping paths that do not contain a whitespace leads to an error
       if (toEscape.contains(" ")) {
         return "\"" + toEscape + "\"";
       }
