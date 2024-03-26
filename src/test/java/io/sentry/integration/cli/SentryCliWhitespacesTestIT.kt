@@ -10,9 +10,10 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
-import java.util.*
+import java.util.Properties
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.test.assertEquals
@@ -45,7 +46,7 @@ class SentryCliWhitespacesTestIT {
         verifier.executeGoal("install")
         verifier.verifyErrorFreeLog()
 
-        val output = verifier.loadLines(verifier.logFileName, "UTF-8").joinToString("\n")
+        val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
 
         val uploadedId = getUploadedBundleIdFromLog(output)
         val bundleId = getBundleIdFromProperties(baseDir.absolutePath)
@@ -61,12 +62,16 @@ class SentryCliWhitespacesTestIT {
         val cliPath = SentryCliProvider.getCliPath(MavenProject(), null)
         val baseDir = setupProject()
         val cliPathWithSpaces = Files.copy(Path(cliPath), Path(baseDir.absolutePath, "sentry-cli"))
-        val path = getPOM(baseDir, sentryCliPath = cliPathWithSpaces.absolutePathString())
-        val verifier = Verifier(path)
+        cliPathWithSpaces.toFile().setExecutable(true)
 
+        val path = getPOM(baseDir, sentryCliPath = cliPathWithSpaces.absolutePathString())
+
+        val verifier = Verifier(path)
         verifier.isAutoclean = false
-        mac
-        val output = verifier.loadLines(verifier.logFileName, "UTF-8").joinToString("\n")
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
 
         val uploadedId = getUploadedBundleIdFromLog(output)
         val bundleId = getBundleIdFromProperties(baseDir.absolutePath)
@@ -99,7 +104,7 @@ class SentryCliWhitespacesTestIT {
 
     private fun getBundleIdFromProperties(baseDir: String): String {
         val myProps = Properties()
-        myProps.load(FileInputStream("${baseDir}/target/sentry/properties/sentry-debug-meta.properties"))
+        myProps.load(FileInputStream("$baseDir/target/sentry/properties/sentry-debug-meta.properties"))
         return myProps.getProperty("io.sentry.bundle-ids")
     }
 }
