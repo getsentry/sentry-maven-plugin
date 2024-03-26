@@ -10,8 +10,8 @@ fun basePom(
                  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
             <modelVersion>4.0.0</modelVersion>
 
-            <groupId>io.sentry.autoinstall</groupId>
-            <artifactId>installsentry</artifactId>
+            <groupId>io.sentry.maven</groupId>
+            <artifactId>cli-tests</artifactId>
             <version>1.0-SNAPSHOT</version>
 
             <packaging>jar</packaging>
@@ -44,10 +44,10 @@ fun basePom(
                         <configuration>
                             <debugSentryCli>true</debugSentryCli>
                             <skip>$skipPlugin</skip>
-                            <skipSourceBundle>${skipSourceBundle}</skipSourceBundle>
+                            <skipSourceBundle>$skipSourceBundle</skipSourceBundle>
                             <org>sentry-sdks</org>
                             <project>android-sagp-testing</project>
-                            ${if (sentryCliPath.isNullOrBlank()) "" else "<sentryCliExecutablePath>${sentryCliPath}</sentryCliExecutablePath>"}
+                            ${if (sentryCliPath.isNullOrBlank()) "" else "<sentryCliExecutablePath>$sentryCliPath</sentryCliExecutablePath>"}
                         </configuration>
                         <executions>
                             <execution>

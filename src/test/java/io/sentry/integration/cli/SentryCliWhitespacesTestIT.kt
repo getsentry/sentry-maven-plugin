@@ -1,12 +1,10 @@
 package io.sentry.integration.cli
 
 import io.sentry.SentryCliProvider
-import io.sentry.autoinstall.util.SdkVersionInfo
 import io.sentry.integration.installMavenWrapper
 import org.apache.maven.it.VerificationException
 import org.apache.maven.it.Verifier
 import org.apache.maven.project.MavenProject
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -15,11 +13,9 @@ import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.createTempDirectory
 import kotlin.test.assertTrue
 
-class SentryCliWhitespacesTest {
-
+class SentryCliWhitespacesTestIT {
     @TempDir()
     lateinit var file: File
 
@@ -46,14 +42,14 @@ class SentryCliWhitespacesTest {
         verifier.executeGoal("install")
         verifier.verifyErrorFreeLog()
         verifier.verifyTextInLog("Bundled 1 file for upload")
-        verifier.verifyTextInLog("Uploaded 1 missing debug information file");
+        verifier.verifyTextInLog("Uploaded 1 missing debug information file")
         verifier.resetStreams()
     }
 
     @Test
     @Throws(VerificationException::class, IOException::class)
     fun sentryCliExecutionInProjectAndCliPathWithSpaces() {
-        val cliPath = SentryCliProvider.getCliPath(MavenProject(), null);
+        val cliPath = SentryCliProvider.getCliPath(MavenProject(), null)
         val baseDir = setupProject()
         val cliPathWithSpaces = Files.copy(Path(cliPath), Path(baseDir.absolutePath, "sentry-cli"))
         val path = getPOM(baseDir, sentryCliPath = cliPathWithSpaces.absolutePathString())
@@ -63,7 +59,7 @@ class SentryCliWhitespacesTest {
         verifier.executeGoal("install")
         verifier.verifyErrorFreeLog()
         verifier.verifyTextInLog("Bundled 1 file for upload")
-        verifier.verifyTextInLog("Uploaded 1 missing debug information file");
+        verifier.verifyTextInLog("Uploaded 1 missing debug information file")
         verifier.resetStreams()
     }
 
