@@ -5,6 +5,7 @@
 ### Fixes
 
 - Fix `isSaas` check for telemetry ([#66](https://github.com/getsentry/sentry-maven-plugin/pull/66))
+- Escape spaces in paths ([#64](https://github.com/getsentry/sentry-maven-plugin/pull/64))
 
 ### Features
 
