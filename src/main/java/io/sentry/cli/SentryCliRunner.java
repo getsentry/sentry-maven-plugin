@@ -108,19 +108,19 @@ public class SentryCliRunner {
     }
   }
 
-  public @Nullable String escape(final @Nullable String toEscape) {
-    if (toEscape == null) {
+  public @Nullable String escape(final @Nullable String escapePath) {
+    if (escapePath == null) {
       return null;
     }
     if (isWindows()) {
       // Wrap paths that contain a whitespace in double quotes
       // For some reason wrapping paths that do not contain a whitespace leads to an error
-      if (toEscape.contains(" ")) {
-        return "\"" + toEscape + "\"";
+      if (escapePath.contains(" ")) {
+        return "\"" + escapePath + "\"";
       }
-      return toEscape;
+      return escapePath;
     } else {
-      return toEscape.replaceAll(" ", "\\\\ ");
+      return escapePath.replaceAll(" ", "\\\\ ");
     }
   }
 
