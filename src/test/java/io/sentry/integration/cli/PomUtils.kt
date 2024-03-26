@@ -45,8 +45,10 @@ fun basePom(
                             <debugSentryCli>true</debugSentryCli>
                             <skip>$skipPlugin</skip>
                             <skipSourceBundle>$skipSourceBundle</skipSourceBundle>
+                            <skipTelemetry>true</skipTelemetry>
                             <org>sentry-sdks</org>
-                            <project>android-sagp-testing</project>
+                            <project>sentry-maven</project>
+                            <authToken>\&lt;token\&gt;</authToken>
                             ${if (sentryCliPath.isNullOrBlank()) "" else "<sentryCliExecutablePath>$sentryCliPath</sentryCliExecutablePath>"}
                         </configuration>
                         <executions>

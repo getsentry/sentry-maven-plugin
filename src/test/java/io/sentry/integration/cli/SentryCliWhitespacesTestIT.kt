@@ -8,11 +8,14 @@ import org.apache.maven.project.MavenProject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
+import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class SentryCliWhitespacesTestIT {
@@ -41,8 +44,14 @@ class SentryCliWhitespacesTestIT {
         verifier.isAutoclean = false
         verifier.executeGoal("install")
         verifier.verifyErrorFreeLog()
-        verifier.verifyTextInLog("Bundled 1 file for upload")
-        verifier.verifyTextInLog("Uploaded 1 missing debug information file")
+
+        val output = verifier.loadLines(verifier.logFileName, "UTF-8").joinToString("\n")
+
+        val uploadedId = getUploadedBundleIdFromLog(output)
+        val bundleId = getBundleIdFromProperties(baseDir.absolutePath)
+
+        assertEquals(bundleId, uploadedId, "Bundle ID from properties file should match the one from the log")
+
         verifier.resetStreams()
     }
 
@@ -56,10 +65,14 @@ class SentryCliWhitespacesTestIT {
         val verifier = Verifier(path)
 
         verifier.isAutoclean = false
-        verifier.executeGoal("install")
-        verifier.verifyErrorFreeLog()
-        verifier.verifyTextInLog("Bundled 1 file for upload")
-        verifier.verifyTextInLog("Uploaded 1 missing debug information file")
+        mac
+        val output = verifier.loadLines(verifier.logFileName, "UTF-8").joinToString("\n")
+
+        val uploadedId = getUploadedBundleIdFromLog(output)
+        val bundleId = getBundleIdFromProperties(baseDir.absolutePath)
+
+        assertEquals(bundleId, uploadedId, "Bundle ID from properties file should match the one from the log")
+
         verifier.resetStreams()
     }
 
@@ -77,5 +90,16 @@ class SentryCliWhitespacesTestIT {
         installMavenWrapper(baseDir, "3.8.6")
 
         return baseDir
+    }
+
+    private fun getUploadedBundleIdFromLog(output: String): String? {
+        val uploadedIdRegex = """\w+":\{"state":"ok","missingChunks":\[],"uploaded_id":"(\w+-\w+-\w+-\w+-\w+)""".toRegex()
+        return uploadedIdRegex.find(output)?.groupValues?.get(1)
+    }
+
+    private fun getBundleIdFromProperties(baseDir: String): String {
+        val myProps = Properties()
+        myProps.load(FileInputStream("${baseDir}/target/sentry/properties/sentry-debug-meta.properties"))
+        return myProps.getProperty("io.sentry.bundle-ids")
     }
 }
