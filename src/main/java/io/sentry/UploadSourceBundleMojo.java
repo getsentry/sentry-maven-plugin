@@ -135,7 +135,8 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
         bundleSourcesCommand.add("debug-files");
         bundleSourcesCommand.add("bundle-jvm");
-        bundleSourcesCommand.add("--output=" + sourceBundleTargetDir.getAbsolutePath());
+        bundleSourcesCommand.add(
+            "--output=" + cliRunner.escape(sourceBundleTargetDir.getAbsolutePath()));
         bundleSourcesCommand.add("--debug-id=" + bundleId);
         if (org != null) {
           bundleSourcesCommand.add("--org=" + org);
@@ -143,7 +144,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
         if (project != null) {
           bundleSourcesCommand.add("--project=" + project);
         }
-        bundleSourcesCommand.add(sourceRoot);
+        bundleSourcesCommand.add(cliRunner.escape(sourceRoot));
 
         cliRunner.runSentryCli(String.join(" ", bundleSourcesCommand), true);
       } else {
@@ -190,7 +191,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       if (project != null) {
         command.add("--project=" + project);
       }
-      command.add(sourceBundleTargetDir.getAbsolutePath());
+      command.add(cliRunner.escape(sourceBundleTargetDir.getAbsolutePath()));
 
       cliRunner.runSentryCli(String.join(" ", command), true);
     } catch (Throwable t) {
