@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump Sentry SDK from v7.8.0 to v7.10.0 ([#77](https://github.com/getsentry/sentry-maven-plugin/pull/77))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7100)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.8.0...7.10.0)
+
 ## 0.0.8
 
 ### Fixes
