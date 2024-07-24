@@ -7,9 +7,9 @@
 - Bump Sentry SDK from v7.8.0 to v7.11.0 ([#78](https://github.com/getsentry/sentry-maven-plugin/pull/78))
   - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7110)
   - [diff](https://github.com/getsentry/sentry-java/compare/7.8.0...7.11.0)
-- Bump CLI from v2.31.2 to v2.32.1 ([#76](https://github.com/getsentry/sentry-maven-plugin/pull/76))
-  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2321)
-  - [diff](https://github.com/getsentry/sentry-cli/compare/2.31.2...2.32.1)
+- Bump CLI from v2.31.2 to v2.33.0 ([#76](https://github.com/getsentry/sentry-maven-plugin/pull/76), [#81](https://github.com/getsentry/sentry-maven-plugin/pull/81))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2330)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.31.2...2.33.0)
 
 ## 0.0.8
 
