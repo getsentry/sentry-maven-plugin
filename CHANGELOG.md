@@ -4,7 +4,7 @@
 
 ### Features
 
-- Add AutoInstallStrategy for graphql-22
+- Add AutoInstallStrategy for graphql-22 ([#100](https://github.com/getsentry/sentry-maven-plugin/pull/100))
 
 ### Dependencies
 
