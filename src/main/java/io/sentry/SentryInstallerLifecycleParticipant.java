@@ -147,14 +147,14 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
   private boolean shouldInstallSpring(final @NotNull List<Artifact> resolvedArtifacts) {
     return !(isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_5_ID)
-        && isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_6_ID)
-        && isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_2_ID)
-        && isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_3_ID));
+        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_6_ID)
+        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_2_ID)
+        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_3_ID));
   }
 
   private boolean shouldInstallGraphQL(final @NotNull List<Artifact> resolvedArtifacts) {
     return !(isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_ID)
-        && isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_22_ID));
+        || isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_22_ID));
   }
 
   public static boolean isModuleAvailable(
