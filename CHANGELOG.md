@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Add AutoInstallStrategy for graphql-22
+
 ### Dependencies
 
 - Bump Sentry SDK from v7.8.0 to v7.15.0 ([#78](https://github.com/getsentry/sentry-maven-plugin/pull/78), [#86](https://github.com/getsentry/sentry-maven-plugin/pull/86), [#97](https://github.com/getsentry/sentry-maven-plugin/pull/97))
