@@ -10,16 +10,16 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GraphqlInstallStrategy extends AbstractIntegrationInstaller {
+public class Graphql22InstallStrategy extends AbstractIntegrationInstaller {
   private static final @NotNull String GRAPHQL_GROUP = "com.graphql-java";
   private static final @NotNull String GRAPHQL_ID = "graphql-java";
-  public static final @NotNull String SENTRY_GRAPHQL_ID = "sentry-graphql";
+  public static final @NotNull String SENTRY_GRAPHQL_22_ID = "sentry-graphql-22";
 
-  public GraphqlInstallStrategy() {
-    this(LoggerFactory.getLogger(GraphqlInstallStrategy.class));
+  public Graphql22InstallStrategy() {
+    this(LoggerFactory.getLogger(Graphql22InstallStrategy.class));
   }
 
-  public GraphqlInstallStrategy(final @NotNull Logger logger) {
+  public Graphql22InstallStrategy(final @NotNull Logger logger) {
     super(logger);
   }
 
@@ -40,17 +40,17 @@ public class GraphqlInstallStrategy extends AbstractIntegrationInstaller {
   }
 
   @Override
-  protected @Nullable Version maxSupportedThirdPartyVersion() {
-    return Version.create(21, 9999, 9999);
+  protected @Nullable Version minSupportedThirdPartyVersion() {
+    return Version.create(22, 0, 0);
   }
 
   @Override
   protected @NotNull Version minSupportedSentryVersion() {
-    return Version.create(6, 25, 2);
+    return Version.create(8, 0, 0);
   }
 
   @Override
   protected @NotNull String sentryModuleId() {
-    return SENTRY_GRAPHQL_ID;
+    return SENTRY_GRAPHQL_22_ID;
   }
 }

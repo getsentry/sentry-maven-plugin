@@ -267,6 +267,8 @@ public final class Version implements Comparable<Version>, Serializable {
           if (c == '.') {
             // single 0 is allowed
             state = STATE_PATCH_INIT;
+          } else if (c == EOS) {
+            break loop;
           } else if (c >= '0' && c <= '9') {
             if (verifyOnly) {
               return null;
@@ -281,6 +283,8 @@ public final class Version implements Comparable<Version>, Serializable {
         case STATE_MINOR_DEFAULT:
           if (c >= '0' && c <= '9') {
             minor = minor * DECIMAL + Character.digit(c, DECIMAL);
+          } else if (c == EOS) {
+            break loop;
           } else if (c == '.') {
             state = STATE_PATCH_INIT;
           } else if (verifyOnly) {
