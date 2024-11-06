@@ -104,8 +104,8 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
       final @NotNull List<String> bundleSourcesCommand = new ArrayList<>();
       final @NotNull List<String> sourceRoots = mavenProject.getCompileSourceRoots();
-      final @Nullable String sourceRoot = sourceRoots != null && sourceRoots.size() > 0
-          ? sourceRoots.get(0) : null;
+      final @Nullable String sourceRoot =
+          sourceRoots != null && !sourceRoots.isEmpty() ? sourceRoots.get(0) : null;
 
       if (sourceRoot != null && new File(sourceRoot).exists()) {
         if (sourceRoots.size() > 1) {
