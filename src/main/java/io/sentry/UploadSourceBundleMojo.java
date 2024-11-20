@@ -104,9 +104,10 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
       final @NotNull List<String> bundleSourcesCommand = new ArrayList<>();
       final @NotNull List<String> sourceRoots = mavenProject.getCompileSourceRoots();
+      final @Nullable String sourceRoot =
+          sourceRoots != null && !sourceRoots.isEmpty() ? sourceRoots.get(0) : null;
 
-      if (sourceRoots != null && sourceRoots.size() > 0) {
-        final @Nullable String sourceRoot = sourceRoots.get(0);
+      if (sourceRoot != null && new File(sourceRoot).exists()) {
         if (sourceRoots.size() > 1) {
           logger.warn("There's more than one source root, using {}", sourceRoot);
         }
@@ -148,7 +149,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
         cliRunner.runSentryCli(String.join(" ", bundleSourcesCommand), true);
       } else {
-        throw new MojoExecutionException("Unable to find source root");
+        logger.info("Skipping module, as it doesn't have any source roots");
       }
     } catch (Throwable t) {
       SentryTelemetryService.getInstance().captureError(t, "bundleSources");
