@@ -4,6 +4,7 @@
 
 ### Features
 
+- Add AutoInstallStrategy for graphql-22 ([#100](https://github.com/getsentry/sentry-maven-plugin/pull/100))
 - More lenient handling of empty Maven modules ([#103](https://github.com/getsentry/sentry-maven-plugin/pull/103))
   - The Maven plugin now ignores Maven modules with empty source roots and instead of failing the build simply prints a log message
   - This allows the plugin to be configured in the root POM even if it does not have sources

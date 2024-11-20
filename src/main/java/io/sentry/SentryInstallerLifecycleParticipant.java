@@ -1,6 +1,7 @@
 package io.sentry;
 
 import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
+import static io.sentry.autoinstall.graphql.Graphql22InstallStrategy.SENTRY_GRAPHQL_22_ID;
 import static io.sentry.autoinstall.graphql.GraphqlInstallStrategy.SENTRY_GRAPHQL_ID;
 import static io.sentry.autoinstall.jdbc.JdbcInstallStrategy.SENTRY_JDBC_ID;
 import static io.sentry.autoinstall.log4j2.Log4j2InstallStrategy.SENTRY_LOG4J2_ID;
@@ -14,6 +15,7 @@ import static io.sentry.autoinstall.spring.SpringBoot3InstallStrategy.SENTRY_SPR
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
 import io.sentry.autoinstall.SentryInstaller;
+import io.sentry.autoinstall.graphql.Graphql22InstallStrategy;
 import io.sentry.autoinstall.graphql.GraphqlInstallStrategy;
 import io.sentry.autoinstall.jdbc.JdbcInstallStrategy;
 import io.sentry.autoinstall.log4j2.Log4j2InstallStrategy;
@@ -59,6 +61,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
               Log4j2InstallStrategy.class,
               LogbackInstallStrategy.class,
               GraphqlInstallStrategy.class,
+              Graphql22InstallStrategy.class,
               JdbcInstallStrategy.class,
               QuartzInstallStrategy.class)
           .collect(Collectors.toList());
@@ -118,8 +121,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         autoInstallState.setInstallLogback(
             !isModuleAvailable(resolvedArtifacts, SENTRY_LOGBACK_ID));
         autoInstallState.setInstallLog4j2(!isModuleAvailable(resolvedArtifacts, SENTRY_LOG4J2_ID));
-        autoInstallState.setInstallGraphql(
-            !isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_ID));
+        autoInstallState.setInstallGraphql(shouldInstallGraphQL(resolvedArtifacts));
         autoInstallState.setInstallJdbc(!isModuleAvailable(resolvedArtifacts, SENTRY_JDBC_ID));
         autoInstallState.setInstallQuartz(!isModuleAvailable(resolvedArtifacts, SENTRY_QUARTZ_ID));
 
@@ -145,9 +147,14 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
   private boolean shouldInstallSpring(final @NotNull List<Artifact> resolvedArtifacts) {
     return !(isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_5_ID)
-        && isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_6_ID)
-        && isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_2_ID)
-        && isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_3_ID));
+        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_6_ID)
+        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_2_ID)
+        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_3_ID));
+  }
+
+  private boolean shouldInstallGraphQL(final @NotNull List<Artifact> resolvedArtifacts) {
+    return !(isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_ID)
+        || isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_22_ID));
   }
 
   public static boolean isModuleAvailable(
