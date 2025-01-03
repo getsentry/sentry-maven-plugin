@@ -11,9 +11,9 @@
 
 ### Dependencies
 
-- Bump Sentry SDK from v7.8.0 to v7.19.1 ([#78](https://github.com/getsentry/sentry-maven-plugin/pull/78), [#86](https://github.com/getsentry/sentry-maven-plugin/pull/86), [#97](https://github.com/getsentry/sentry-maven-plugin/pull/97), [#99](https://github.com/getsentry/sentry-maven-plugin/pull/99), [#104](https://github.com/getsentry/sentry-maven-plugin/pull/104), [#111](https://github.com/getsentry/sentry-maven-plugin/pull/111), [#113](https://github.com/getsentry/sentry-maven-plugin/pull/113))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7191)
-  - [diff](https://github.com/getsentry/sentry-java/compare/7.8.0...7.19.1)
+- Bump Sentry SDK from v7.8.0 to v7.20.0 ([#78](https://github.com/getsentry/sentry-maven-plugin/pull/78), [#86](https://github.com/getsentry/sentry-maven-plugin/pull/86), [#97](https://github.com/getsentry/sentry-maven-plugin/pull/97), [#99](https://github.com/getsentry/sentry-maven-plugin/pull/99), [#104](https://github.com/getsentry/sentry-maven-plugin/pull/104), [#111](https://github.com/getsentry/sentry-maven-plugin/pull/111), [#113](https://github.com/getsentry/sentry-maven-plugin/pull/113), [#115](https://github.com/getsentry/sentry-maven-plugin/pull/115))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#7200)
+  - [diff](https://github.com/getsentry/sentry-java/compare/7.8.0...7.20.0)
 - Bump CLI from v2.31.2 to v2.40.0 ([#76](https://github.com/getsentry/sentry-maven-plugin/pull/76), [#85](https://github.com/getsentry/sentry-maven-plugin/pull/85), [#87](https://github.com/getsentry/sentry-maven-plugin/pull/87), [#90](https://github.com/getsentry/sentry-maven-plugin/pull/90), [#91](https://github.com/getsentry/sentry-maven-plugin/pull/91), [#96](https://github.com/getsentry/sentry-maven-plugin/pull/96), [#98](https://github.com/getsentry/sentry-maven-plugin/pull/98), [#101](https://github.com/getsentry/sentry-maven-plugin/pull/101), [#102](https://github.com/getsentry/sentry-maven-plugin/pull/102), [#109](https://github.com/getsentry/sentry-maven-plugin/pull/109), [#114](https://github.com/getsentry/sentry-maven-plugin/pull/114))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2400)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.31.2...2.40.0)
