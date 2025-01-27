@@ -81,6 +81,20 @@ class SentryCliWhitespacesTestIT {
         verifier.resetStreams()
     }
 
+    @Test
+    fun buildsSuccessfullyWithNoSourceRootAndLogs() {
+        val cliPath = SentryCliProvider.getCliPath(MavenProject(), null)
+        val baseDir = setupEmptyProject()
+
+        val path = getPOM(baseDir, sentryCliPath = cliPath)
+
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+        verifier.verifyTextInLog("Skipping module, as it doesn't have any source roots")
+    }
+
     private fun setupProject(): File {
         val baseDir = File(file, "base with spaces")
         val srcDir = File(baseDir, "/src/main/java")
@@ -92,6 +106,16 @@ class SentryCliWhitespacesTestIT {
         assertTrue(baseDirResult, "Error creating base directory")
         assertTrue(srcDirResult, "Error creating source directory")
         assertTrue(srcFileResult, "Error creating source file")
+        installMavenWrapper(baseDir, "3.8.6")
+
+        return baseDir
+    }
+
+    private fun setupEmptyProject(): File {
+        val baseDir = File(file, "empty-base-dir")
+        val baseDirResult = baseDir.mkdir()
+
+        assertTrue(baseDirResult, "Error creating base directory")
         installMavenWrapper(baseDir, "3.8.6")
 
         return baseDir
