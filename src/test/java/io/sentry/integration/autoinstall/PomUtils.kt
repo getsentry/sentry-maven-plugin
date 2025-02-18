@@ -1,4 +1,4 @@
-import io.sentry.autoinstall.Constants
+import io.sentry.Constants
 
 fun basePom(
     dependencies: String?,
@@ -21,7 +21,7 @@ fun basePom(
             """
             <dependency>
                 <groupId>${Constants.SENTRY_GROUP_ID}</groupId>
-                <artifactId>${Constants.SENTRY_ARTIFACT_ID}</artifactId>
+                <artifactId>${Constants.SENTRY_SDK_ARTIFACT_ID}</artifactId>
                 <version>$it</version>
             </dependency>
             """.trimIndent()

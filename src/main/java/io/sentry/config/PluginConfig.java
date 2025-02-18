@@ -18,6 +18,9 @@ public class PluginConfig {
   public static final @NotNull String DEFAULT_DEBUG_SENTRY_CLI_STRING = "false";
   public static final boolean DEFAULT_DEBUG = false;
   public static final @NotNull String DEFAULT_DEBUG_STRING = "false";
+  public static final boolean DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS = false;
+  public static final @NotNull String DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS_STRING =
+      "false";
 
   private boolean skip = DEFAULT_SKIP;
   private boolean skipAutoInstall = DEFAULT_SKIP_AUTO_INSTALL;
@@ -26,6 +29,7 @@ public class PluginConfig {
   private boolean skipSourceBundle = DEFAULT_SKIP_SOURCE_BUNDLE;
   private boolean debugSentryCli = DEFAULT_DEBUG_SENTRY_CLI;
   private boolean debug = DEFAULT_DEBUG;
+  private boolean skipValidateSdkDependencyVersions = DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS;
 
   private @Nullable String org;
   private @Nullable String project;
@@ -81,6 +85,11 @@ public class PluginConfig {
     this.skipSourceBundle = skipSourceBundle;
   }
 
+  public void setSkipValidateSdkDependencyVersions(
+      final boolean skipValidateSdkDependencyVersions) {
+    this.skipValidateSdkDependencyVersions = skipValidateSdkDependencyVersions;
+  }
+
   public boolean isSkipAutoInstall() {
     return skipAutoInstall || skip;
   }
@@ -95,6 +104,10 @@ public class PluginConfig {
 
   public boolean isSkipSourceBundle() {
     return skipSourceBundle || skip;
+  }
+
+  public boolean isSkipValidateSdkDependencyVersions() {
+    return skipValidateSdkDependencyVersions;
   }
 
   public @Nullable String getOrg() {
