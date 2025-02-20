@@ -22,6 +22,7 @@ class ValidateSdkDependencyVersionsTestIT {
 
     private fun basePom(
         dependencies: String = "",
+        dependencyManagement: String = "",
         skipValidateSdkDependencyVersions: Boolean = false,
     ): String {
         return """
@@ -43,6 +44,10 @@ class ValidateSdkDependencyVersionsTestIT {
                 <dependencies>
                     $dependencies
                 </dependencies>
+
+                <dependencyManagement>
+                    $dependencyManagement
+                </dependencyManagement>
 
                 <build>
                     <plugins>
@@ -80,11 +85,13 @@ class ValidateSdkDependencyVersionsTestIT {
 
     fun getPOM(
         dependencies: String = "",
+        dependencyManagement: String = "",
         skipValidateSdkDependencyVersions: Boolean = false,
     ): String {
         val pomContent =
             basePom(
                 dependencies = dependencies,
+                dependencyManagement = dependencyManagement,
                 skipValidateSdkDependencyVersions = skipValidateSdkDependencyVersions,
             )
 
@@ -167,6 +174,121 @@ class ValidateSdkDependencyVersionsTestIT {
         val verifier = Verifier(path)
         verifier.executeGoal("validate")
         verifier.verifyTextInLog("Detected a mismatch in Sentry dependency versions.")
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `when only bom exists validation succeeds`() {
+        val bom =
+            """
+            <dependencies>
+                <dependency>
+                    <groupId>io.sentry</groupId>
+                    <artifactId>sentry-bom</artifactId>
+                    <version>8.2.0</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+            </dependencies>
+            """.trimIndent()
+
+        val path = getPOM(dependencyManagement = bom)
+        val verifier = Verifier(path)
+        verifier.executeGoal("validate")
+        verifier.verifyErrorFreeLog()
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `when bom and explicit Sentry dependency with different version exist validation fails`() {
+        val dependencies =
+            """
+            <dependency>
+                <groupId>io.sentry</groupId>
+                <artifactId>sentry-spring-boot</artifactId>
+                <version>8.1.0</version>
+            </dependency>
+            """.trimIndent()
+        val bom =
+            """
+            <dependencies>
+                <dependency>
+                    <groupId>io.sentry</groupId>
+                    <artifactId>sentry-bom</artifactId>
+                    <version>8.2.0</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+            </dependencies>
+            """.trimIndent()
+
+        val path = getPOM(dependencies = dependencies, dependencyManagement = bom)
+        val verifier = Verifier(path)
+        verifier.executeGoal("validate")
+        verifier.verifyTextInLog("Detected a mismatch in Sentry dependency versions.")
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `when bom and explicit Sentry dependency with no version exist validation succeeds`() {
+        val dependencies =
+            """
+            <dependency>
+                <groupId>io.sentry</groupId>
+                <artifactId>sentry-spring-boot</artifactId>
+            </dependency>
+            """.trimIndent()
+        val bom =
+            """
+            <dependencies>
+                <dependency>
+                    <groupId>io.sentry</groupId>
+                    <artifactId>sentry-bom</artifactId>
+                    <version>8.2.0</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+            </dependencies>
+            """.trimIndent()
+
+        val path = getPOM(dependencies = dependencies, dependencyManagement = bom)
+        val verifier = Verifier(path)
+        verifier.executeGoal("validate")
+        verifier.verifyErrorFreeLog()
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `when bom and explicit Sentry dependency with same version exist validation succeeds`() {
+        val dependencies =
+            """
+            <dependency>
+                <groupId>io.sentry</groupId>
+                <artifactId>sentry-spring-boot</artifactId>
+                <version>8.2.0</version>
+            </dependency>
+            """.trimIndent()
+        val bom =
+            """
+            <dependencies>
+                <dependency>
+                    <groupId>io.sentry</groupId>
+                    <artifactId>sentry-bom</artifactId>
+                    <version>8.2.0</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+            </dependencies>
+            """.trimIndent()
+
+        val path = getPOM(dependencies = dependencies, dependencyManagement = bom)
+        val verifier = Verifier(path)
+        verifier.executeGoal("validate")
+        verifier.verifyErrorFreeLog()
         verifier.resetStreams()
     }
 
