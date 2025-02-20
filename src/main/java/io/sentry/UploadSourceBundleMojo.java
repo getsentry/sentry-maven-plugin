@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mojo(name = "uploadSourceBundle", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
+@Mojo(name = "uploadSourceBundle", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 public class UploadSourceBundleMojo extends AbstractMojo {
 
   private static Logger logger = LoggerFactory.getLogger(UploadSourceBundleMojo.class);
