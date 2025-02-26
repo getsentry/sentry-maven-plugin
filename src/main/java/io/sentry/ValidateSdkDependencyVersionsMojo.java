@@ -43,7 +43,7 @@ public class ValidateSdkDependencyVersionsMojo extends AbstractMojo {
   private static final String ERROR_MESSAGE =
       "Detected inconsistency in Sentry dependency versions.";
   private static final String RESOLUTION_MESSAGE =
-      "Please remove any dependencies in the "
+      "Please remove any explicit dependencies in the "
           + SENTRY_GROUP_ID
           + " group from your `pom.xml`, or ensure that all of them are present with the same version.";
   private static final String ESCAPE_HATCH_MESSAGE =
