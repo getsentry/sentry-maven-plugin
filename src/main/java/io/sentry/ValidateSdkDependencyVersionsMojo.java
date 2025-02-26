@@ -2,7 +2,6 @@ package io.sentry;
 
 import static io.sentry.Constants.SENTRY_GROUP_ID;
 import static io.sentry.Constants.SENTRY_PLUGIN_ARTIFACT_ID;
-import static io.sentry.Constants.SENTRY_SDK_ARTIFACT_ID;
 import static io.sentry.config.PluginConfig.DEFAULT_SKIP_STRING;
 import static io.sentry.config.PluginConfig.DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS_STRING;
 
@@ -41,17 +40,18 @@ public class ValidateSdkDependencyVersionsMojo extends AbstractMojo {
   private static final @NotNull Logger logger =
       LoggerFactory.getLogger(ValidateSdkDependencyVersionsMojo.class);
 
-  private static final String ERROR_MESSAGE = "Detected a mismatch in Sentry dependency versions.";
+  private static final String ERROR_MESSAGE =
+      "Detected inconsistency in Sentry dependency versions.";
   private static final String RESOLUTION_MESSAGE =
       "Please remove any dependencies in the "
           + SENTRY_GROUP_ID
-          + " group from your `pom.xml`, or ensure that all of them have the same version.";
+          + " group from your `pom.xml`, or ensure that all of them are present with the same version.";
   private static final String ESCAPE_HATCH_MESSAGE =
       "You can disable this check by setting `<skipValidateSdkDependencyVersions>true</skipValidateSdkDependencyVersions>` in your configuration for "
           + SENTRY_GROUP_ID
           + ":"
           + SENTRY_PLUGIN_ARTIFACT_ID
-          + ".";
+          + ".\nThis is not recommended, as mismatched dependency versions could lead to build time or run time failures and crashes.";
 
   @SuppressWarnings("NullAway")
   @Parameter(defaultValue = "${project}", readonly = true)
@@ -98,8 +98,7 @@ public class ValidateSdkDependencyVersionsMojo extends AbstractMojo {
       if (!artifact.getGroupId().equals(SENTRY_GROUP_ID)) {
         continue;
       }
-      if (artifact.getArtifactId().equals(SENTRY_SDK_ARTIFACT_ID)
-          || artifact.getArtifactId().equals(SENTRY_PLUGIN_ARTIFACT_ID)) {
+      if (artifact.getArtifactId().equals(SENTRY_PLUGIN_ARTIFACT_ID)) {
         continue;
       }
       versionToArtifacts

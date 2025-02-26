@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Detect SDK dependency version mismatches ([#126](https://github.com/getsentry/sentry-maven-plugin/pull/126))
+  - The new `validateSdkDependencyVersions` goal verifies that all of the Sentry SDK dependencies included in your `pom.xml` have consistent versions
+  - We recommend enabling this goal by adding 
+    ```xml
+    <executions>
+        <execution>
+            <goals>
+                <goal>validateSdkDependencyVersions</goal>
+            </goals>
+        </execution>
+    </executions>
+    ```
+    within your `plugin` tag for `io.sentry:sentry-maven-plugin`
+  - The build will fail in the `validate` lifecycle phase if a version mismatch is detected
+  - You can opt out of this check by disabling the `validateSdkDependencyVersions` goal or by adding
+    ```xml
+    <configuration>
+        <skipValidateSdkDependencyVersions>true</skipValidateSdkDependencyVersions>
+    </configuration>
+    ```
+    within your `plugin` tag for `io.sentry:sentry-maven-plugin`.
+    This is not recommended, as using mismatched versions of the Sentry dependencies can introduce build time or run time failures and crashes.
+
 ## 0.3.0
 
 ### Dependencies

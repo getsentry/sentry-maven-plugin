@@ -10,6 +10,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.Path
+import kotlin.test.assertTrue
 
 class ValidateSdkDependencyVersionsTestIT {
     @TempDir
@@ -112,7 +113,26 @@ class ValidateSdkDependencyVersionsTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun `when single Sentry dependency exists validation succeeds`() {
+    fun `when single Sentry dependency on SDK exists validation succeeds`() {
+        val dependencies =
+            """
+            <dependency>
+                <groupId>io.sentry</groupId>
+                <artifactId>sentry</artifactId>
+                <version>8.1.0</version>
+            </dependency>
+            """.trimIndent()
+
+        val path = getPOM(dependencies = dependencies)
+        val verifier = Verifier(path)
+        verifier.executeGoal("validate")
+        verifier.verifyErrorFreeLog()
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `when single Sentry dependency on integration exists validation succeeds`() {
         val dependencies =
             """
             <dependency>
@@ -155,7 +175,7 @@ class ValidateSdkDependencyVersionsTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun `when multiple Sentry dependencies with different versions exist validation fails`() {
+    fun `when dependency on Sentry SDK and integration with different versions exist validation fails`() {
         val dependencies =
             """
             <dependency>
@@ -172,8 +192,44 @@ class ValidateSdkDependencyVersionsTestIT {
 
         val path = getPOM(dependencies = dependencies)
         val verifier = Verifier(path)
-        verifier.executeGoal("validate")
-        verifier.verifyTextInLog("Detected a mismatch in Sentry dependency versions.")
+        var didThrowVerificationException = false
+        try {
+            verifier.executeGoal("validate")
+        } catch (e: VerificationException) {
+            didThrowVerificationException = true
+        }
+        assertTrue(didThrowVerificationException, "Expected validate goal to fail with VerificationException")
+        verifier.verifyTextInLog("Found inconsistency in Sentry SDK dependency versions.")
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `when multiple Sentry integration dependencies with different versions exist validation fails`() {
+        val dependencies =
+            """
+            <dependency>
+                <groupId>io.sentry</groupId>
+                <artifactId>sentry-logback</artifactId>
+                <version>8.2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.sentry</groupId>
+                <artifactId>sentry-spring-boot</artifactId>
+                <version>8.1.0</version>
+            </dependency>
+            """.trimIndent()
+
+        val path = getPOM(dependencies = dependencies)
+        val verifier = Verifier(path)
+        var didThrowVerificationException = false
+        try {
+            verifier.executeGoal("validate")
+        } catch (e: VerificationException) {
+            didThrowVerificationException = true
+        }
+        assertTrue(didThrowVerificationException, "Expected validate goal to fail with VerificationException")
+        verifier.verifyTextInLog("Found inconsistency in Sentry SDK dependency versions.")
         verifier.resetStreams()
     }
 
@@ -197,37 +253,6 @@ class ValidateSdkDependencyVersionsTestIT {
         val verifier = Verifier(path)
         verifier.executeGoal("validate")
         verifier.verifyErrorFreeLog()
-        verifier.resetStreams()
-    }
-
-    @Test
-    @Throws(VerificationException::class, IOException::class)
-    fun `when bom and explicit Sentry dependency with different version exist validation fails`() {
-        val dependencies =
-            """
-            <dependency>
-                <groupId>io.sentry</groupId>
-                <artifactId>sentry-spring-boot</artifactId>
-                <version>8.1.0</version>
-            </dependency>
-            """.trimIndent()
-        val bom =
-            """
-            <dependencies>
-                <dependency>
-                    <groupId>io.sentry</groupId>
-                    <artifactId>sentry-bom</artifactId>
-                    <version>8.2.0</version>
-                    <type>pom</type>
-                    <scope>import</scope>
-                </dependency>
-            </dependencies>
-            """.trimIndent()
-
-        val path = getPOM(dependencies = dependencies, dependencyManagement = bom)
-        val verifier = Verifier(path)
-        verifier.executeGoal("validate")
-        verifier.verifyTextInLog("Detected a mismatch in Sentry dependency versions.")
         verifier.resetStreams()
     }
 
@@ -289,6 +314,43 @@ class ValidateSdkDependencyVersionsTestIT {
         val verifier = Verifier(path)
         verifier.executeGoal("validate")
         verifier.verifyErrorFreeLog()
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `when bom and explicit Sentry dependency with different version exist validation fails`() {
+        val dependencies =
+            """
+            <dependency>
+                <groupId>io.sentry</groupId>
+                <artifactId>sentry-spring-boot</artifactId>
+                <version>8.1.0</version>
+            </dependency>
+            """.trimIndent()
+        val bom =
+            """
+            <dependencies>
+                <dependency>
+                    <groupId>io.sentry</groupId>
+                    <artifactId>sentry-bom</artifactId>
+                    <version>8.2.0</version>
+                    <type>pom</type>
+                    <scope>import</scope>
+                </dependency>
+            </dependencies>
+            """.trimIndent()
+
+        val path = getPOM(dependencies = dependencies, dependencyManagement = bom)
+        val verifier = Verifier(path)
+        var didThrowVerificationException = false
+        try {
+            verifier.executeGoal("validate")
+        } catch (e: VerificationException) {
+            didThrowVerificationException = true
+        }
+        assertTrue(didThrowVerificationException, "Expected validate goal to fail with VerificationException")
+        verifier.verifyTextInLog("Found inconsistency in Sentry SDK dependency versions.")
         verifier.resetStreams()
     }
 
