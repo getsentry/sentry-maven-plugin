@@ -58,6 +58,7 @@ class ValidateSdkDependencyVersionsTestIT {
                             <version>1.0-SNAPSHOT</version>
                             <extensions>true</extensions>
                             <configuration>
+                                <skipTelemetry>true</skipTelemetry>
                                 <skipValidateSdkDependencyVersions>$skipValidateSdkDependencyVersions</skipValidateSdkDependencyVersions>
                             </configuration>
                             <executions>
