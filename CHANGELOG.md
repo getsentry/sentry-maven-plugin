@@ -27,6 +27,12 @@
     within your `plugin` tag for `io.sentry:sentry-maven-plugin`.
     This is not recommended, as using mismatched versions of the Sentry dependencies can introduce build time or run time failures and crashes.
 
+### Dependencies
+
+- Bump CLI from v2.41.1 to v2.42.2 ([#125](https://github.com/getsentry/sentry-maven-plugin/pull/125), [#129](https://github.com/getsentry/sentry-maven-plugin/pull/129))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2422)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.41.1...2.42.2)
+
 ## 0.3.0
 
 ### Dependencies
