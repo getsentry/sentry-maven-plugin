@@ -1,6 +1,6 @@
 package io.sentry.autoinstall;
 
-import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
+import static io.sentry.Constants.SENTRY_GROUP_ID;
 
 import io.sentry.semver.Version;
 import java.util.List;

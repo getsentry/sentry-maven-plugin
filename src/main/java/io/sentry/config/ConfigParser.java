@@ -1,6 +1,7 @@
 package io.sentry.config;
 
-import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
+import static io.sentry.Constants.SENTRY_GROUP_ID;
+import static io.sentry.Constants.SENTRY_PLUGIN_ARTIFACT_ID;
 
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
@@ -10,12 +11,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class ConfigParser {
 
-  private static final @NotNull String SENTRY_PLUGIN_ARTIFACT = "sentry-maven-plugin";
   private static final @NotNull String SKIP_ALL_FLAG = "skip";
   private static final @NotNull String SKIP_AUTO_INSTALL_FLAG = "skipAutoInstall";
   private static final @NotNull String SKIP_TELEMETRY_FLAG = "skipTelemetry";
   private static final @NotNull String SKIP_REPORT_DEPENDENCIES_FLAG = "skipReportDependencies";
   private static final @NotNull String SKIP_SOURCE_BUNDLE_FLAG = "skipSourceBundle";
+  private static final @NotNull String SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS_OPTION =
+      "skipValidateSdkDependencyVersions";
   private static final @NotNull String DEBUG_SENTRY_CLI_FLAG = "debugSentryCli";
   private static final @NotNull String DEBUG_FLAG = "debug";
   private static final @NotNull String ORG_OPTION = "org";
@@ -30,7 +32,7 @@ public class ConfigParser {
             .filter(
                 (plugin) ->
                     plugin.getGroupId().equals(SENTRY_GROUP_ID)
-                        && plugin.getArtifactId().equals(SENTRY_PLUGIN_ARTIFACT))
+                        && plugin.getArtifactId().equals(SENTRY_PLUGIN_ARTIFACT_ID))
             .findFirst()
             .orElse(null);
 
@@ -83,6 +85,11 @@ public class ConfigParser {
           dom.getChild(AUTH_TOKEN_OPTION) == null
               ? null
               : dom.getChild(AUTH_TOKEN_OPTION).getValue());
+
+      pluginConfig.setSkipValidateSdkDependencyVersions(
+          dom.getChild(SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS_OPTION) != null
+              && Boolean.parseBoolean(
+                  dom.getChild(SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS_OPTION).getValue()));
     }
 
     return pluginConfig;
