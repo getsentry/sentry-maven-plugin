@@ -1,6 +1,6 @@
 package io.sentry;
 
-import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
+import static io.sentry.Constants.SENTRY_GROUP_ID;
 import static io.sentry.autoinstall.graphql.Graphql22InstallStrategy.SENTRY_GRAPHQL_22_ID;
 import static io.sentry.autoinstall.graphql.GraphqlInstallStrategy.SENTRY_GRAPHQL_ID;
 import static io.sentry.autoinstall.jdbc.JdbcInstallStrategy.SENTRY_JDBC_ID;
