@@ -47,12 +47,14 @@
                     <skipSourceBundle>false</skipSourceBundle>
                     <skipAutoInstall>false</skipAutoInstall>
                     <skipTelemetry>false</skipTelemetry>
+                    <skipValidateSdkDependencyVersions>false</skipValidateSdkDependencyVersions>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>uploadSourceBundle</goal>
                             <goal>reportDependencies</goal>
+                            <goal>validateSdkDependencyVersions</goal>
                         </goals>
                     </execution>
                 </executions>
