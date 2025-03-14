@@ -1,7 +1,7 @@
 package io.sentry.autoinstall;
 
-import static io.sentry.autoinstall.Constants.SENTRY_ARTIFACT_ID;
-import static io.sentry.autoinstall.Constants.SENTRY_GROUP_ID;
+import static io.sentry.Constants.SENTRY_GROUP_ID;
+import static io.sentry.Constants.SENTRY_SDK_ARTIFACT_ID;
 
 import io.sentry.autoinstall.util.SdkVersionInfo;
 import java.util.List;
@@ -32,7 +32,7 @@ public class SentryInstaller {
             .filter(
                 (dep) ->
                     dep.getGroupId().equals(SENTRY_GROUP_ID)
-                        && dep.getArtifactId().equals(SENTRY_ARTIFACT_ID))
+                        && dep.getArtifactId().equals(SENTRY_SDK_ARTIFACT_ID))
             .findFirst()
             .orElse(null);
 
@@ -50,7 +50,7 @@ public class SentryInstaller {
       logger.info("Installing Sentry with version " + sentryVersion);
       final @NotNull Dependency newDep = new Dependency();
       newDep.setGroupId(SENTRY_GROUP_ID);
-      newDep.setArtifactId(SENTRY_ARTIFACT_ID);
+      newDep.setArtifactId(SENTRY_SDK_ARTIFACT_ID);
       newDep.setVersion(sentryVersion);
 
       dependencyList.add(newDep);
