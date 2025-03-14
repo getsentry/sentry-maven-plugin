@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Upgrade internal Sentry SDK to 8.4.0 ([#134](https://github.com/getsentry/sentry-maven-plugin/pull/134))
+
 ### Dependencies
 
 - Bump CLI from v2.41.1 to v2.42.2 ([#125](https://github.com/getsentry/sentry-maven-plugin/pull/125), [#129](https://github.com/getsentry/sentry-maven-plugin/pull/129))
