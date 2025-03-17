@@ -43,8 +43,9 @@ public class SentryTelemetryService {
   public static final @NotNull String SENTRY_SAAS_DSN =
       "https://000e5dea9770b4537055f8a6d28c021e@o1.ingest.sentry.io/4506241308295168";
   public static final @NotNull String MECHANISM_TYPE = "MavenTelemetry";
-  private @NotNull IHub hub = NoOpHub.getInstance();
+  private @NotNull IScopes scopes = NoOpScopes.getInstance();
   private @NotNull ITransaction transaction = NoOpTransaction.getInstance();
+  private @NotNull ISentryLifecycleToken token = NoOpScopesLifecycleToken.getInstance();
 
   private boolean started = false;
   private boolean didAddChildSpans = false;
@@ -108,11 +109,14 @@ public class SentryTelemetryService {
                   "SENTRY_includeSourceContext",
                   String.valueOf(!pluginConfig.isSkipSourceBundle()));
             });
-        hub = Sentry.getCurrentHub();
+        scopes = Sentry.forkedScopes("SentryTelemetryService");
+        token = scopes.makeCurrent();
+
+        scopes.addBreadcrumb("SentryTelemetryServiceBreadcrumb");
 
         startRun("maven build");
 
-        hub.configureScope(
+        scopes.configureScope(
             (scope) -> {
               final @NotNull User user = new User();
 
@@ -203,23 +207,23 @@ public class SentryTelemetryService {
   }
 
   private void startRun(final @NotNull String transactionName) {
-    hub.startSession();
+    scopes.startSession();
     final @NotNull TransactionOptions transactionOptions = new TransactionOptions();
     transactionOptions.setBindToScope(true);
-    transaction = hub.startTransaction(transactionName, "build", transactionOptions);
+    transaction = scopes.startTransaction(transactionName, "build", transactionOptions);
   }
 
   private void endRun() {
     if (didAddChildSpans) {
-      hub.endSession();
+      scopes.endSession();
       transaction.finish();
     }
   }
 
   public @Nullable ISpan startTask(final @NotNull String operation) {
     didAddChildSpans = true;
-    hub.setTag("step", operation);
-    final @Nullable ISpan span = hub.getSpan();
+    scopes.setTag("step", operation);
+    final @Nullable ISpan span = scopes.getSpan();
 
     if (span != null) {
       return span.startChild(operation);
@@ -251,7 +255,7 @@ public class SentryTelemetryService {
     final @NotNull SentryEvent event = new SentryEvent(mechanismException);
     event.setLevel(SentryLevel.FATAL);
 
-    hub.captureEvent(event);
+    scopes.captureEvent(event);
   }
 
   public void markFailed() {
@@ -262,18 +266,19 @@ public class SentryTelemetryService {
     if (!transaction.isFinished()) {
       endRun();
     }
+    token.close();
     Sentry.close();
   }
 
   public @NotNull List<String> traceCli() {
     final @NotNull List<String> args = new ArrayList<String>();
-    final @Nullable SentryTraceHeader traceparent = hub.getTraceparent();
+    final @Nullable SentryTraceHeader traceparent = scopes.getTraceparent();
     if (traceparent != null) {
       args.add("--header");
       args.add(traceparent.getName() + ":" + traceparent.getValue());
     }
 
-    final @Nullable BaggageHeader baggage = hub.getBaggage();
+    final @Nullable BaggageHeader baggage = scopes.getBaggage();
     if (baggage != null) {
       args.add("--header");
       args.add(baggage.getName() + ":" + baggage.getValue());
@@ -283,7 +288,7 @@ public class SentryTelemetryService {
   }
 
   public void addTag(final @NotNull String key, final @NotNull String value) {
-    hub.setTag(key, value);
+    scopes.setTag(key, value);
   }
 
   public static class SentryMinimalException extends RuntimeException {
