@@ -5,7 +5,6 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
-import kotlin.io.path.Path
 
 /**
  * Utility to install a specific version of the Maven wrapper for tests
@@ -35,7 +34,7 @@ fun installMavenWrapper(
         addCliOption("-Dmaven=$mavenVersionToUse")
         executeGoal("wrapper:wrapper")
     }
-    Files.delete(Path("${directory.absolutePath}/pom.xml"))
+    Files.delete(directory.toPath().resolve("pom.xml"))
 }
 
 /**
