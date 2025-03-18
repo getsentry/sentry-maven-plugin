@@ -91,8 +91,7 @@ class SentryCliWhitespacesTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyErrorFreeLog()
-        verifier.verifyTextInLog("Skipping module, as it doesn't have any source roots")
+        verifier.verifyTextInLog("Not collecting sources in {}: directory does not exist".format(Path(path).resolve("/src/main/java")))
     }
 
     private fun setupProject(): File {
