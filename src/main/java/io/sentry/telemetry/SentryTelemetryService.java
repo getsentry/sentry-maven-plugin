@@ -109,6 +109,9 @@ public class SentryTelemetryService {
                   "SENTRY_includeSourceContext",
                   String.valueOf(!pluginConfig.isSkipSourceBundle()));
               options.setTag(
+                  "SENTRY_validateSdkDependencyVersions",
+                  String.valueOf(!pluginConfig.isSkipValidateSdkDependencyVersions()));
+              options.setTag(
                   "SENTRY_additionalSourceDirsForSourceContext",
                   pluginConfig.getAdditionalSourceDirsForSourceContext());
             });
