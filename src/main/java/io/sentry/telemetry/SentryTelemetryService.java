@@ -108,6 +108,9 @@ public class SentryTelemetryService {
               options.setTag(
                   "SENTRY_includeSourceContext",
                   String.valueOf(!pluginConfig.isSkipSourceBundle()));
+              options.setTag(
+                  "SENTRY_additionalSourceDirsForSourceContext",
+                  pluginConfig.getAdditionalSourceDirsForSourceContext());
             });
         scopes = Sentry.forkedScopes("SentryTelemetryService");
         token = scopes.makeCurrent();

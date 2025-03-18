@@ -179,6 +179,9 @@ public class SampleApplication {
         // marks transaction as finished and sends it together with all child spans to Sentry
         transaction.finish();
 
+        // Throw an exception from a function defined in an additional compile source root
+        io.sentry.samples.maven.extra.MyClass.myFunction();
+
         // All events that have not been sent yet are being flushed on JVM exit. Events can be also
         // flushed manually:
         // Sentry.close();

@@ -48,6 +48,9 @@
                     <skipAutoInstall>false</skipAutoInstall>
                     <skipTelemetry>false</skipTelemetry>
                     <skipValidateSdkDependencyVersions>false</skipValidateSdkDependencyVersions>
+                    <additionalSourceDirsForSourceContext>
+                        <value>src/main/extra_param</value>
+                    </additionalSourceDirsForSourceContext>
                 </configuration>
                 <executions>
                     <execution>
@@ -81,6 +84,24 @@
                         <goals>
                             <goal>single</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/main/extra</source>
+                            </sources>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
