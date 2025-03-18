@@ -108,10 +108,14 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     sourceDirsPaths.removeIf(Objects::isNull);
     sourceDirsPaths.addAll(additionalSourceDirsForSourceContext);
 
-    logger.debug(
-        "Copying files from the following directories to {} for inclusion in source bundle: {}",
-        outputDir,
-        String.join(",", sourceDirsPaths));
+    if (sourceDirsPaths.isEmpty()) {
+      logger.info("No source directories to collect and bundle");
+    } else {
+      logger.debug(
+          "Copying files from the following directories to {} for inclusion in source bundle: {}",
+          outputDir,
+          String.join(",", sourceDirsPaths));
+    }
     for (final @NotNull String sourceDirPath : sourceDirsPaths) {
       try {
         final @NotNull File sourceDir = new File(sourceDirPath);
