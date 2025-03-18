@@ -108,6 +108,9 @@ public class SentryTelemetryService {
               options.setTag(
                   "SENTRY_includeSourceContext",
                   String.valueOf(!pluginConfig.isSkipSourceBundle()));
+              options.setTag(
+                  "SENTRY_validateSdkDependencyVersions",
+                  String.valueOf(!pluginConfig.isSkipValidateSdkDependencyVersions()));
             });
         scopes = Sentry.forkedScopes("SentryTelemetryService");
         token = scopes.makeCurrent();
