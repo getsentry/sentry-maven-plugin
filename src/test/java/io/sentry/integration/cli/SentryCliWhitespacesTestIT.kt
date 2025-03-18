@@ -91,7 +91,7 @@ class SentryCliWhitespacesTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyTextInLog("No source directories to collect and bundle")
+        verifier.verifyTextInLog("Collected sources from 0 source directories")
     }
 
     private fun setupProject(): File {

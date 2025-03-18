@@ -116,6 +116,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
           outputDir,
           String.join(",", sourceDirsPaths));
     }
+    int count = 0;
     for (final @NotNull String sourceDirPath : sourceDirsPaths) {
       try {
         final @NotNull File sourceDir = new File(sourceDirPath);
@@ -148,11 +149,13 @@ public class UploadSourceBundleMojo extends AbstractMojo {
                     }
                   }
                 });
+        count++;
       } catch (Throwable t) {
         logger.error("Failed to collect sources in {}", sourceDirPath, t);
         SentryTelemetryService.getInstance().captureError(t, "bundleSources " + sourceDirPath);
       }
     }
+    logger.info("Collected sources from {} source directories", count);
     SentryTelemetryService.getInstance().endTask(span);
   }
 
