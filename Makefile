@@ -1,4 +1,4 @@
-.PHONY: all clean build test integrationTests
+.PHONY: all clean build test install integrationTests
 
 all: clean test
 
@@ -11,6 +11,9 @@ build:
 test:
 	./mvnw test
 
-integrationTests:
+install:
+	./mvnw install
+
+integrationTests: install
 	./mvnw test -Dtest=*IT
 
