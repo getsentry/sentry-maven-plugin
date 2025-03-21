@@ -36,7 +36,7 @@ class SentryAutoInstallTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun verifySentryInstalled() {
+    fun `installs sentry`() {
         val path = getPOM()
         val verifier = Verifier(path)
         verifier.isAutoclean = false
@@ -47,7 +47,7 @@ class SentryAutoInstallTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun verifySentryNotInstalledIfAlreadyInDependencies() {
+    fun `does not install sentry if already present in dependencies`() {
         val alreadyInstalledSentryVersion = "6.25.2"
         val path = getPOM(alreadyInstalledSentryVersion)
         val verifier = Verifier(path)
@@ -60,7 +60,7 @@ class SentryAutoInstallTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun verifyNoActionIfWholePluginIsSkippedButAutoInstallIsNot() {
+    fun `does nothing if skip is true, even if skipAutoInstall is false`() {
         val pluginConfiguration =
             """
             <configuration>
@@ -80,7 +80,7 @@ class SentryAutoInstallTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun verifyNoActionIfAutoInstallIsSkipped() {
+    fun `does nothing if skipAutoInstall is true`() {
         val pluginConfiguration =
             """
             <configuration>
@@ -99,7 +99,7 @@ class SentryAutoInstallTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun verifySentryInstalledIfSkipFlagSetToFalse() {
+    fun `installs sentry if skipAutoInstall is false`() {
         val pluginConfiguration =
             """
             <configuration>
@@ -117,7 +117,7 @@ class SentryAutoInstallTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun verifyLogAndNoActionIfSentryVersionCannotBeResolved() {
+    fun `does nothing and logs if sentry version cannot be resolved`() {
         val path = getPOM()
         val verifier = Verifier(path)
         verifier.isAutoclean = false

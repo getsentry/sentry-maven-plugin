@@ -184,6 +184,18 @@
                         </target>
                     </configuration>
                 </execution>
+                <execution>
+                    <id>make-cli-executable</id>
+                    <phase>process-resources</phase>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                    <configuration>
+                        <target>
+                            <chmod file="${project.build.outputDirectory}/bin/**" perm="755"/>
+                        </target>
+                    </configuration>
+                </execution>
             </executions>
         </plugin>
         <plugin>

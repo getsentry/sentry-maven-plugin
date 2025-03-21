@@ -1,4 +1,4 @@
-package io.sentry.integration.cli
+package io.sentry.integration.uploadSourceBundle
 
 import io.sentry.SentryCliProvider
 import io.sentry.integration.installMavenWrapper
@@ -19,7 +19,7 @@ import kotlin.io.path.absolutePathString
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class SentryCliWhitespacesTestIT {
+class UploadSourceBundleTestIT {
     @TempDir()
     lateinit var file: File
 
@@ -38,7 +38,7 @@ class SentryCliWhitespacesTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun sentryCliExecutionInProjectPathWithSpaces() {
+    fun `uploads source bundle`() {
         val baseDir = setupProject()
         val path = getPOM(baseDir)
         val verifier = Verifier(path)
@@ -47,20 +47,32 @@ class SentryCliWhitespacesTestIT {
         verifier.verifyErrorFreeLog()
 
         val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
-
-        val uploadedId = getUploadedBundleIdFromLog(output)
-        val bundleId = getBundleIdFromProperties(baseDir.absolutePath)
-
-        assertEquals(bundleId, uploadedId, "Bundle ID from properties file should match the one from the log")
+        assertTrue(bundleUploadedSuccessfully(baseDir, output))
 
         verifier.resetStreams()
     }
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun sentryCliExecutionInProjectAndCliPathWithSpaces() {
+    fun `uploads source bundle when project path contains whitespaces`() {
+        val baseDir = setupProject(baseDir = "base with spaces")
+        val path = getPOM(baseDir)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
+        assertTrue(bundleUploadedSuccessfully(baseDir, output))
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `uploads source bundle when project path and cli path contain whitespaces`() {
         val cliPath = SentryCliProvider.getCliPath(MavenProject(), null)
-        val baseDir = setupProject()
+        val baseDir = setupProject(baseDir = "base with spaces")
         val cliPathWithSpaces = Files.copy(Path(cliPath), Path(baseDir.absolutePath, "sentry-cli"))
         cliPathWithSpaces.toFile().setExecutable(true)
 
@@ -73,16 +85,13 @@ class SentryCliWhitespacesTestIT {
 
         val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
 
-        val uploadedId = getUploadedBundleIdFromLog(output)
-        val bundleId = getBundleIdFromProperties(baseDir.absolutePath)
-
-        assertEquals(bundleId, uploadedId, "Bundle ID from properties file should match the one from the log")
+        assertTrue(bundleUploadedSuccessfully(baseDir, output))
 
         verifier.resetStreams()
     }
 
     @Test
-    fun buildsSuccessfullyWithNoSourceRootAndLogs() {
+    fun `does not fail build when base directory is empty`() {
         val cliPath = SentryCliProvider.getCliPath(MavenProject(), null)
         val baseDir = setupEmptyProject()
 
@@ -95,34 +104,47 @@ class SentryCliWhitespacesTestIT {
         verifier.verifyTextInLog("Skipping module, as it doesn't have any source roots")
     }
 
-    private fun setupProject(): File {
-        val baseDir = File(file, "base with spaces")
-        val srcDir = File(baseDir, "/src/main/java")
-        val srcFile = File(srcDir, "Main.java")
-        val baseDirResult = baseDir.mkdir()
-        val srcDirResult = srcDir.mkdirs()
-        val srcFileResult = srcFile.createNewFile()
+    private fun setupEmptyProject(): File {
+        return setupProject(emptyList())
+    }
 
-        assertTrue(baseDirResult, "Error creating base directory")
-        assertTrue(srcDirResult, "Error creating source directory")
-        assertTrue(srcFileResult, "Error creating source file")
+    private fun setupProject(
+        sourceRoots: List<String> = listOf("src/main/java"),
+        baseDir: String = "base",
+    ): File {
+        val baseDir = File(file, baseDir)
+        baseDir.mkdirs()
+
+        val createdSourceRoots: MutableList<Boolean> = mutableListOf()
+        val createdSourceFiles: MutableList<Boolean> = mutableListOf()
+        var i = 0; // need to create different files otherwise they will override each other in bundle as they have the same relative path
+        for (sourceRoot in sourceRoots) {
+            val dir = File(baseDir.resolve(sourceRoot).absolutePath)
+            createdSourceRoots.add(dir.mkdirs())
+            val file = File(dir, "Main${i++}.java")
+            createdSourceFiles.add(file.createNewFile())
+        }
+
+        assertTrue(createdSourceRoots.all { it }, "Error creating source roots")
+        assertTrue(createdSourceFiles.all { it }, "Error creating source files")
+
         installMavenWrapper(baseDir, "3.8.6")
 
         return baseDir
     }
 
-    private fun setupEmptyProject(): File {
-        val baseDir = File(file, "empty-base-dir")
-        val baseDirResult = baseDir.mkdir()
-
-        assertTrue(baseDirResult, "Error creating base directory")
-        installMavenWrapper(baseDir, "3.8.6")
-
-        return baseDir
+    private fun bundleUploadedSuccessfully(
+        baseDir: File,
+        cliOutput: String,
+    ): Boolean {
+        val bundleId = getBundleIdFromProperties(baseDir.absolutePath)
+        val uploadedId = getUploadedBundleIdFromLog(cliOutput)
+        assertEquals(bundleId, uploadedId, "Bundle ID from properties file should match the one from the log")
+        return bundleId.equals(uploadedId)
     }
 
     private fun getUploadedBundleIdFromLog(output: String): String? {
-        val uploadedIdRegex = """\w+":\{"state":"ok","missingChunks":\[],"uploaded_id":"(\w+-\w+-\w+-\w+-\w+)""".toRegex()
+        val uploadedIdRegex = """UPLOADED (\w+-\w+-\w+-\w+-\w+)""".toRegex()
         return uploadedIdRegex.find(output)?.groupValues?.get(1)
     }
 

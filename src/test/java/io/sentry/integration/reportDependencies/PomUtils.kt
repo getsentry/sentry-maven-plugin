@@ -1,17 +1,16 @@
-package io.sentry.integration.cli
+package io.sentry.integration.reportDependencies
 
 fun basePom(
     skipPlugin: Boolean = false,
-    skipSourceBundle: Boolean = false,
-    sentryCliPath: String? = null,
+    skipReportDependencies: Boolean = false,
 ): String {
     return """
         <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
             <modelVersion>4.0.0</modelVersion>
 
-            <groupId>io.sentry.maven</groupId>
-            <artifactId>cli-tests</artifactId>
+            <groupId>io.sentry.autoinstall</groupId>
+            <artifactId>installsentry</artifactId>
             <version>1.0-SNAPSHOT</version>
 
             <packaging>jar</packaging>
@@ -42,19 +41,14 @@ fun basePom(
                         <version>1.0-SNAPSHOT</version>
                         <extensions>true</extensions>
                         <configuration>
-                            <debugSentryCli>true</debugSentryCli>
                             <skip>$skipPlugin</skip>
-                            <skipSourceBundle>$skipSourceBundle</skipSourceBundle>
-                            <skipTelemetry>true</skipTelemetry>
-                            <org>sentry-sdks</org>
-                            <project>sentry-maven</project>
-                            <authToken>\&lt;token\&gt;</authToken>
-                            ${if (sentryCliPath.isNullOrBlank()) "" else "<sentryCliExecutablePath>$sentryCliPath</sentryCliExecutablePath>"}
+                            <skipSourceBundle>true</skipSourceBundle>
+                            <skipReportDependencies>$skipReportDependencies</skipReportDependencies>
                         </configuration>
                         <executions>
                             <execution>
                                 <goals>
-                                    <goal>uploadSourceBundle</goal>
+                                    <goal>reportDependencies</goal>
                                 </goals>
                             </execution>
                         </executions>
