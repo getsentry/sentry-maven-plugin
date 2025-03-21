@@ -1,4 +1,4 @@
-package io.sentry.integration.dependencies
+package io.sentry.integration.reportDependencies
 
 import io.sentry.ReportDependenciesMojo.EXTERNAL_MODULES_FILE
 import io.sentry.integration.installMavenWrapper
@@ -14,7 +14,7 @@ import java.nio.file.StandardOpenOption
 import kotlin.io.path.Path
 import kotlin.test.assertEquals
 
-class ReportDependenciesIT {
+class ReportDependenciesTestIT {
     @TempDir()
     lateinit var file: File
 

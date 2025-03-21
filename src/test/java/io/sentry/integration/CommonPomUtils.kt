@@ -29,6 +29,7 @@ fun installMavenWrapper(
         """.trimIndent()
 
     Files.write(directory.toPath().resolve("pom.xml"), emptyPom.toByteArray(), StandardOpenOption.CREATE)
+    println("wrote pom")
     Verifier(directory.absolutePath).apply {
         addCliOption("-N")
         addCliOption("-Dmaven=$mavenVersionToUse")
@@ -43,10 +44,14 @@ fun installMavenWrapper(
 private fun bootstrapMavenWrapper(targetDirectory: File) {
     val projectRoot = File(System.getProperty("user.dir"))
 
+    println("Bootstrapping")
+
     if (File(targetDirectory.toPath().resolve("mvnw").toString()).exists()) {
+        println("already there")
         return
     }
 
+    println("copying")
     Files.copy(
         projectRoot.toPath().resolve("mvnw"),
         targetDirectory.toPath().resolve("mvnw"),
@@ -58,6 +63,7 @@ private fun bootstrapMavenWrapper(targetDirectory: File) {
         StandardCopyOption.REPLACE_EXISTING,
     )
 
+    println("copied")
     val sourceMvnDir = File(projectRoot, ".mvn")
     val targetMvnDir = File(targetDirectory, ".mvn")
     targetMvnDir.mkdirs()
