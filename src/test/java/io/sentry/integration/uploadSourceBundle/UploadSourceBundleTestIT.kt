@@ -144,7 +144,7 @@ class UploadSourceBundleTestIT {
     }
 
     private fun getUploadedBundleIdFromLog(output: String): String? {
-        val uploadedIdRegex = """UPLOADED (\w+-\w+-\w+-\w+-\w+)""".toRegex()
+        val uploadedIdRegex = """\w+":\{"state":"ok","missingChunks":\[],"uploaded_id":"(\w+-\w+-\w+-\w+-\w+)""".toRegex()
         return uploadedIdRegex.find(output)?.groupValues?.get(1)
     }
 

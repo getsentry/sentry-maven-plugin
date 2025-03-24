@@ -5,13 +5,6 @@ fun basePom(
     skipSourceBundle: Boolean = false,
     sentryCliPath: String? = null,
 ): String {
-    val authToken: String =
-        System.getenv("SENTRY_AUTH_TOKEN")
-            ?: throw IllegalStateException(
-                "Please set the SENTRY_AUTH_TOKEN environment variable " +
-                    "to a valid token for sentry-sdks/sentry-maven-plugin-integration-tests to run this integration test.",
-            )
-
     return """
         <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -54,8 +47,8 @@ fun basePom(
                             <skipSourceBundle>$skipSourceBundle</skipSourceBundle>
                             <skipTelemetry>true</skipTelemetry>
                             <org>sentry-sdks</org>
-                            <project>sentry-maven-plugin-integration-tests</project>
-                            <authToken>$authToken</authToken>
+                            <project>sentry-maven</project>
+                            <authToken>\&lt;token\&gt;</authToken>
                             ${if (sentryCliPath.isNullOrBlank()) "" else "<sentryCliExecutablePath>$sentryCliPath</sentryCliExecutablePath>"}
                         </configuration>
                         <executions>

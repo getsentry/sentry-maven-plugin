@@ -7,4 +7,3 @@ target/
 .project
 .settings
 *.vscode/
-.envrc

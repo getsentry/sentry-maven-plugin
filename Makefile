@@ -1,6 +1,6 @@
 .PHONY: all clean build test install integrationTests
 
-all: clean test
+all: clean test integrationTests
 
 clean:
 	./mvnw clean
@@ -14,9 +14,7 @@ test:
 install:
 	./mvnw install
 
-# set the SENTRY_AUTH_TOKEN environment variable to a valid auth token and possibly change
-# the org and project slugs in `src/test/java/io/sentry/integration/uploadSourceBundle/PomUtils.kt`
-# to successfully run the integration tests that use `sentry-cli`
 integrationTests: install
-	./mvnw test -Dtest=*IT
-
+	test/integration-test-server-start.sh &
+	SENTRY_URL=http://127.0.0.1:8000 ./mvnw clean verify -PintegrationTests
+	curl -s http://127.0.0.1:8000/STOP || true
