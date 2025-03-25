@@ -1,6 +1,6 @@
-.PHONY: all clean build test integrationTests
+.PHONY: all clean build test install integrationTests
 
-all: clean test
+all: clean test integrationTests
 
 clean:
 	./mvnw clean
@@ -11,6 +11,10 @@ build:
 test:
 	./mvnw test
 
-integrationTests:
-	./mvnw test -Dtest=*IT
+install:
+	./mvnw install
 
+integrationTests: install
+	test/integration-test-server-start.sh &
+	SENTRY_URL=http://127.0.0.1:8000 ./mvnw clean verify -PintegrationTests
+	curl -s http://127.0.0.1:8000/STOP || true
