@@ -133,22 +133,24 @@ public class UploadSourceBundleMojo extends AbstractMojo {
         }
         logger.debug("Collecting sources in {}", sourceDirPath);
 
-        Files.walk(sourceDirAbsolutePath)
-            .forEach(
-                (sourcePath) -> {
-                  final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
-                  final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
-
-                  if (sourcePath.toFile().isFile()) {
-                    try {
+  try (final @NotNull Stream<Path> stream = Files.walk(sourceDirAbsolutePath)) {
+      stream.forEach(
+          (sourcePath) -> {
+              final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
+              final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
+  
+              if (sourcePath.toFile().isFile()) {
+                  try {
                       Files.createDirectories(destinationPath.getParent());
                       Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException e) {
+                  } catch (IOException e) {
                       logger.error(
                           "Failed to copy file from {} to {}", sourcePath, destinationPath, e);
-                    }
                   }
-                });
+              }
+          }
+      );
+  }
         count++;
       } catch (Throwable t) {
         logger.error("Failed to collect sources in {}", sourceDirPath, t);
