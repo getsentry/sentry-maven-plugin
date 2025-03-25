@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Stream;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
@@ -133,24 +134,23 @@ public class UploadSourceBundleMojo extends AbstractMojo {
         }
         logger.debug("Collecting sources in {}", sourceDirPath);
 
-  try (final @NotNull Stream<Path> stream = Files.walk(sourceDirAbsolutePath)) {
-      stream.forEach(
-          (sourcePath) -> {
-              final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
-              final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
-  
-              if (sourcePath.toFile().isFile()) {
+        try (final @NotNull Stream<Path> stream = Files.walk(sourceDirAbsolutePath)) {
+          stream.forEach(
+              (sourcePath) -> {
+                final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
+                final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
+
+                if (sourcePath.toFile().isFile()) {
                   try {
-                      Files.createDirectories(destinationPath.getParent());
-                      Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+                    Files.createDirectories(destinationPath.getParent());
+                    Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
                   } catch (IOException e) {
-                      logger.error(
-                          "Failed to copy file from {} to {}", sourcePath, destinationPath, e);
+                    logger.error(
+                        "Failed to copy file from {} to {}", sourcePath, destinationPath, e);
                   }
-              }
-          }
-      );
-  }
+                }
+              });
+        }
         count++;
       } catch (Throwable t) {
         logger.error("Failed to collect sources in {}", sourceDirPath, t);
