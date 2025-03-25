@@ -1,16 +1,17 @@
-package io.sentry.integration.dependencies
+package io.sentry.integration.validateDependencies
 
 fun basePom(
-    skipPlugin: Boolean = false,
-    skipReportDependencies: Boolean = false,
+    dependencies: String = "",
+    dependencyManagement: String = "",
+    skipValidateSdkDependencyVersions: Boolean = false,
 ): String {
     return """
         <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
             <modelVersion>4.0.0</modelVersion>
 
-            <groupId>io.sentry.autoinstall</groupId>
-            <artifactId>installsentry</artifactId>
+            <groupId>io.sentry.test</groupId>
+            <artifactId>validate-versions</artifactId>
             <version>1.0-SNAPSHOT</version>
 
             <packaging>jar</packaging>
@@ -21,17 +22,12 @@ fun basePom(
             </properties>
 
             <dependencies>
-                <dependency>
-                    <groupId>com.graphql-java</groupId>
-                    <artifactId>graphql-java</artifactId>
-                    <version>2.0.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>io.sentry</groupId>
-                    <artifactId>sentry-graphql</artifactId>
-                    <version>6.32.0</version>
-                </dependency>
+                $dependencies
             </dependencies>
+
+            <dependencyManagement>
+                $dependencyManagement
+            </dependencyManagement>
 
             <build>
                 <plugins>
@@ -41,17 +37,26 @@ fun basePom(
                         <version>1.0-SNAPSHOT</version>
                         <extensions>true</extensions>
                         <configuration>
-                            <skip>$skipPlugin</skip>
-                            <skipSourceBundle>true</skipSourceBundle>
-                            <skipReportDependencies>$skipReportDependencies</skipReportDependencies>
+                            <skipTelemetry>true</skipTelemetry>
+                            <skipValidateSdkDependencyVersions>$skipValidateSdkDependencyVersions</skipValidateSdkDependencyVersions>
                         </configuration>
                         <executions>
                             <execution>
                                 <goals>
-                                    <goal>reportDependencies</goal>
+                                    <goal>validateSdkDependencyVersions</goal>
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.11.0</version>
+                        <configuration>
+                            <compilerArgs>
+                                <arg>-XepDisableAllChecks</arg>
+                            </compilerArgs>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
