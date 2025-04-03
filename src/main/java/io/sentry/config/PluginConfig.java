@@ -21,6 +21,7 @@ public class PluginConfig {
   public static final boolean DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS = false;
   public static final @NotNull String DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS_STRING =
       "false";
+  public static final @NotNull String DEFAULT_ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT = "";
 
   private boolean skip = DEFAULT_SKIP;
   private boolean skipAutoInstall = DEFAULT_SKIP_AUTO_INSTALL;
@@ -30,6 +31,8 @@ public class PluginConfig {
   private boolean debugSentryCli = DEFAULT_DEBUG_SENTRY_CLI;
   private boolean debug = DEFAULT_DEBUG;
   private boolean skipValidateSdkDependencyVersions = DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS;
+  private @NotNull String additionalSourceDirsForSourceContext =
+      DEFAULT_ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT;
 
   private @Nullable String org;
   private @Nullable String project;
@@ -140,5 +143,14 @@ public class PluginConfig {
 
   public void setAuthToken(final @Nullable String authToken) {
     this.authToken = authToken;
+  }
+
+  public @NotNull String getAdditionalSourceDirsForSourceContext() {
+    return additionalSourceDirsForSourceContext;
+  }
+
+  public void setAdditionalSourceDirsForSourceContext(
+      final @NotNull String additionalSourceDirsForSourceContext) {
+    this.additionalSourceDirsForSourceContext = additionalSourceDirsForSourceContext;
   }
 }
