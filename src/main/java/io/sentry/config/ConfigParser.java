@@ -3,6 +3,8 @@ package io.sentry.config;
 import static io.sentry.Constants.SENTRY_GROUP_ID;
 import static io.sentry.Constants.SENTRY_PLUGIN_ARTIFACT_ID;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -24,6 +26,8 @@ public class ConfigParser {
   private static final @NotNull String PROJECT_OPTION = "project";
   private static final @NotNull String URL_OPTION = "url";
   private static final @NotNull String AUTH_TOKEN_OPTION = "authToken";
+  private static final @NotNull String ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT =
+      "additionalSourceDirsForSourceContext";
 
   public @NotNull PluginConfig parseConfig(final @NotNull MavenProject project) {
     final @NotNull PluginConfig pluginConfig = new PluginConfig();
@@ -90,6 +94,13 @@ public class ConfigParser {
           dom.getChild(SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS_OPTION) != null
               && Boolean.parseBoolean(
                   dom.getChild(SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS_OPTION).getValue()));
+
+      pluginConfig.setAdditionalSourceDirsForSourceContext(
+          dom.getChild(ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT) == null
+              ? ""
+              : Arrays.stream(dom.getChild(ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT).getChildren())
+                  .map(Xpp3Dom::getValue)
+                  .collect(Collectors.joining(",")));
     }
 
     return pluginConfig;

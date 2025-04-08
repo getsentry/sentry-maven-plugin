@@ -26,8 +26,19 @@
     ```
     within your `plugin` tag for `io.sentry:sentry-maven-plugin`.
     This is not recommended, as using mismatched versions of the Sentry dependencies can introduce build time or run time failures and crashes.
-
 - Upgrade internal Sentry SDK to 8.4.0 ([#134](https://github.com/getsentry/sentry-maven-plugin/pull/134))
+- Support multiple source roots ([#137](https://github.com/getsentry/sentry-maven-plugin/pull/137))
+  - All source roots that are included as part of your build are now bundled together and sent to Sentry
+  - This means that the Source Context feature of Sentry will work for code in all of your project's source roots
+  - You can also specify additional directories to be included in the source bundle by setting the following property within your `plugin` tag for `io.sentry:sentry-maven-plugin`:
+    ```xml
+    <configuration>
+        <additionalSourceDirsForSourceContext>
+            <value>src/main/some_directory</value> 
+            <value>src/main/some_other_directory</value> 
+        </additionalSourceDirsForSourceContext>
+    </configuration>
+    ```
 
 ### Dependencies
 

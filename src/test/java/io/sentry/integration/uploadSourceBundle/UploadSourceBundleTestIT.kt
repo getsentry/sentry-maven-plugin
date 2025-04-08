@@ -28,8 +28,10 @@ class UploadSourceBundleTestIT {
         skipPlugin: Boolean = false,
         skipSourceBundle: Boolean = false,
         sentryCliPath: String? = null,
+        extraSourceRoots: List<String> = listOf(),
+        extraSourceContextDirs: List<String> = emptyList(),
     ): String {
-        val pomContent = basePom(skipPlugin, skipSourceBundle, sentryCliPath)
+        val pomContent = basePom(skipPlugin, skipSourceBundle, sentryCliPath, extraSourceRoots, extraSourceContextDirs)
 
         Files.write(Path("${baseDir.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
 
@@ -44,8 +46,9 @@ class UploadSourceBundleTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyErrorFreeLog()
 
+        verifier.verifyErrorFreeLog()
+        verifier.verifyTextInLog("Collected sources from 1 source directories")
         val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
         assertTrue(bundleUploadedSuccessfully(baseDir, output))
 
@@ -60,8 +63,9 @@ class UploadSourceBundleTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyErrorFreeLog()
 
+        verifier.verifyErrorFreeLog()
+        verifier.verifyTextInLog("Collected sources from 1 source directories")
         val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
         assertTrue(bundleUploadedSuccessfully(baseDir, output))
 
@@ -81,10 +85,10 @@ class UploadSourceBundleTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
+
         verifier.verifyErrorFreeLog()
-
+        verifier.verifyTextInLog("Collected sources from 1 source directories")
         val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
-
         assertTrue(bundleUploadedSuccessfully(baseDir, output))
 
         verifier.resetStreams()
@@ -100,33 +104,86 @@ class UploadSourceBundleTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
+
+        verifier.verifyTextInLog("Collected sources from 0 source directories")
+    }
+
+    @Test
+    fun `uploads source bundle with multiple source roots`() {
+        val roots = listOf("src/main/java", "src/main/kotlin", "src/main/groovy")
+        val baseDir = setupProject(subdirectories = roots)
+        val path = getPOM(baseDir, extraSourceRoots = roots)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+
         verifier.verifyErrorFreeLog()
-        verifier.verifyTextInLog("Skipping module, as it doesn't have any source roots")
+        verifier.verifyTextInLog("Collected sources from 3 source directories")
+        val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
+        assertTrue(bundleUploadedSuccessfully(baseDir, output))
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    fun `uploads source bundle with single source root and extra source dirs`() {
+        val roots = listOf("src/main/java")
+        val extraDirs = listOf("src/main/extra1", "src/main/extra2")
+        val baseDir = setupProject(subdirectories = roots + extraDirs)
+        val path = getPOM(baseDir, extraSourceContextDirs = extraDirs)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+
+        verifier.verifyErrorFreeLog()
+        verifier.verifyTextInLog("Collected sources from 3 source directories")
+        val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
+        assertTrue(bundleUploadedSuccessfully(baseDir, output))
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    fun `uploads source bundle with multiple source roots and extra source dirs`() {
+        val roots = listOf("src/main/java", "src/main/kotlin")
+        val extraDirs = listOf("src/main/extra1", "src/main/extra2")
+        val baseDir = setupProject(subdirectories = roots + extraDirs)
+        val path = getPOM(baseDir, extraSourceRoots = roots, extraSourceContextDirs = extraDirs)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+
+        verifier.verifyErrorFreeLog()
+        verifier.verifyTextInLog("Collected sources from 4 source directories")
+        val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
+        assertTrue(bundleUploadedSuccessfully(baseDir, output))
+
+        verifier.resetStreams()
     }
 
     private fun setupEmptyProject(): File {
-        return setupProject(emptyList())
+        return setupProject(subdirectories = emptyList())
     }
 
     private fun setupProject(
-        sourceRoots: List<String> = listOf("src/main/java"),
         baseDir: String = "base",
+        subdirectories: List<String> = listOf("src/main/java"),
     ): File {
         val baseDir = File(file, baseDir)
         baseDir.mkdirs()
 
-        val createdSourceRoots: MutableList<Boolean> = mutableListOf()
-        val createdSourceFiles: MutableList<Boolean> = mutableListOf()
+        val createdDirs: MutableList<Boolean> = mutableListOf()
+        val createdFiles: MutableList<Boolean> = mutableListOf()
         var i = 0; // need to create different files otherwise they will override each other in bundle as they have the same relative path
-        for (sourceRoot in sourceRoots) {
-            val dir = File(baseDir.resolve(sourceRoot).absolutePath)
-            createdSourceRoots.add(dir.mkdirs())
+        for (subdirectory in subdirectories) {
+            val dir = File(baseDir.resolve(subdirectory).absolutePath)
+            createdDirs.add(dir.mkdirs())
             val file = File(dir, "Main${i++}.java")
-            createdSourceFiles.add(file.createNewFile())
+            createdFiles.add(file.createNewFile())
         }
 
-        assertTrue(createdSourceRoots.all { it }, "Error creating source roots")
-        assertTrue(createdSourceFiles.all { it }, "Error creating source files")
+        assertTrue(createdDirs.all { it }, "Error creating dirs")
+        assertTrue(createdFiles.all { it }, "Error creating files")
 
         installMavenWrapper(baseDir, "3.8.6")
 

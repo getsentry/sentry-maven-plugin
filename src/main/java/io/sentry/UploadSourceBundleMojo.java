@@ -1,14 +1,16 @@
 package io.sentry;
 
 import static io.sentry.config.PluginConfig.*;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 import io.sentry.cli.SentryCliRunner;
 import io.sentry.telemetry.SentryTelemetryService;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Stream;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
@@ -59,6 +61,9 @@ public class UploadSourceBundleMojo extends AbstractMojo {
   @Parameter(defaultValue = "${session}", readonly = true)
   private @NotNull MavenSession mavenSession;
 
+  @Parameter(property = "additionalSourceDirsForSourceContext")
+  private final @NotNull List<String> additionalSourceDirsForSourceContext = new ArrayList<>();
+
   @Parameter(defaultValue = DEFAULT_SKIP_STRING)
   private boolean skip;
 
@@ -78,13 +83,82 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     }
 
     final @NotNull String bundleId = UUID.randomUUID().toString();
+    final @NotNull File collectedSourcesTargetDir = new File(sentryBuildDir(), "collected-sources");
     final @NotNull File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
     final @NotNull SentryCliRunner cliRunner =
         new SentryCliRunner(
             debugSentryCli, sentryCliExecutablePath, mavenProject, mavenSession, pluginManager);
+
     createDebugMetaPropertiesFile(bundleId);
-    bundleSources(cliRunner, bundleId, sourceBundleTargetDir);
+    collectSources(bundleId, collectedSourcesTargetDir);
+    bundleSources(cliRunner, bundleId, collectedSourcesTargetDir, sourceBundleTargetDir);
     uploadSourceBundle(cliRunner, sourceBundleTargetDir);
+  }
+
+  private void collectSources(@NotNull String bundleId, @NotNull File outputDir) {
+    final @Nullable ISpan span = SentryTelemetryService.getInstance().startTask("collectSources");
+    logger.debug("Collecting files from source directories");
+
+    if (!outputDir.exists()) {
+      outputDir.mkdirs();
+    }
+
+    final @Nullable List<String> sourceRootsPaths = mavenProject.getCompileSourceRoots();
+    final @NotNull List<String> sourceDirsPaths =
+        sourceRootsPaths == null ? new ArrayList<>() : new ArrayList<>(sourceRootsPaths);
+    sourceDirsPaths.removeIf(Objects::isNull);
+    sourceDirsPaths.addAll(additionalSourceDirsForSourceContext);
+
+    if (sourceDirsPaths.isEmpty()) {
+      logger.info("No source directories to collect and bundle");
+    } else {
+      logger.debug(
+          "Copying files from the following directories to {} for inclusion in source bundle: {}",
+          outputDir,
+          String.join(",", sourceDirsPaths));
+    }
+    int count = 0;
+    for (final @NotNull String sourceDirPath : sourceDirsPaths) {
+      try {
+        final @NotNull File sourceDir = new File(sourceDirPath);
+        final @NotNull Path sourceDirAbsolutePath = sourceDir.toPath().toAbsolutePath().normalize();
+
+        if (!sourceDir.exists()) {
+          logger.error(
+              "Not collecting sources in {}: directory does not exist", sourceDirAbsolutePath);
+          continue;
+        }
+        if (!sourceDir.isDirectory()) {
+          logger.error("Not collecting sources in {}: not a directory", sourceDirAbsolutePath);
+          continue;
+        }
+        logger.debug("Collecting sources in {}", sourceDirPath);
+
+        try (final @NotNull Stream<Path> stream = Files.walk(sourceDirAbsolutePath)) {
+          stream.forEach(
+              (sourcePath) -> {
+                final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
+                final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
+
+                if (sourcePath.toFile().isFile()) {
+                  try {
+                    Files.createDirectories(destinationPath.getParent());
+                    Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+                  } catch (IOException e) {
+                    logger.error(
+                        "Failed to copy file from {} to {}", sourcePath, destinationPath, e);
+                  }
+                }
+              });
+        }
+        count++;
+      } catch (Throwable t) {
+        logger.error("Failed to collect sources in {}", sourceDirPath, t);
+        SentryTelemetryService.getInstance().captureError(t, "bundleSources " + sourceDirPath);
+      }
+    }
+    logger.info("Collected sources from {} source directories", count);
+    SentryTelemetryService.getInstance().endTask(span);
   }
 
   private @NotNull File sentryBuildDir() {
@@ -94,6 +168,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
   private void bundleSources(
       final @NotNull SentryCliRunner cliRunner,
       final @NotNull String bundleId,
+      final @NotNull File collectedSourcesDir,
       final @NotNull File sourceBundleTargetDir)
       throws MojoExecutionException {
     final @Nullable ISpan span = SentryTelemetryService.getInstance().startTask("bundleSources");
@@ -101,56 +176,41 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       if (!sourceBundleTargetDir.exists()) {
         sourceBundleTargetDir.mkdirs();
       }
+      logger.debug(
+          "Bundling collected sources located in {}", collectedSourcesDir.getAbsolutePath());
 
       final @NotNull List<String> bundleSourcesCommand = new ArrayList<>();
-      final @NotNull List<String> sourceRoots = mavenProject.getCompileSourceRoots();
-      final @Nullable String sourceRoot =
-          sourceRoots != null && !sourceRoots.isEmpty() ? sourceRoots.get(0) : null;
 
-      if (sourceRoot != null && new File(sourceRoot).exists()) {
-        if (sourceRoots.size() > 1) {
-          logger.warn("There's more than one source root, using {}", sourceRoot);
-        }
-
-        if (debugSentryCli) {
-          bundleSourcesCommand.add("--log-level=debug");
-        }
-
-        final @NotNull List<String> tracingArgs = SentryTelemetryService.getInstance().traceCli();
-        for (final @NotNull String tracingArg : tracingArgs) {
-          bundleSourcesCommand.add(tracingArg);
-        }
-
-        /*
-         * TODO maybe at some point copy all of them into one dir and pass that to
-         *  sentry-cli or allow sentry-cli to take more than one dir
-         */
-        logger.debug("Bundling sources located in {}", sourceRoot);
-
-        if (url != null) {
-          bundleSourcesCommand.add("--url=" + url);
-        }
-        if (authToken != null) {
-          bundleSourcesCommand.add("--auth-token=" + authToken);
-        }
-
-        bundleSourcesCommand.add("debug-files");
-        bundleSourcesCommand.add("bundle-jvm");
-        bundleSourcesCommand.add(
-            "--output=" + cliRunner.escape(sourceBundleTargetDir.getAbsolutePath()));
-        bundleSourcesCommand.add("--debug-id=" + bundleId);
-        if (org != null) {
-          bundleSourcesCommand.add("--org=" + org);
-        }
-        if (project != null) {
-          bundleSourcesCommand.add("--project=" + project);
-        }
-        bundleSourcesCommand.add(cliRunner.escape(sourceRoot));
-
-        cliRunner.runSentryCli(String.join(" ", bundleSourcesCommand), true);
-      } else {
-        logger.info("Skipping module, as it doesn't have any source roots");
+      if (debugSentryCli) {
+        bundleSourcesCommand.add("--log-level=debug");
       }
+
+      final @NotNull List<String> tracingArgs = SentryTelemetryService.getInstance().traceCli();
+      for (final @NotNull String tracingArg : tracingArgs) {
+        bundleSourcesCommand.add(tracingArg);
+      }
+
+      if (url != null) {
+        bundleSourcesCommand.add("--url=" + url);
+      }
+      if (authToken != null) {
+        bundleSourcesCommand.add("--auth-token=" + authToken);
+      }
+
+      bundleSourcesCommand.add("debug-files");
+      bundleSourcesCommand.add("bundle-jvm");
+      bundleSourcesCommand.add(
+          "--output=" + cliRunner.escape(sourceBundleTargetDir.getAbsolutePath()));
+      bundleSourcesCommand.add("--debug-id=" + bundleId);
+      if (org != null) {
+        bundleSourcesCommand.add("--org=" + org);
+      }
+      if (project != null) {
+        bundleSourcesCommand.add("--project=" + project);
+      }
+      bundleSourcesCommand.add(cliRunner.escape(collectedSourcesDir.getAbsolutePath()));
+
+      cliRunner.runSentryCli(String.join(" ", bundleSourcesCommand), true);
     } catch (Throwable t) {
       SentryTelemetryService.getInstance().captureError(t, "bundleSources");
       throw t;

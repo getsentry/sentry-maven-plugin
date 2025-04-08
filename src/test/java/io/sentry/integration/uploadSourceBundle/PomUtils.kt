@@ -4,7 +4,50 @@ fun basePom(
     skipPlugin: Boolean = false,
     skipSourceBundle: Boolean = false,
     sentryCliPath: String? = null,
+    extraSourceRoots: List<String> = listOf(),
+    extraSourceContextDirs: List<String> = emptyList(),
 ): String {
+    val extraSourceRootsXml =
+        if (extraSourceRoots.isEmpty()) {
+            ""
+        } else {
+            """
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                            ${extraSourceRoots.map {
+                "<source>$it</source>"
+            }.joinToString("\n")}
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            """
+        }
+
+    val extraSourceContextDirsXml =
+        if (extraSourceContextDirs.isEmpty()) {
+            ""
+        } else {
+            """
+            <additionalSourceDirsForSourceContext>
+                ${extraSourceContextDirs.map {
+                "<value>$it</value>"
+            }.joinToString("\n")}
+            </additionalSourceDirsForSourceContext>
+            """
+        }
+
     return """
         <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -50,6 +93,7 @@ fun basePom(
                             <project>sentry-maven</project>
                             <authToken>\&lt;token\&gt;</authToken>
                             ${if (sentryCliPath.isNullOrBlank()) "" else "<sentryCliExecutablePath>$sentryCliPath</sentryCliExecutablePath>"}
+                            $extraSourceContextDirsXml
                         </configuration>
                         <executions>
                             <execution>
@@ -59,6 +103,7 @@ fun basePom(
                             </execution>
                         </executions>
                     </plugin>
+                $extraSourceRootsXml
                 </plugins>
             </build>
         </project>
