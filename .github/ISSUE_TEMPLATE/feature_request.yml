@@ -1,7 +1,6 @@
 name: 💡 Feature Request
 description: Tell us about a problem our Gradle plugin could solve but doesn't.
-labels: ["Platform: Java", "enhancement"]
-type: Feature
+labels: ["Java", "Feature"]
 body:
   - type: textarea
     id: problem
