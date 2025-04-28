@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mojo(name = "reportDependencies", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
+@Mojo(name = "reportDependencies", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 public class ReportDependenciesMojo extends AbstractMojo {
 
   public static final @NotNull String EXTERNAL_MODULES_FILE = "external-modules.txt";
