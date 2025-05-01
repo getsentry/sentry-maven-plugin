@@ -4,9 +4,9 @@
 
 ### Dependencies
 
-- Bump Sentry SDK from v8.7.0 to v8.10.0 ([#147](https://github.com/getsentry/sentry-maven-plugin/pull/147), [#150](https://github.com/getsentry/sentry-maven-plugin/pull/150))
-  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8100)
-  - [diff](https://github.com/getsentry/sentry-java/compare/8.7.0...8.10.0)
+- Bump Sentry SDK from v8.7.0 to v8.11.1 ([#147](https://github.com/getsentry/sentry-maven-plugin/pull/147), [#150](https://github.com/getsentry/sentry-maven-plugin/pull/150), [#153](https://github.com/getsentry/sentry-maven-plugin/pull/153))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8111)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.7.0...8.11.1)
 
 ## 0.4.0
 
