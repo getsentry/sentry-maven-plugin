@@ -5,7 +5,7 @@ targets:
     mavenCliPath: scripts/mvnw
     mavenSettingsPath: scripts/settings.xml
     mavenRepoId: ossrh-staging-api
-    mavenRepoUrl: https://ossrh-staging-api.centralsonatype.com/service/local/staging/deploy/maven2/
+    mavenRepoUrl: https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/
     android: false
   - name: github
   - name: registry
