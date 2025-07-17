@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Add MojoExecutionException as cause of SentryCliException ([#170](https://github.com/getsentry/sentry-maven-plugin/pull/170))
+
 ## 0.7.0
 
 ### Dependencies
