@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump CLI from v2.47.0 to v2.47.1 ([#168](https://github.com/getsentry/sentry-maven-plugin/pull/168))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2471)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/2.47.0...2.47.1)
+
 ## 0.7.1
 
 ### Improvements
