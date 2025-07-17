@@ -79,9 +79,9 @@ public class SentryCliRunner {
 
       return collectAndMaybePrintOutput(logFile, debugSentryCli);
     } catch (MojoExecutionException e) {
+      logger.error("Error while attempting to run Sentry CLI: ", e);
       if (logFile != null) {
         final @Nullable String output = collectAndMaybePrintOutput(logFile, true);
-        logger.error("Error while attempting to run Sentry CLI: ", e);
         if (output != null) {
           final @NotNull CliFailureReason failureReason = failureReasonFromCliOutput(output);
           throw new SentryCliException(failureReason);
