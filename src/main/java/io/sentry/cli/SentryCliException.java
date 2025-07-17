@@ -9,6 +9,11 @@ public class SentryCliException extends RuntimeException {
     this.reason = reason;
   }
 
+  public SentryCliException(CliFailureReason reason, Throwable cause) {
+    super(reason.getText(), cause);
+    this.reason = reason;
+  }
+
   public CliFailureReason getReason() {
     return reason;
   }

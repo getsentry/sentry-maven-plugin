@@ -83,7 +83,7 @@ public class SentryCliRunner {
         final @Nullable String output = collectAndMaybePrintOutput(logFile, true);
         if (output != null) {
           final @NotNull CliFailureReason failureReason = failureReasonFromCliOutput(output);
-          throw new SentryCliException(failureReason);
+          throw new SentryCliException(failureReason, e);
         }
       }
       throw e;
