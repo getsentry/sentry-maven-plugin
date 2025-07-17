@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Log `MojoExecutionException` when running CLI fails ([#171](https://github.com/getsentry/sentry-maven-plugin/pull/171))
+
 ## 0.7.0
 
 ### Dependencies
