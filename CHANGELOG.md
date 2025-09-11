@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Log version that caused Maven plugin to not install a dependency ([#185](https://github.com/getsentry/sentry-maven-plugin/pull/185))
+
 ### Dependencies
 
 - Bump Sentry SDK from v8.17.0 to v8.21.1 ([#182](https://github.com/getsentry/sentry-maven-plugin/pull/182), [#183](https://github.com/getsentry/sentry-maven-plugin/pull/183))
