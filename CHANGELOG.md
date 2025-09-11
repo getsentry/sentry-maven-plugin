@@ -4,7 +4,7 @@
 
 ### Features
 
-- Log version that caused Maven plugin to not install a dependency ([#185](https://github.com/getsentry/sentry-maven-plugin/pull/185))
+- Log version that caused Maven plugin to not install a dependency ([#184](https://github.com/getsentry/sentry-maven-plugin/pull/184))
 - Auto install Spring Boot 4 (`sentry-spring-boot-4`) and Spring 7 (`sentry-spring-7`) modules ([#185](https://github.com/getsentry/sentry-maven-plugin/pull/185))
 
 ### Fixes
