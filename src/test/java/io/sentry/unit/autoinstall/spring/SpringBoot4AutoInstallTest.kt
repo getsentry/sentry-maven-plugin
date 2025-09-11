@@ -1,7 +1,7 @@
 package io.sentry.unit.autoinstall.spring
 
 import io.sentry.autoinstall.AutoInstallState
-import io.sentry.autoinstall.spring.SpringBoot3InstallStrategy
+import io.sentry.autoinstall.spring.SpringBoot4InstallStrategy
 import io.sentry.unit.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
 import org.eclipse.aether.artifact.Artifact
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import kotlin.test.assertTrue
 
-class SpringBoot3AutoInstallTest {
+class SpringBoot4AutoInstallTest {
     class Fixture {
         val logger = CapturingTestLogger()
         val dependencies = ArrayList<Dependency>()
@@ -19,9 +19,9 @@ class SpringBoot3AutoInstallTest {
 
         fun getSut(
             installSpring: Boolean = true,
-            springVersion: String = "3.0.0",
-        ): SpringBoot3InstallStrategy {
-            installState = AutoInstallState("6.28.0")
+            springVersion: String = "4.0.0",
+        ): SpringBoot4InstallStrategy {
+            installState = AutoInstallState("8.21.0")
             installState.isInstallSpring = installSpring
 
             resolvedArtifacts.add(
@@ -33,66 +33,66 @@ class SpringBoot3AutoInstallTest {
                 ),
             )
 
-            return SpringBoot3InstallStrategyImpl(logger)
+            return SpringBoot4InstallStrategyImpl(logger)
         }
     }
 
     private val fixture = Fixture()
 
     @Test
-    fun `when sentry-spring-boot-jakarta is a direct dependency logs a message and does nothing`() {
+    fun `when sentry-spring-boot-4 is a direct dependency logs a message and does nothing`() {
         val sut = fixture.getSut(installSpring = false)
         sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "sentry-spring-boot-jakarta won't be installed because it was already " +
+                "sentry-spring-boot-4 won't be installed because it was already " +
                 "installed directly"
         }
 
-        assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot-jakarta" })
+        assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot-4" })
     }
 
     @Test
     fun `when spring version is too low logs a message and does nothing`() {
-        val sut = fixture.getSut(springVersion = "2.7.13")
+        val sut = fixture.getSut(springVersion = "3.5.5")
         sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "sentry-spring-boot-jakarta won't be installed because the current " +
-                "version (2.7.13) is lower than the minimum supported version 3.0.0"
+                "sentry-spring-boot-4 won't be installed because the current " +
+                "version (3.5.5) is lower than the minimum supported version 4.0.0-M1"
         }
 
-        assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot-jakarta" })
+        assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot-4" })
     }
 
     @Test
     fun `when spring version is too high logs a message and does nothing`() {
-        val sut = fixture.getSut(springVersion = "4.0.0")
+        val sut = fixture.getSut(springVersion = "5.0.0")
         sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "sentry-spring-boot-jakarta won't be installed because the current " +
-                "version (4.0.0) is higher than the maximum supported version 3.9999.9999"
+                "sentry-spring-boot-4 won't be installed because the current " +
+                "version (5.0.0) is higher than the maximum supported version 4.9999.9999"
         }
 
-        assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot-jakarta" })
+        assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot-4" })
     }
 
     @Test
-    fun `installs sentry-spring-boot-jakarta with info message`() {
+    fun `installs sentry-spring-boot-4 with info message`() {
         val sut = fixture.getSut()
         sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "sentry-spring-boot-jakarta was successfully installed with version: 6.28.0"
+                "sentry-spring-boot-4 was successfully installed with version: 8.21.0"
         }
 
-        assertTrue(fixture.dependencies.any { it.artifactId == "sentry-spring-boot-jakarta" })
+        assertTrue(fixture.dependencies.any { it.artifactId == "sentry-spring-boot-4" })
     }
 
-    private class SpringBoot3InstallStrategyImpl(logger: Logger) : SpringBoot3InstallStrategy(logger)
+    private class SpringBoot4InstallStrategyImpl(logger: Logger) : SpringBoot4InstallStrategy(logger)
 }

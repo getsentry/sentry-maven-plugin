@@ -9,8 +9,10 @@ import static io.sentry.autoinstall.logback.LogbackInstallStrategy.SENTRY_LOGBAC
 import static io.sentry.autoinstall.quartz.QuartzInstallStrategy.SENTRY_QUARTZ_ID;
 import static io.sentry.autoinstall.spring.Spring5InstallStrategy.SENTRY_SPRING_5_ID;
 import static io.sentry.autoinstall.spring.Spring6InstallStrategy.SENTRY_SPRING_6_ID;
+import static io.sentry.autoinstall.spring.Spring7InstallStrategy.SENTRY_SPRING_7_ID;
 import static io.sentry.autoinstall.spring.SpringBoot2InstallStrategy.SENTRY_SPRING_BOOT_2_ID;
 import static io.sentry.autoinstall.spring.SpringBoot3InstallStrategy.SENTRY_SPRING_BOOT_3_ID;
+import static io.sentry.autoinstall.spring.SpringBoot4InstallStrategy.SENTRY_SPRING_BOOT_4_ID;
 
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
@@ -21,10 +23,7 @@ import io.sentry.autoinstall.jdbc.JdbcInstallStrategy;
 import io.sentry.autoinstall.log4j2.Log4j2InstallStrategy;
 import io.sentry.autoinstall.logback.LogbackInstallStrategy;
 import io.sentry.autoinstall.quartz.QuartzInstallStrategy;
-import io.sentry.autoinstall.spring.Spring5InstallStrategy;
-import io.sentry.autoinstall.spring.Spring6InstallStrategy;
-import io.sentry.autoinstall.spring.SpringBoot2InstallStrategy;
-import io.sentry.autoinstall.spring.SpringBoot3InstallStrategy;
+import io.sentry.autoinstall.spring.*;
 import io.sentry.config.ConfigParser;
 import io.sentry.config.PluginConfig;
 import io.sentry.telemetry.SentryTelemetryService;
@@ -56,8 +55,10 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
       Stream.of(
               Spring5InstallStrategy.class,
               Spring6InstallStrategy.class,
+              Spring7InstallStrategy.class,
               SpringBoot2InstallStrategy.class,
               SpringBoot3InstallStrategy.class,
+              SpringBoot4InstallStrategy.class,
               Log4j2InstallStrategy.class,
               LogbackInstallStrategy.class,
               GraphqlInstallStrategy.class,
@@ -148,8 +149,10 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
   private boolean shouldInstallSpring(final @NotNull List<Artifact> resolvedArtifacts) {
     return !(isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_5_ID)
         || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_6_ID)
+        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_7_ID)
         || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_2_ID)
-        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_3_ID));
+        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_3_ID)
+        || isModuleAvailable(resolvedArtifacts, SENTRY_SPRING_BOOT_4_ID));
   }
 
   private boolean shouldInstallGraphQL(final @NotNull List<Artifact> resolvedArtifacts) {

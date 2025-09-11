@@ -47,6 +47,11 @@ public class SpringBoot3InstallStrategy extends AbstractIntegrationInstaller {
   }
 
   @Override
+  protected @Nullable Version maxSupportedThirdPartyVersion() {
+    return Version.create(3, 9999, 9999);
+  }
+
+  @Override
   protected boolean shouldInstallModule(final @NotNull AutoInstallState autoInstallState) {
     return autoInstallState.isInstallSpring();
   }
