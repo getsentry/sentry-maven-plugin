@@ -61,7 +61,7 @@ class SpringBoot2AutoInstallTest {
         assertTrue {
             fixture.logger.capturedMessage ==
                 "sentry-spring-boot won't be installed because the current " +
-                "version is lower than the minimum supported version 2.1.0"
+                "version (2.0.0) is lower than the minimum supported version 2.1.0"
         }
 
         assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot" })
@@ -75,7 +75,7 @@ class SpringBoot2AutoInstallTest {
         assertTrue {
             fixture.logger.capturedMessage ==
                 "sentry-spring-boot won't be installed because the current " +
-                "version is higher than the maximum supported version 2.9999.9999"
+                "version (3.0.0) is higher than the maximum supported version 2.9999.9999"
         }
 
         assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot" })

@@ -60,7 +60,7 @@ class Log4jAutoIntallTest {
         assertTrue {
             fixture.logger.capturedMessage ==
                 "sentry-log4j2 won't be installed because the current " +
-                "version is lower than the minimum supported version 2.0.0"
+                "version (1.0.0) is lower than the minimum supported version 2.0.0"
         }
         assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry-log4j2" })
     }

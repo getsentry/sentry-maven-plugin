@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Features
+
+- Log version that caused Maven plugin to not install a dependency ([#184](https://github.com/getsentry/sentry-maven-plugin/pull/184))
+- Auto install Spring Boot 4 (`sentry-spring-boot-4`) and Spring 7 (`sentry-spring-7`) modules ([#185](https://github.com/getsentry/sentry-maven-plugin/pull/185))
+
+### Fixes
+
+- Sentry dependencies intended for Spring Boot 3 / Spring 6 will no longer be installed for Spring Boot 4 / Spring 7 ([#185](https://github.com/getsentry/sentry-maven-plugin/pull/185))
+
 ### Dependencies
 
 - Bump Sentry SDK from v8.17.0 to v8.21.1 ([#182](https://github.com/getsentry/sentry-maven-plugin/pull/182), [#183](https://github.com/getsentry/sentry-maven-plugin/pull/183))

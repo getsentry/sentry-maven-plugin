@@ -76,7 +76,7 @@ class QuartzAutoInstallTest {
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "sentry-quartz won't be installed because the current version is " +
+                "sentry-quartz won't be installed because the current version (6.28.0) is " +
                 "lower than the minimum supported sentry version 6.28.0"
         }
 

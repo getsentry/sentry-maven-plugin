@@ -61,7 +61,21 @@ class SpringBoot3AutoInstallTest {
         assertTrue {
             fixture.logger.capturedMessage ==
                 "sentry-spring-boot-jakarta won't be installed because the current " +
-                "version is lower than the minimum supported version 3.0.0"
+                "version (2.7.13) is lower than the minimum supported version 3.0.0"
+        }
+
+        assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot-jakarta" })
+    }
+
+    @Test
+    fun `when spring version is too high logs a message and does nothing`() {
+        val sut = fixture.getSut(springVersion = "4.0.0")
+        sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
+
+        assertTrue {
+            fixture.logger.capturedMessage ==
+                "sentry-spring-boot-jakarta won't be installed because the current " +
+                "version (4.0.0) is higher than the maximum supported version 3.9999.9999"
         }
 
         assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot-jakarta" })

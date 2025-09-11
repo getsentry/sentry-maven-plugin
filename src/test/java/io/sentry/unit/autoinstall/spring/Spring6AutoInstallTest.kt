@@ -61,7 +61,22 @@ class Spring6AutoInstallTest {
         assertTrue {
             fixture.logger.capturedMessage ==
                 "sentry-spring-jakarta won't be installed because the current " +
-                "version is lower than the minimum supported version 6.0.0"
+                "version (5.7.4) is lower than the minimum supported version 6.0.0"
+        }
+
+        assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-jakarta" })
+    }
+
+    @Test
+    fun `when spring version is too high logs a message and does nothing`() {
+        val sut = fixture.getSut(springVersion = "7.0.0")
+
+        sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
+
+        assertTrue {
+            fixture.logger.capturedMessage ==
+                "sentry-spring-jakarta won't be installed because the current " +
+                "version (7.0.0) is higher than the maximum supported version 6.9999.9999"
         }
 
         assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-jakarta" })
