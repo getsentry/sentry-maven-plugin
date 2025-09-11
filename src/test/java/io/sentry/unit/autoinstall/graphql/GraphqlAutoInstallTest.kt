@@ -76,7 +76,7 @@ class GraphqlAutoInstallTest {
         assertTrue {
             fixture.logger.capturedMessage ==
                 "sentry-graphql won't be installed because the current " +
-                "version is higher than the maximum supported version 21.9999.9999"
+                "version (22.1.0) is higher than the maximum supported version 21.9999.9999"
         }
 
         assertTrue(fixture.dependencies.none { it.artifactId == "sentry-graphql" })

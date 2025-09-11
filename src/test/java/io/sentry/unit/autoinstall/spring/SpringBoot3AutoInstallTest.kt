@@ -61,7 +61,7 @@ class SpringBoot3AutoInstallTest {
         assertTrue {
             fixture.logger.capturedMessage ==
                 "sentry-spring-boot-jakarta won't be installed because the current " +
-                "version is lower than the minimum supported version 3.0.0"
+                "version (2.7.13) is lower than the minimum supported version 3.0.0"
         }
 
         assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-boot-jakarta" })

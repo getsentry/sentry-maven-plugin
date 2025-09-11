@@ -77,7 +77,7 @@ class LogbackAutoInstallTestIT {
         verifier.isAutoclean = false
         verifier.executeGoal("install")
         verifier.verifyTextInLog(
-            "sentry-logback won't be installed because the current version is " +
+            "sentry-logback won't be installed because the current version (0.9.30) is " +
                 "lower than the minimum supported version 1.0.0",
         )
         verifier.verifyFileNotPresent("target/lib/sentry-logback-${SdkVersionInfo.getSentryVersion()}.jar")

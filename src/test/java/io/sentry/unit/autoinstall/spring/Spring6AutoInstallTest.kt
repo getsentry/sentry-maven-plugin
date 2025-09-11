@@ -61,7 +61,7 @@ class Spring6AutoInstallTest {
         assertTrue {
             fixture.logger.capturedMessage ==
                 "sentry-spring-jakarta won't be installed because the current " +
-                "version is lower than the minimum supported version 6.0.0"
+                "version (5.7.4) is lower than the minimum supported version 6.0.0"
         }
 
         assertTrue(fixture.dependencies.none { it.artifactId == "sentry-spring-jakarta" })

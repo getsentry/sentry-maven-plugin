@@ -58,24 +58,26 @@ public abstract class AbstractIntegrationInstaller {
     }
 
     if (minSupportedThirdPartyVersion() != null) {
-      if (parseVersion(thirdPartyDependency.getVersion())
-          .isLowerThan(minSupportedThirdPartyVersion())) {
+      final @NotNull Version thirdPartyVersion = parseVersion(thirdPartyDependency.getVersion());
+      if (thirdPartyVersion.isLowerThan(minSupportedThirdPartyVersion())) {
         logger.info(
             sentryModuleId()
-                + " won't be installed because the current version is "
-                + "lower than the minimum supported version "
+                + " won't be installed because the current version ("
+                + thirdPartyVersion
+                + ") is lower than the minimum supported version "
                 + minSupportedThirdPartyVersion());
         return;
       }
     }
 
     if (maxSupportedThirdPartyVersion() != null) {
-      if (parseVersion(thirdPartyDependency.getVersion())
-          .isGreaterThan(maxSupportedThirdPartyVersion())) {
+      final @NotNull Version thirdPartyVersion = parseVersion(thirdPartyDependency.getVersion());
+      if (thirdPartyVersion.isGreaterThan(maxSupportedThirdPartyVersion())) {
         logger.info(
             sentryModuleId()
-                + " won't be installed because the current version is "
-                + "higher than the maximum supported version "
+                + " won't be installed because the current version ("
+                + thirdPartyVersion
+                + ") is higher than the maximum supported version "
                 + maxSupportedThirdPartyVersion());
         return;
       }
@@ -87,8 +89,9 @@ public abstract class AbstractIntegrationInstaller {
         if (sentrySemVersion.isLowerThan(minSupportedSentryVersion())) {
           logger.warn(
               sentryModuleId()
-                  + " won't be installed because the current version is "
-                  + "lower than the minimum supported sentry version "
+                  + " won't be installed because the current version ("
+                  + sentrySemVersion
+                  + ") is lower than the minimum supported sentry version "
                   + sentryVersion);
           return;
         }
@@ -96,7 +99,9 @@ public abstract class AbstractIntegrationInstaller {
         logger.warn(
             sentryModuleId()
                 + " won't be installed because the provided "
-                + "sentry version($autoInstallState.sentryVersion) could not be processed "
+                + "sentry version ("
+                + sentryVersion
+                + ") could not be processed "
                 + "as a semantic version.");
         return;
       }
