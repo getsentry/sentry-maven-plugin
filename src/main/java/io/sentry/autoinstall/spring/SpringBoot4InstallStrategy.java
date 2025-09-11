@@ -10,23 +10,23 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Spring6InstallStrategy extends AbstractIntegrationInstaller {
+public class SpringBoot4InstallStrategy extends AbstractIntegrationInstaller {
 
-  public static final @NotNull String SENTRY_SPRING_6_ID = "sentry-spring-jakarta";
-  private static final @NotNull String SPRING_GROUP = "org.springframework";
-  private static final @NotNull String SPRING_6_ID = "spring-core";
+  public static final @NotNull String SENTRY_SPRING_BOOT_4_ID = "sentry-spring-boot-4";
+  private static final @NotNull String SPRING_GROUP = "org.springframework.boot";
+  private static final @NotNull String SPRING_BOOT_4_ID = "spring-boot-starter";
 
-  public Spring6InstallStrategy() {
-    this(LoggerFactory.getLogger(Spring6InstallStrategy.class));
+  public SpringBoot4InstallStrategy() {
+    this(LoggerFactory.getLogger(SpringBoot4InstallStrategy.class));
   }
 
-  public Spring6InstallStrategy(final @NotNull Logger logger) {
+  public SpringBoot4InstallStrategy(final @NotNull Logger logger) {
     super(logger);
   }
 
   @Override
   protected @NotNull Version minSupportedSentryVersion() {
-    return Version.create(6, 7, 0);
+    return Version.create(8, 21, 0);
   }
 
   @Override
@@ -35,28 +35,29 @@ public class Spring6InstallStrategy extends AbstractIntegrationInstaller {
     return resolvedArtifacts.stream()
         .filter(
             (dep) ->
-                dep.getGroupId().equals(SPRING_GROUP) && dep.getArtifactId().equals(SPRING_6_ID))
+                dep.getGroupId().equals(SPRING_GROUP)
+                    && dep.getArtifactId().equals(SPRING_BOOT_4_ID))
         .findFirst()
         .orElse(null);
   }
 
   @Override
   protected @Nullable Version minSupportedThirdPartyVersion() {
-    return Version.create(6, 0, 0);
+    return Version.create(4, 0, 0, "M1");
   }
 
   @Override
   protected @Nullable Version maxSupportedThirdPartyVersion() {
-    return Version.create(6, 9999, 9999);
+    return Version.create(4, 9999, 9999);
   }
 
   @Override
-  protected boolean shouldInstallModule(AutoInstallState autoInstallState) {
+  protected boolean shouldInstallModule(final @NotNull AutoInstallState autoInstallState) {
     return autoInstallState.isInstallSpring();
   }
 
   @Override
   protected @NotNull String sentryModuleId() {
-    return SENTRY_SPRING_6_ID;
+    return SENTRY_SPRING_BOOT_4_ID;
   }
 }
