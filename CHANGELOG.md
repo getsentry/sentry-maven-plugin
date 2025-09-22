@@ -4,6 +4,9 @@
 
 ### Dependencies
 
+- Bump Sentry SDK from v8.21.1 to v8.22.0 ([#189](https://github.com/getsentry/sentry-maven-plugin/pull/189))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8220)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.21.1...8.22.0)
 - Bump CLI from v2.53.0 to v2.54.0 ([#188](https://github.com/getsentry/sentry-maven-plugin/pull/188))
   - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#2540)
   - [diff](https://github.com/getsentry/sentry-cli/compare/2.53.0...2.54.0)
