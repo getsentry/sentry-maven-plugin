@@ -3,6 +3,7 @@ package io.sentry.integration.uploadSourceBundle
 fun basePom(
     skipPlugin: Boolean = false,
     skipSourceBundle: Boolean = false,
+    ignoreSourceBundleUploadFailure: Boolean = false,
     sentryCliPath: String? = null,
     extraSourceRoots: List<String> = listOf(),
     extraSourceContextDirs: List<String> = emptyList(),
@@ -88,7 +89,9 @@ fun basePom(
                             <debugSentryCli>true</debugSentryCli>
                             <skip>$skipPlugin</skip>
                             <skipSourceBundle>$skipSourceBundle</skipSourceBundle>
+                            <ignoreSourceBundleUploadFailure>$ignoreSourceBundleUploadFailure</ignoreSourceBundleUploadFailure>
                             <skipTelemetry>true</skipTelemetry>
+
                             <org>sentry-sdks</org>
                             <project>sentry-maven</project>
                             <authToken>\&lt;token\&gt;</authToken>

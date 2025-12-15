@@ -27,15 +27,42 @@ class UploadSourceBundleTestIT {
         baseDir: File,
         skipPlugin: Boolean = false,
         skipSourceBundle: Boolean = false,
+        ignoreSourceBundleUploadFailure: Boolean = false,
         sentryCliPath: String? = null,
         extraSourceRoots: List<String> = listOf(),
         extraSourceContextDirs: List<String> = emptyList(),
     ): String {
-        val pomContent = basePom(skipPlugin, skipSourceBundle, sentryCliPath, extraSourceRoots, extraSourceContextDirs)
+        val pomContent =
+            basePom(skipPlugin, skipSourceBundle, ignoreSourceBundleUploadFailure, sentryCliPath, extraSourceRoots, extraSourceContextDirs)
 
         Files.write(Path("${baseDir.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
 
         return baseDir.absolutePath
+    }
+
+    @Test
+    fun `does not fail build when upload fails and ignoreSourceBundleUploadFailure is true`() {
+        val baseDir = setupProject()
+        val cliPath = File(baseDir, "sentry-cli-fail")
+        cliPath.writeText(
+            """
+            #!/bin/sh
+            if echo "$@" | grep -q "upload"; then
+              exit 1
+            fi
+            exit 0
+            """,
+        )
+        cliPath.setExecutable(true)
+
+        val path = getPOM(baseDir, sentryCliPath = cliPath.absolutePath, ignoreSourceBundleUploadFailure = true)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+
+        verifier.verifyTextInLog("Source bundle upload failed, ignored by configuration")
+
+        verifier.resetStreams()
     }
 
     @Test
