@@ -17,6 +17,7 @@ import java.util.Properties
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class UploadSourceBundleTestIT {
@@ -31,9 +32,18 @@ class UploadSourceBundleTestIT {
         sentryCliPath: String? = null,
         extraSourceRoots: List<String> = listOf(),
         extraSourceContextDirs: List<String> = emptyList(),
+        sentryUrl: String? = null,
     ): String {
         val pomContent =
-            basePom(skipPlugin, skipSourceBundle, ignoreSourceBundleUploadFailure, sentryCliPath, extraSourceRoots, extraSourceContextDirs)
+            basePom(
+                skipPlugin,
+                skipSourceBundle,
+                ignoreSourceBundleUploadFailure,
+                sentryCliPath,
+                extraSourceRoots,
+                extraSourceContextDirs,
+                sentryUrl,
+            )
 
         Files.write(Path("${baseDir.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
 
@@ -43,26 +53,27 @@ class UploadSourceBundleTestIT {
     @Test
     fun `does not fail build when upload fails and ignoreSourceBundleUploadFailure is true`() {
         val baseDir = setupProject()
-        val cliPath = File(baseDir, "sentry-cli-fail")
-        cliPath.writeText(
-            """
-            #!/bin/sh
-            if echo "$@" | grep -q "upload"; then
-              exit 1
-            fi
-            exit 0
-            """,
-        )
-        cliPath.setExecutable(true)
-
-        val path = getPOM(baseDir, sentryCliPath = cliPath.absolutePath, ignoreSourceBundleUploadFailure = true)
+        val path = getPOM(baseDir, ignoreSourceBundleUploadFailure = true, sentryUrl = "http://unknown")
         val verifier = Verifier(path)
         verifier.isAutoclean = false
+
         verifier.executeGoal("install")
-
         verifier.verifyTextInLog("Source bundle upload failed, ignored by configuration")
-
         verifier.resetStreams()
+    }
+
+    @Test
+    fun `fails build when upload fails and ignoreSourceBundleUploadFailure is false`() {
+        val baseDir = setupProject()
+        val path = getPOM(baseDir, sentryUrl = "http://unknown")
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+
+        assertFailsWith<VerificationException> {
+            verifier.executeGoal("install")
+        }
+
+        verifier.verifyTextInLog("Could not resolve hostname (Could not resolve host: unknown)")
     }
 
     @Test
@@ -188,9 +199,7 @@ class UploadSourceBundleTestIT {
         verifier.resetStreams()
     }
 
-    private fun setupEmptyProject(): File {
-        return setupProject(subdirectories = emptyList())
-    }
+    private fun setupEmptyProject(): File = setupProject(subdirectories = emptyList())
 
     private fun setupProject(
         baseDir: String = "base",
