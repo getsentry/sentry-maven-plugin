@@ -12,6 +12,8 @@ public class PluginConfig {
   public static final @NotNull String DEFAULT_SKIP_AUTO_INSTALL_STRING = "false";
   public static final boolean DEFAULT_SKIP_SOURCE_BUNDLE = false;
   public static final @NotNull String DEFAULT_SKIP_SOURCE_BUNDLE_STRING = "false";
+  public static final boolean DEFAULT_IGNORE_SOURCE_BUNDLE_UPLOAD_FAILURE = false;
+  public static final @NotNull String DEFAULT_IGNORE_SOURCE_BUNDLE_UPLOAD_FAILURE_STRING = "false";
   public static final boolean DEFAULT_SKIP_TELEMETRY = false;
   public static final @NotNull String DEFAULT_SKIP_TELEMETRY_STRING = "false";
   public static final boolean DEFAULT_DEBUG_SENTRY_CLI = false;
@@ -28,6 +30,7 @@ public class PluginConfig {
   private boolean skipTelemetry = DEFAULT_SKIP_TELEMETRY;
   private boolean skipReportDependencies = DEFAULT_SKIP_REPORT_DEPENDENCIES;
   private boolean skipSourceBundle = DEFAULT_SKIP_SOURCE_BUNDLE;
+  private boolean ignoreSourceBundleUploadFailure = DEFAULT_IGNORE_SOURCE_BUNDLE_UPLOAD_FAILURE;
   private boolean debugSentryCli = DEFAULT_DEBUG_SENTRY_CLI;
   private boolean debug = DEFAULT_DEBUG;
   private boolean skipValidateSdkDependencyVersions = DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS;
@@ -88,6 +91,10 @@ public class PluginConfig {
     this.skipSourceBundle = skipSourceBundle;
   }
 
+  public void setIgnoreSourceBundleUploadFailure(final boolean ignoreSourceBundleUploadFailure) {
+    this.ignoreSourceBundleUploadFailure = ignoreSourceBundleUploadFailure;
+  }
+
   public void setSkipValidateSdkDependencyVersions(
       final boolean skipValidateSdkDependencyVersions) {
     this.skipValidateSdkDependencyVersions = skipValidateSdkDependencyVersions;
@@ -107,6 +114,10 @@ public class PluginConfig {
 
   public boolean isSkipSourceBundle() {
     return skipSourceBundle || skip;
+  }
+
+  public boolean isIgnoreSourceBundleUploadFailure() {
+    return ignoreSourceBundleUploadFailure;
   }
 
   public boolean isSkipValidateSdkDependencyVersions() {

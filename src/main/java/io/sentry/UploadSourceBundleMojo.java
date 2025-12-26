@@ -70,6 +70,9 @@ public class UploadSourceBundleMojo extends AbstractMojo {
   @Parameter(defaultValue = DEFAULT_SKIP_SOURCE_BUNDLE_STRING)
   private boolean skipSourceBundle;
 
+  @Parameter(defaultValue = DEFAULT_IGNORE_SOURCE_BUNDLE_UPLOAD_FAILURE_STRING)
+  private boolean ignoreSourceBundleUploadFailure;
+
   @SuppressWarnings("NullAway")
   @Component
   private @NotNull BuildPluginManager pluginManager;
@@ -257,7 +260,11 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       cliRunner.runSentryCli(String.join(" ", command), true);
     } catch (Throwable t) {
       SentryTelemetryService.getInstance().captureError(t, "uploadSourceBundle");
-      throw t;
+      if (ignoreSourceBundleUploadFailure) {
+        logger.warn("Source bundle upload failed, ignored by configuration");
+      } else {
+        throw t;
+      }
     } finally {
       SentryTelemetryService.getInstance().endTask(span);
     }
