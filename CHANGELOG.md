@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- add option to ignore source bundle upload failures ([#209](https://github.com/getsentry/sentry-maven-plugin/pull/209))
+
 ### Dependencies
 
 - Bump Sentry SDK from v8.26.0 to v8.28.0 ([#205](https://github.com/getsentry/sentry-maven-plugin/pull/205))
