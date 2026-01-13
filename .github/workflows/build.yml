@@ -7,17 +7,13 @@ on:
       - release/**
   pull_request:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   job_build_upload:
     name: Build and upload distribution artifact
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current commit (${{ github.sha }})
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v3
+        uses: actions/checkout@v3
 
       - name: Set up Java
         uses: actions/setup-java@v3
