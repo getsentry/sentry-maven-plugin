@@ -7,10 +7,6 @@ on:
       - release/**
   pull_request:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   pre-merge-checks:
     strategy:
@@ -23,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v3
+        uses: actions/checkout@v3
 
       - name: Setup Java Version
         uses: actions/setup-java@v3
