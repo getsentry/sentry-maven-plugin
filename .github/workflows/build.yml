@@ -7,6 +7,10 @@ on:
       - release/**
   pull_request:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   job_build_upload:
     name: Build and upload distribution artifact
