@@ -36,6 +36,10 @@ public class PluginConfig {
   private boolean skipValidateSdkDependencyVersions = DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS;
   private @NotNull String additionalSourceDirsForSourceContext =
       DEFAULT_ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT;
+  private boolean installProfiler = DEFAULT_INSTALL_PROFILER;
+
+  public static final boolean DEFAULT_INSTALL_PROFILER = false;
+  public static final @NotNull String DEFAULT_INSTALL_PROFILER_STRING = "false";
 
   private @Nullable String org;
   private @Nullable String project;
@@ -100,6 +104,10 @@ public class PluginConfig {
     this.skipValidateSdkDependencyVersions = skipValidateSdkDependencyVersions;
   }
 
+  public void setInstallProfiler(final boolean installProfiler) {
+    this.installProfiler = installProfiler;
+  }
+
   public boolean isSkipAutoInstall() {
     return skipAutoInstall || skip;
   }
@@ -122,6 +130,10 @@ public class PluginConfig {
 
   public boolean isSkipValidateSdkDependencyVersions() {
     return skipValidateSdkDependencyVersions;
+  }
+
+  public boolean isInstallProfiler() {
+    return installProfiler;
   }
 
   public @Nullable String getOrg() {

@@ -51,6 +51,7 @@
                     <additionalSourceDirsForSourceContext>
                         <value>src/main/extra_param</value>
                     </additionalSourceDirsForSourceContext>
+                    <installProfiler>false</installProfiler>
                 </configuration>
                 <executions>
                     <execution>

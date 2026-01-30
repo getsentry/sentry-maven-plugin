@@ -6,6 +6,7 @@ import static io.sentry.autoinstall.graphql.GraphqlInstallStrategy.SENTRY_GRAPHQ
 import static io.sentry.autoinstall.jdbc.JdbcInstallStrategy.SENTRY_JDBC_ID;
 import static io.sentry.autoinstall.log4j2.Log4j2InstallStrategy.SENTRY_LOG4J2_ID;
 import static io.sentry.autoinstall.logback.LogbackInstallStrategy.SENTRY_LOGBACK_ID;
+import static io.sentry.autoinstall.profiler.ProfilerInstallStrategy.SENTRY_ASYNC_PROFILER_ID;
 import static io.sentry.autoinstall.quartz.QuartzInstallStrategy.SENTRY_QUARTZ_ID;
 import static io.sentry.autoinstall.spring.Spring5InstallStrategy.SENTRY_SPRING_5_ID;
 import static io.sentry.autoinstall.spring.Spring6InstallStrategy.SENTRY_SPRING_6_ID;
@@ -22,6 +23,7 @@ import io.sentry.autoinstall.graphql.GraphqlInstallStrategy;
 import io.sentry.autoinstall.jdbc.JdbcInstallStrategy;
 import io.sentry.autoinstall.log4j2.Log4j2InstallStrategy;
 import io.sentry.autoinstall.logback.LogbackInstallStrategy;
+import io.sentry.autoinstall.profiler.ProfilerInstallStrategy;
 import io.sentry.autoinstall.quartz.QuartzInstallStrategy;
 import io.sentry.autoinstall.spring.*;
 import io.sentry.config.ConfigParser;
@@ -64,7 +66,8 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
               GraphqlInstallStrategy.class,
               Graphql22InstallStrategy.class,
               JdbcInstallStrategy.class,
-              QuartzInstallStrategy.class)
+              QuartzInstallStrategy.class,
+              ProfilerInstallStrategy.class)
           .collect(Collectors.toList());
 
   @Inject @NotNull ArtifactResolver resolver;
@@ -125,6 +128,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         autoInstallState.setInstallGraphql(shouldInstallGraphQL(resolvedArtifacts));
         autoInstallState.setInstallJdbc(!isModuleAvailable(resolvedArtifacts, SENTRY_JDBC_ID));
         autoInstallState.setInstallQuartz(!isModuleAvailable(resolvedArtifacts, SENTRY_QUARTZ_ID));
+        autoInstallState.setInstallProfiler(shouldInstallProfiler(resolvedArtifacts, pluginConfig));
 
         for (final @NotNull Class<? extends AbstractIntegrationInstaller> installerClass :
             installers) {
@@ -158,6 +162,12 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
   private boolean shouldInstallGraphQL(final @NotNull List<Artifact> resolvedArtifacts) {
     return !(isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_ID)
         || isModuleAvailable(resolvedArtifacts, SENTRY_GRAPHQL_22_ID));
+  }
+
+  private boolean shouldInstallProfiler(
+      final @NotNull List<Artifact> resolvedArtifacts, final @NotNull PluginConfig pluginConfig) {
+    return pluginConfig.isInstallProfiler()
+        && !(isModuleAvailable(resolvedArtifacts, SENTRY_ASYNC_PROFILER_ID));
   }
 
   public static boolean isModuleAvailable(
