@@ -5,6 +5,7 @@
 ### Features
 
 - add option to ignore source bundle upload failures ([#209](https://github.com/getsentry/sentry-maven-plugin/pull/209))
+- Deterministic Bundle Id generation ([#220](https://github.com/getsentry/sentry-maven-plugin/pull/220))
 
 ### Dependencies
 
