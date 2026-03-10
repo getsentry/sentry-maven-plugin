@@ -23,6 +23,8 @@ public class PluginConfig {
   public static final boolean DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS = false;
   public static final @NotNull String DEFAULT_SKIP_VALIDATE_SDK_DEPENDENCY_VERSIONS_STRING =
       "false";
+  public static final boolean DEFAULT_INSTALL_PROFILER = false;
+  public static final @NotNull String DEFAULT_INSTALL_PROFILER_STRING = "false";
   public static final @NotNull String DEFAULT_ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT = "";
 
   private boolean skip = DEFAULT_SKIP;
@@ -37,9 +39,6 @@ public class PluginConfig {
   private @NotNull String additionalSourceDirsForSourceContext =
       DEFAULT_ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT;
   private boolean installProfiler = DEFAULT_INSTALL_PROFILER;
-
-  public static final boolean DEFAULT_INSTALL_PROFILER = false;
-  public static final @NotNull String DEFAULT_INSTALL_PROFILER_STRING = "false";
 
   private @Nullable String org;
   private @Nullable String project;

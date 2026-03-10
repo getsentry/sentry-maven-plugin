@@ -1,5 +1,6 @@
 package io.sentry;
 
+import static io.sentry.config.PluginConfig.DEFAULT_INSTALL_PROFILER_STRING;
 import static io.sentry.config.PluginConfig.DEFAULT_SKIP_AUTO_INSTALL_STRING;
 import static io.sentry.config.PluginConfig.DEFAULT_SKIP_TELEMETRY_STRING;
 
@@ -20,6 +21,10 @@ public class ExtensionConfigurationHolderMojo extends AbstractMojo {
   @SuppressWarnings("UnusedVariable")
   @Parameter(defaultValue = DEFAULT_SKIP_TELEMETRY_STRING)
   private boolean skipTelemetry;
+
+  @SuppressWarnings("UnusedVariable")
+  @Parameter(defaultValue = DEFAULT_INSTALL_PROFILER_STRING)
+  private boolean installProfiler;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {}
