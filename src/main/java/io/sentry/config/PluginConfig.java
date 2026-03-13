@@ -14,6 +14,8 @@ public class PluginConfig {
   public static final @NotNull String DEFAULT_SKIP_SOURCE_BUNDLE_STRING = "false";
   public static final boolean DEFAULT_IGNORE_SOURCE_BUNDLE_UPLOAD_FAILURE = false;
   public static final @NotNull String DEFAULT_IGNORE_SOURCE_BUNDLE_UPLOAD_FAILURE_STRING = "false";
+  public static final boolean DEFAULT_REPRODUCIBLE_BUNDLE_ID = false;
+  public static final @NotNull String DEFAULT_REPRODUCIBLE_BUNDLE_ID_STRING = "false";
   public static final boolean DEFAULT_SKIP_TELEMETRY = false;
   public static final @NotNull String DEFAULT_SKIP_TELEMETRY_STRING = "false";
   public static final boolean DEFAULT_DEBUG_SENTRY_CLI = false;
