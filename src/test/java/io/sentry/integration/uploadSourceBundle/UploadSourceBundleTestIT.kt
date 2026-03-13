@@ -73,7 +73,8 @@ class UploadSourceBundleTestIT {
             verifier.executeGoal("install")
         }
 
-        verifier.verifyTextInLog("Could not resolve hostname (Could not resolve host: unknown)")
+        verifier.verifyTextInLog("error: API request failed")
+        verifier.verifyTextInLog("(Could not resolve host: unknown)")
     }
 
     @Test
