@@ -92,7 +92,7 @@ public abstract class AbstractIntegrationInstaller {
                   + " won't be installed because the current version ("
                   + sentrySemVersion
                   + ") is lower than the minimum supported sentry version "
-                  + sentryVersion);
+                  + minSupportedSentryVersion());
           return;
         }
       } catch (IllegalArgumentException ex) {

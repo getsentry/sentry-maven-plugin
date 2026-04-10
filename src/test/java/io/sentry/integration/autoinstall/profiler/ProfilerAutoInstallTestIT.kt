@@ -120,7 +120,10 @@ class ProfilerAutoInstallTestIT {
         verifier.deleteDirectory("target")
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyTextInLog("sentry-async-profiler won't be installed because the current version")
+        verifier.verifyTextInLog(
+            "sentry-async-profiler won't be installed because the current version (8.22.0) is " +
+                "lower than the minimum supported sentry version 8.23.0",
+        )
         verifier.verifyFileNotPresent("target/lib/sentry-async-profiler-$sentryVersion.jar")
         verifier.resetStreams()
         verifier.deleteDirectory(path)

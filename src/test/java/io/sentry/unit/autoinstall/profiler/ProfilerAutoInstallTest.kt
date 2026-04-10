@@ -67,7 +67,7 @@ class ProfilerAutoInstallTest {
         assertTrue {
             fixture.logger.capturedMessage ==
                 "sentry-async-profiler won't be installed because the current version (8.22.0) is " +
-                "lower than the minimum supported sentry version 8.22.0"
+                "lower than the minimum supported sentry version 8.23.0"
         }
 
         assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry-async-profiler" })
