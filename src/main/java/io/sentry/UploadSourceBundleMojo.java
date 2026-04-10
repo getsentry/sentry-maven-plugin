@@ -211,11 +211,11 @@ public class UploadSourceBundleMojo extends AbstractMojo {
           for (final @NotNull Path file : sortedFiles) {
             final @NotNull String relativePath =
                 collectedSourcesDir.toPath().relativize(file).toString().replace('\\', '/');
-            digest.update(relativePath.getBytes(StandardCharsets.UTF_8));
+            updateDigestWithLengthPrefix(digest, relativePath.getBytes(StandardCharsets.UTF_8));
 
             // Include the file content in the hash
             final byte[] fileBytes = Files.readAllBytes(file);
-            digest.update(fileBytes);
+            updateDigestWithLengthPrefix(digest, fileBytes);
           }
         }
       }
@@ -235,6 +235,12 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       SentryTelemetryService.getInstance().endTask(span);
     }
     return null;
+  }
+
+  private void updateDigestWithLengthPrefix(
+      final @NotNull MessageDigest digest, final byte[] data) {
+    digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(data.length).array());
+    digest.update(data);
   }
 
   /**

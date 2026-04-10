@@ -18,6 +18,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class UploadSourceBundleTestIT {
@@ -295,6 +296,55 @@ class UploadSourceBundleTestIT {
     }
 
     @Test
+    fun `bundle ID differs for ambiguous path and content splits`() {
+        val extraDir = "src/main/extra"
+
+        val firstProjectDir = File(file, "ambiguous-path-content-test-1")
+        firstProjectDir.mkdirs()
+        File(firstProjectDir, "src/main/java").mkdirs()
+        File(firstProjectDir, extraDir).mkdirs()
+        File(firstProjectDir, "$extraDir/ab").writeText("cd")
+        installMavenWrapper(firstProjectDir, "3.8.6")
+        getPOM(
+            firstProjectDir,
+            reproducibleBundleId = true,
+            extraSourceContextDirs = listOf(extraDir),
+        )
+
+        val verifier1 = Verifier(firstProjectDir.absolutePath)
+        verifier1.isAutoclean = false
+        verifier1.executeGoal("install")
+        verifier1.verifyErrorFreeLog()
+        val bundleId1 = getBundleIdFromProperties(firstProjectDir.absolutePath)
+        verifier1.resetStreams()
+
+        val secondProjectDir = File(file, "ambiguous-path-content-test-2")
+        secondProjectDir.mkdirs()
+        File(secondProjectDir, "src/main/java").mkdirs()
+        File(secondProjectDir, extraDir).mkdirs()
+        File(secondProjectDir, "$extraDir/a").writeText("bcd")
+        installMavenWrapper(secondProjectDir, "3.8.6")
+        getPOM(
+            secondProjectDir,
+            reproducibleBundleId = true,
+            extraSourceContextDirs = listOf(extraDir),
+        )
+
+        val verifier2 = Verifier(secondProjectDir.absolutePath)
+        verifier2.isAutoclean = false
+        verifier2.executeGoal("install")
+        verifier2.verifyErrorFreeLog()
+        val bundleId2 = getBundleIdFromProperties(secondProjectDir.absolutePath)
+        verifier2.resetStreams()
+
+        assertNotEquals(
+            bundleId1,
+            bundleId2,
+            "Bundle IDs should differ for source trees with ambiguous path/content concatenation",
+        )
+    }
+
+    @Test
     fun `properties file does not contain timestamp`() {
         val baseDir = setupProject()
         val path = getPOM(baseDir)
@@ -411,8 +461,7 @@ class UploadSourceBundleTestIT {
         // First build
         val verifier1 = Verifier(projectDir.absolutePath)
         verifier1.isAutoclean = false
-        verifier1.executeGoal("clean")
-        verifier1.executeGoal("install")
+        verifier1.executeGoals(listOf("clean", "install"))
         verifier1.verifyErrorFreeLog()
         verifier1.resetStreams()
 
