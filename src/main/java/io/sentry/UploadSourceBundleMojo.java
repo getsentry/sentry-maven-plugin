@@ -100,12 +100,10 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
     collectSources(collectedSourcesTargetDir);
 
-    final @NotNull String bundleId;
-    if (reproducibleBundleId) {
-      bundleId = generateDeterministicBundleId(collectedSourcesTargetDir);
-    } else {
-      bundleId = UUID.randomUUID().toString();
-    }
+    final @Nullable String deterministicBundleId =
+        reproducibleBundleId ? generateDeterministicBundleId(collectedSourcesTargetDir) : null;
+    final @NotNull String bundleId =
+        deterministicBundleId != null ? deterministicBundleId : UUID.randomUUID().toString();
 
     createDebugMetaPropertiesFile(bundleId);
     bundleSources(cliRunner, bundleId, collectedSourcesTargetDir, sourceBundleTargetDir);
@@ -187,9 +185,9 @@ public class UploadSourceBundleMojo extends AbstractMojo {
    * ensures reproducible builds produce the same bundle ID when the source files are identical.
    *
    * @param collectedSourcesDir the directory containing the collected source files
-   * @return a UUID v4 string derived from the hash of the source files
+   * @return a UUID v4 string derived from the hash of the source files, or null on failure
    */
-  private @NotNull String generateDeterministicBundleId(final @NotNull File collectedSourcesDir) {
+  private @Nullable String generateDeterministicBundleId(final @NotNull File collectedSourcesDir) {
     final @Nullable ISpan span =
         SentryTelemetryService.getInstance().startTask("generateDeterministicBundleId");
     try {
@@ -226,16 +224,16 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       return bytesToUuid(hashBytes);
     } catch (NoSuchAlgorithmException e) {
       logger.warn("MD5 algorithm not available, falling back to random UUID", e);
-      return UUID.randomUUID().toString();
+      return null;
     } catch (IOException e) {
       logger.warn(
           "Failed to read source files for bundle ID generation, falling back to random UUID", e);
       SentryTelemetryService.getInstance().captureError(e, "generateDeterministicBundleId");
-      return UUID.randomUUID().toString();
+      return null;
     } catch (Throwable t) {
       logger.warn("Failed to generate deterministic bundle ID, falling back to random UUID", t);
       SentryTelemetryService.getInstance().captureError(t, "generateDeterministicBundleId");
-      return UUID.randomUUID().toString();
+      return null;
     } finally {
       SentryTelemetryService.getInstance().endTask(span);
     }
