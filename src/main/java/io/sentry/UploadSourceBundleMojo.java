@@ -224,19 +224,17 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       return bytesToUuid(hashBytes);
     } catch (NoSuchAlgorithmException e) {
       logger.warn("MD5 algorithm not available, falling back to random UUID", e);
-      return null;
     } catch (IOException e) {
       logger.warn(
           "Failed to read source files for bundle ID generation, falling back to random UUID", e);
       SentryTelemetryService.getInstance().captureError(e, "generateDeterministicBundleId");
-      return null;
     } catch (Throwable t) {
       logger.warn("Failed to generate deterministic bundle ID, falling back to random UUID", t);
       SentryTelemetryService.getInstance().captureError(t, "generateDeterministicBundleId");
-      return null;
     } finally {
       SentryTelemetryService.getInstance().endTask(span);
     }
+    return null;
   }
 
   /**
