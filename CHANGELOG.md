@@ -6,6 +6,7 @@
 
 - add option to ignore source bundle upload failures ([#209](https://github.com/getsentry/sentry-maven-plugin/pull/209))
 - Autoinstall Profiler ([#222](https://github.com/getsentry/sentry-maven-plugin/pull/222))
+  - enable with `<installProfiler>true</installProfiler>`
 
 ### Dependencies
 
