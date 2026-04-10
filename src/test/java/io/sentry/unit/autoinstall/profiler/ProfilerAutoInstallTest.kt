@@ -5,6 +5,7 @@ import io.sentry.autoinstall.profiler.ProfilerInstallStrategy
 import io.sentry.unit.fakes.CapturingTestLogger
 import org.apache.maven.model.Dependency
 import org.eclipse.aether.artifact.Artifact
+import org.eclipse.aether.artifact.DefaultArtifact
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import kotlin.test.assertTrue
@@ -18,11 +19,17 @@ class ProfilerAutoInstallTest {
 
         fun getSut(
             installProfiler: Boolean = true,
+            profilerAlreadyInstalled: Boolean = false,
             sentryVersion: String = "8.23.0",
         ): ProfilerInstallStrategy {
             dependencies = ArrayList<Dependency>()
+            resolvedArtifacts.clear()
             installState = AutoInstallState(sentryVersion)
             installState.isInstallProfiler = installProfiler
+
+            if (profilerAlreadyInstalled) {
+                resolvedArtifacts.add(DefaultArtifact("io.sentry", "sentry-async-profiler", null, sentryVersion))
+            }
 
             return ProfilerInstallStrategyImpl(logger)
         }
@@ -38,7 +45,23 @@ class ProfilerAutoInstallTest {
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "sentry-async-profiler won't be installed because it was already installed directly"
+                "sentry-async-profiler won't be installed because it was already installed directly " +
+                "or its auto-installation has been disabled"
+        }
+
+        assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry-async-profiler" })
+    }
+
+    @Test
+    fun `when sentry-async-profiler is a direct dependency logs a message and does nothing`() {
+        val sut = fixture.getSut(installProfiler = false, profilerAlreadyInstalled = true)
+
+        sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
+
+        assertTrue {
+            fixture.logger.capturedMessage ==
+                "sentry-async-profiler won't be installed because it was already installed directly " +
+                "or its auto-installation has been disabled"
         }
 
         assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry-async-profiler" })

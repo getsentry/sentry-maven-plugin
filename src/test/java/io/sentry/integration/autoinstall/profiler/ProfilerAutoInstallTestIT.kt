@@ -66,6 +66,10 @@ class ProfilerAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
+        verifier.verifyTextInLog(
+            "sentry-async-profiler won't be installed because it was already installed directly " +
+                "or its auto-installation has been disabled",
+        )
         verifier.verifyFileNotPresent("target/lib/sentry-async-profiler-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.resetStreams()
     }
@@ -77,7 +81,10 @@ class ProfilerAutoInstallTestIT {
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyTextInLog("sentry-async-profiler won't be installed because it was already installed directly")
+        verifier.verifyTextInLog(
+            "sentry-async-profiler won't be installed because it was already installed directly " +
+                "or its auto-installation has been disabled",
+        )
         verifier.verifyFilePresent("target/lib/sentry-async-profiler-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.resetStreams()
     }

@@ -35,6 +35,14 @@ public class ProfilerInstallStrategy extends AbstractIntegrationInstaller {
   }
 
   @Override
+  protected @NotNull String skippedInstallMessage(
+      final @NotNull List<Artifact> resolvedArtifacts,
+      final @NotNull AutoInstallState autoInstallState) {
+    return sentryModuleId()
+        + " won't be installed because it was already installed directly or its auto-installation has been disabled";
+  }
+
+  @Override
   protected @NotNull Version minSupportedSentryVersion() {
     return Version.create(8, 23, 0);
   }
