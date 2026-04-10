@@ -312,6 +312,14 @@ class UploadSourceBundleTestIT {
             !timestampPattern.containsMatchIn(propertiesContent),
             "Properties file should not contain a timestamp comment. Content: $propertiesContent",
         )
+        assertTrue(
+            propertiesContent.contains("\n"),
+            "Properties file should contain LF line endings. Content: $propertiesContent",
+        )
+        assertTrue(
+            !propertiesContent.contains("\r\n"),
+            "Properties file should not contain CRLF line endings. Content: $propertiesContent",
+        )
 
         verifier.resetStreams()
     }
