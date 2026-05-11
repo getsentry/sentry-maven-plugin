@@ -38,6 +38,12 @@ public abstract class AbstractIntegrationInstaller {
     return sentryModuleId() + " won't be installed because it was already installed directly";
   }
 
+  protected boolean shouldLogSkippedInstallMessage(
+      final @NotNull List<Artifact> resolvedArtifacts,
+      final @NotNull AutoInstallState autoInstallState) {
+    return true;
+  }
+
   protected AbstractIntegrationInstaller(final @NotNull org.slf4j.Logger logger) {
     this.logger = logger;
   }
@@ -47,7 +53,9 @@ public abstract class AbstractIntegrationInstaller {
       final @NotNull List<Artifact> resolvedArtifacts,
       final @NotNull AutoInstallState autoInstallState) {
     if (!shouldInstallModule(autoInstallState)) {
-      logger.info(skippedInstallMessage(resolvedArtifacts, autoInstallState));
+      if (shouldLogSkippedInstallMessage(resolvedArtifacts, autoInstallState)) {
+        logger.info(skippedInstallMessage(resolvedArtifacts, autoInstallState));
+      }
       return;
     }
 

@@ -8,6 +8,7 @@ import org.eclipse.aether.artifact.Artifact
 import org.eclipse.aether.artifact.DefaultArtifact
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ProfilerAutoInstallTest {
@@ -38,17 +39,12 @@ class ProfilerAutoInstallTest {
     private val fixture = Fixture()
 
     @Test
-    fun `when installProfiler flag is false does not install`() {
+    fun `when installProfiler flag is false does not install or log skip message`() {
         val sut = fixture.getSut(installProfiler = false)
 
         sut.install(fixture.dependencies, fixture.resolvedArtifacts, fixture.installState)
 
-        assertTrue {
-            fixture.logger.capturedMessage ==
-                "sentry-async-profiler won't be installed because it was already installed directly " +
-                "or its auto-installation has been disabled"
-        }
-
+        assertNull(fixture.logger.capturedMessage)
         assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry-async-profiler" })
     }
 
@@ -60,8 +56,7 @@ class ProfilerAutoInstallTest {
 
         assertTrue {
             fixture.logger.capturedMessage ==
-                "sentry-async-profiler won't be installed because it was already installed directly " +
-                "or its auto-installation has been disabled"
+                "sentry-async-profiler won't be installed because it was already installed directly"
         }
 
         assertTrue(fixture.dependencies.none { it.groupId == "io.sentry" && it.artifactId == "sentry-async-profiler" })

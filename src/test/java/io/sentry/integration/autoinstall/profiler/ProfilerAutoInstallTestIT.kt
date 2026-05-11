@@ -13,6 +13,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.Path
+import kotlin.test.assertFalse
 
 class ProfilerAutoInstallTestIT {
     @TempDir()
@@ -61,15 +62,13 @@ class ProfilerAutoInstallTestIT {
 
     @Test
     @Throws(VerificationException::class, IOException::class)
-    fun `when installProfiler flag is false does not install`() {
+    fun `when installProfiler flag is false does not install or log skip message`() {
         val path = getPOM(enableInstallProfilerFlag = false)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
-        verifier.verifyTextInLog(
-            "sentry-async-profiler won't be installed because it was already installed directly " +
-                "or its auto-installation has been disabled",
-        )
+        val log = verifier.loadFile(File(path, verifier.logFileName), false).joinToString("\n")
+        assertFalse(log.contains("sentry-async-profiler won't be installed"))
         verifier.verifyFileNotPresent("target/lib/sentry-async-profiler-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.resetStreams()
     }
@@ -82,8 +81,7 @@ class ProfilerAutoInstallTestIT {
         verifier.isAutoclean = false
         verifier.executeGoal("install")
         verifier.verifyTextInLog(
-            "sentry-async-profiler won't be installed because it was already installed directly " +
-                "or its auto-installation has been disabled",
+            "sentry-async-profiler won't be installed because it was already installed directly",
         )
         verifier.verifyFilePresent("target/lib/sentry-async-profiler-${SdkVersionInfo.getSentryVersion()}.jar")
         verifier.resetStreams()

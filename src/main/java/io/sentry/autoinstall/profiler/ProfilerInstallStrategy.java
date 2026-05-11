@@ -1,5 +1,7 @@
 package io.sentry.autoinstall.profiler;
 
+import static io.sentry.Constants.SENTRY_GROUP_ID;
+
 import io.sentry.autoinstall.AbstractIntegrationInstaller;
 import io.sentry.autoinstall.AutoInstallState;
 import io.sentry.semver.Version;
@@ -35,11 +37,18 @@ public class ProfilerInstallStrategy extends AbstractIntegrationInstaller {
   }
 
   @Override
-  protected @NotNull String skippedInstallMessage(
+  protected boolean shouldLogSkippedInstallMessage(
       final @NotNull List<Artifact> resolvedArtifacts,
       final @NotNull AutoInstallState autoInstallState) {
-    return sentryModuleId()
-        + " won't be installed because it was already installed directly or its auto-installation has been disabled";
+    return isSentryAsyncProfilerAvailable(resolvedArtifacts);
+  }
+
+  private boolean isSentryAsyncProfilerAvailable(final @NotNull List<Artifact> resolvedArtifacts) {
+    return resolvedArtifacts.stream()
+        .anyMatch(
+            (dep) ->
+                dep.getGroupId().equals(SENTRY_GROUP_ID)
+                    && dep.getArtifactId().equals(SENTRY_ASYNC_PROFILER_ID));
   }
 
   @Override
