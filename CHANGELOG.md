@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump CLI from v3.3.0 to v3.4.3 ([#252](https://github.com/getsentry/sentry-maven-plugin/pull/252))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#343)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.0...3.4.3)
+
 ## 0.11.0
 
 ### Features
