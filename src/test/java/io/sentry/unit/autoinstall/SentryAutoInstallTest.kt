@@ -71,6 +71,26 @@ class SentryAutoInstallTest {
     }
 
     @Test
+    fun `installs sentry with managed version`() {
+        val sut = fixture.getSut()
+
+        val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts, "8.33.0")
+
+        assertEquals("8.33.0", sentryVersion)
+
+        assertTrue {
+            fixture.logger.capturedMessage ==
+                "Installing Sentry with version 8.33.0"
+        }
+
+        assertTrue(
+            fixture.dependencies.any {
+                it.groupId == "io.sentry" && it.artifactId == "sentry" && it.version == "8.33.0"
+            },
+        )
+    }
+
+    @Test
     fun `if sentry version cannot be resolved, don't install sentry and return null`() {
         val sut = fixture.getSut()
 

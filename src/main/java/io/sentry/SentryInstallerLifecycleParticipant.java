@@ -24,6 +24,7 @@ import io.sentry.autoinstall.log4j2.Log4j2InstallStrategy;
 import io.sentry.autoinstall.logback.LogbackInstallStrategy;
 import io.sentry.autoinstall.quartz.QuartzInstallStrategy;
 import io.sentry.autoinstall.spring.*;
+import io.sentry.autoinstall.util.ManagedSentryVersionResolver;
 import io.sentry.config.ConfigParser;
 import io.sentry.config.PluginConfig;
 import io.sentry.telemetry.SentryTelemetryService;
@@ -105,8 +106,10 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
         final @NotNull Model currModel = project.getModel();
 
         final @NotNull List<Dependency> dependencyList = currModel.getDependencies();
+        final @Nullable String managedSentryVersion =
+            ManagedSentryVersionResolver.getManagedSentryVersion(project);
         final @Nullable String sentryVersion =
-            new SentryInstaller().install(dependencyList, resolvedArtifacts);
+            new SentryInstaller().install(dependencyList, resolvedArtifacts, managedSentryVersion);
 
         if (sentryVersion == null) {
           logger.error(

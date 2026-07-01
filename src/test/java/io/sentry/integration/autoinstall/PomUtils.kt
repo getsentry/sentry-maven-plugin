@@ -4,6 +4,7 @@ fun basePom(
     dependencies: String?,
     installedSentryVersion: String? = null,
     pluginConfiguration: String = "",
+    dependencyManagement: String = "",
 ): String {
     val sentryPlugin =
         """
@@ -37,6 +38,8 @@ fun basePom(
             <version>1.0-SNAPSHOT</version>
 
             <packaging>jar</packaging>
+
+            $dependencyManagement
 
             <properties>
                 <maven.compiler.source>11</maven.compiler.source>
