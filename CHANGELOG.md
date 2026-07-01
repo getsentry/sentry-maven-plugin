@@ -10,6 +10,7 @@
 
 ### Features
 
+- Auto-install `sentry-opentelemetry-bom` to align OpenTelemetry versions with the ones Sentry was tested against when a Sentry OpenTelemetry integration is used. Versions inherited from parents or other BOMs (e.g. Spring Boot) are aligned in place, while versions you pinned explicitly are left untouched. Disable with `<skipInstallOpenTelemetryBom>true</skipInstallOpenTelemetryBom>`.
 - add option to ignore source bundle upload failures ([#209](https://github.com/getsentry/sentry-maven-plugin/pull/209))
 
 ### Dependencies

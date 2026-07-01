@@ -15,6 +15,8 @@ public class ConfigParser {
 
   private static final @NotNull String SKIP_ALL_FLAG = "skip";
   private static final @NotNull String SKIP_AUTO_INSTALL_FLAG = "skipAutoInstall";
+  private static final @NotNull String SKIP_INSTALL_OPENTELEMETRY_BOM_FLAG =
+      "skipInstallOpenTelemetryBom";
   private static final @NotNull String SKIP_TELEMETRY_FLAG = "skipTelemetry";
   private static final @NotNull String SKIP_REPORT_DEPENDENCIES_FLAG = "skipReportDependencies";
   private static final @NotNull String SKIP_SOURCE_BUNDLE_FLAG = "skipSourceBundle";
@@ -55,6 +57,11 @@ public class ConfigParser {
       pluginConfig.setSkipAutoInstall(
           dom.getChild(SKIP_AUTO_INSTALL_FLAG) != null
               && Boolean.parseBoolean(dom.getChild(SKIP_AUTO_INSTALL_FLAG).getValue()));
+
+      pluginConfig.setSkipInstallOpenTelemetryBom(
+          dom.getChild(SKIP_INSTALL_OPENTELEMETRY_BOM_FLAG) != null
+              && Boolean.parseBoolean(
+                  dom.getChild(SKIP_INSTALL_OPENTELEMETRY_BOM_FLAG).getValue()));
 
       pluginConfig.setSkipTelemetry(
           dom.getChild(SKIP_TELEMETRY_FLAG) != null
