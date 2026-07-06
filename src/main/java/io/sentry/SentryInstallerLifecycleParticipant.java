@@ -22,6 +22,7 @@ import io.sentry.autoinstall.graphql.GraphqlInstallStrategy;
 import io.sentry.autoinstall.jdbc.JdbcInstallStrategy;
 import io.sentry.autoinstall.log4j2.Log4j2InstallStrategy;
 import io.sentry.autoinstall.logback.LogbackInstallStrategy;
+import io.sentry.autoinstall.opentelemetry.OpenTelemetryVersionChecker;
 import io.sentry.autoinstall.quartz.QuartzInstallStrategy;
 import io.sentry.autoinstall.spring.*;
 import io.sentry.autoinstall.util.ManagedSentryVersionResolver;
@@ -73,6 +74,14 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
   @SuppressWarnings("NullAway")
   @Inject
   private @NotNull BuildPluginManager pluginManager;
+
+  @SuppressWarnings("NullAway")
+  @Inject
+  private @NotNull org.apache.maven.project.ProjectBuilder projectBuilder;
+
+  @SuppressWarnings("NullAway")
+  @Inject
+  private @NotNull org.apache.maven.repository.RepositorySystem mavenRepositorySystem;
 
   private static final @NotNull org.slf4j.Logger logger =
       LoggerFactory.getLogger(SentryInstallerLifecycleParticipant.class);
@@ -138,6 +147,17 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
           } catch (Throwable e) {
             logger.error("Unable to instantiate installer class: " + installerClass.getName(), e);
           }
+        }
+
+        if (!pluginConfig.isSkipValidateOpenTelemetryVersions()) {
+          new OpenTelemetryVersionChecker()
+              .check(
+                  project,
+                  resolvedArtifacts,
+                  sentryVersion,
+                  projectBuilder,
+                  mavenRepositorySystem,
+                  session.getProjectBuildingRequest());
         }
       } catch (Throwable t) {
         SentryTelemetryService.getInstance().captureError(t, "auto-install");

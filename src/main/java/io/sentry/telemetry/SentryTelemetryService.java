@@ -103,6 +103,9 @@ public class SentryTelemetryService {
                   "SENTRY_autoInstallation_enabled",
                   String.valueOf(!pluginConfig.isSkipAutoInstall()));
               options.setTag(
+                  "SENTRY_validateOpenTelemetryVersions",
+                  String.valueOf(!pluginConfig.isSkipValidateOpenTelemetryVersions()));
+              options.setTag(
                   "SENTRY_includeDependenciesReport",
                   String.valueOf(!pluginConfig.isSkipReportDependencies()));
               options.setTag(

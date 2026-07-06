@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Fail the build when OpenTelemetry dependencies are downgraded below the versions Sentry's `sentry-opentelemetry-*` artifacts require (e.g. by Spring Boot's dependency management), with guidance to import `sentry-opentelemetry-bom`. Disable with `<skipValidateOpenTelemetryVersions>true</skipValidateOpenTelemetryVersions>`.
+
 ### Fixes
 
 - Use imported Sentry BOM versions for auto-installed dependencies ([#265](https://github.com/getsentry/sentry-maven-plugin/pull/265))
