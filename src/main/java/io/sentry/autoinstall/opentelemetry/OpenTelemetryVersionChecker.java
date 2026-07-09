@@ -42,7 +42,7 @@ public class OpenTelemetryVersionChecker {
   static final @NotNull String SENTRY_OPENTELEMETRY_ARTIFACT_PREFIX = "sentry-opentelemetry-";
   static final @NotNull String SPRING_BOOT_GROUP_ID = "org.springframework.boot";
   static final @NotNull String DOCS_URL =
-      "https://docs.sentry.io/platforms/java/tracing/instrumentation/opentelemetry/troubleshooting/";
+      "https://docs.sentry.io/platforms/java/opentelemetry/troubleshooting/";
 
   private final @NotNull Logger logger;
 

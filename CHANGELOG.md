@@ -4,7 +4,9 @@
 
 ### Features
 
-- Fail the build when OpenTelemetry dependencies are downgraded below the versions Sentry's `sentry-opentelemetry-*` artifacts require (e.g. by Spring Boot's dependency management), with guidance to import `sentry-opentelemetry-bom`. Disable with `<skipValidateOpenTelemetryVersions>true</skipValidateOpenTelemetryVersions>`.
+- Fail the build when OpenTelemetry dependencies are downgraded below the versions Sentry's `sentry-opentelemetry-*` artifacts require ([#268](https://github.com/getsentry/sentry-maven-plugin/pull/268))
+  - The `sentry-opentelemetry-*` artifacts are built against specific OpenTelemetry versions. When another dependency management mechanism (most commonly Spring Boot's `spring-boot-dependencies` BOM) forces OpenTelemetry below the version Sentry's integration requires, running against those downgraded versions can cause `ClassNotFoundException` / `NoSuchMethodError` at runtime. The plugin now detects this downgrade and fails the build early with guidance on how to fix it.
+  - You may disable this check by setting `<skipValidateOpenTelemetryVersions>true</skipValidateOpenTelemetryVersions>` in the plugin configuration.
 
 ### Fixes
 
