@@ -25,12 +25,6 @@ public class SentryInstaller {
 
   public @Nullable String install(
       final @NotNull List<Dependency> dependencyList,
-      final @NotNull List<Artifact> resolvedArtifacts) {
-    return install(dependencyList, resolvedArtifacts, null);
-  }
-
-  public @Nullable String install(
-      final @NotNull List<Dependency> dependencyList,
       final @NotNull List<Artifact> resolvedArtifacts,
       final @Nullable String managedSentryVersion) {
 
