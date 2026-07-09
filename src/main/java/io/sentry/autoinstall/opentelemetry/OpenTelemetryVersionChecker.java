@@ -57,7 +57,6 @@ public class OpenTelemetryVersionChecker {
   public void check(
       final @NotNull MavenProject project,
       final @NotNull List<Artifact> resolvedArtifacts,
-      final @NotNull String sentryVersion,
       final @NotNull ProjectBuilder projectBuilder,
       final @NotNull RepositorySystem repositorySystem,
       final @NotNull ProjectBuildingRequest baseRequest)
@@ -81,6 +80,7 @@ public class OpenTelemetryVersionChecker {
         collectDowngrades(requiredVersions, resolvedVersions);
 
     if (!downgrades.isEmpty()) {
+      final @NotNull String sentryVersion = findSentryOpenTelemetryVersion(resolvedArtifacts);
       throw new MavenExecutionException(
           buildMessage(downgrades, sentryVersion, hasSpringBoot(resolvedArtifacts)),
           project.getFile());
@@ -95,6 +95,15 @@ public class OpenTelemetryVersionChecker {
     return artifact.getGroupId().equals(SENTRY_GROUP_ID)
         && artifact.getArtifactId().startsWith(SENTRY_OPENTELEMETRY_ARTIFACT_PREFIX)
         && !artifact.getArtifactId().equals(SENTRY_OPENTELEMETRY_BOM_ARTIFACT_ID);
+  }
+
+  private static @NotNull String findSentryOpenTelemetryVersion(
+      final @NotNull List<Artifact> resolvedArtifacts) {
+    return resolvedArtifacts.stream()
+        .filter(OpenTelemetryVersionChecker::isSentryOpenTelemetry)
+        .map(Artifact::getVersion)
+        .findFirst()
+        .orElse("UNKNOWN");
   }
 
   private static boolean isOpenTelemetryGroup(final @NotNull String groupId) {

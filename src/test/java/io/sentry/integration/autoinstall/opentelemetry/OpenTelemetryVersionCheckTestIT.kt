@@ -76,6 +76,28 @@ class OpenTelemetryVersionCheckTestIT {
     }
 
     @Test
+    fun `fails the build when OpenTelemetry is downgraded even with auto-install disabled`() {
+        val verifier =
+            writePom(
+                openTelemetryPom(
+                    sentryVersion = sentryVersion,
+                    useSpringBootParent = true,
+                    pluginConfiguration =
+                        """
+                        <configuration>
+                            <skipAutoInstall>true</skipAutoInstall>
+                        </configuration>
+                        """.trimIndent(),
+                ),
+            )
+
+        assertFailsWith<VerificationException> { verifier.executeGoal("validate") }
+
+        verifier.verifyTextInLog("Sentry detected that OpenTelemetry was downgraded")
+        verifier.resetStreams()
+    }
+
+    @Test
     fun `does nothing without a sentry opentelemetry dependency`() {
         val verifier =
             writePom(
