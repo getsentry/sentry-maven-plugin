@@ -25,7 +25,8 @@ public class SentryInstaller {
 
   public @Nullable String install(
       final @NotNull List<Dependency> dependencyList,
-      final @NotNull List<Artifact> resolvedArtifacts) {
+      final @NotNull List<Artifact> resolvedArtifacts,
+      final @Nullable String managedSentryVersion) {
 
     final @Nullable Artifact sentryDependency =
         resolvedArtifacts.stream()
@@ -40,7 +41,8 @@ public class SentryInstaller {
       logger.info("Sentry already installed " + sentryDependency.getVersion());
       return sentryDependency.getVersion();
     } else {
-      final @Nullable String sentryVersion = SdkVersionInfo.getSentryVersion();
+      final @Nullable String sentryVersion =
+          managedSentryVersion != null ? managedSentryVersion : SdkVersionInfo.getSentryVersion();
 
       if (sentryVersion == null) {
         logger.error("Unable to load sentry version, Sentry SDK cannot be auto-installed");

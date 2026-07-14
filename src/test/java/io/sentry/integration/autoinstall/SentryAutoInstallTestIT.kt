@@ -26,8 +26,9 @@ class SentryAutoInstallTestIT {
     fun getPOM(
         installedSentryVersion: String? = null,
         pluginConfiguration: String = "",
+        dependencyManagement: String = "",
     ): String {
-        val pomContent = basePom("", installedSentryVersion, pluginConfiguration)
+        val pomContent = basePom("", installedSentryVersion, pluginConfiguration, dependencyManagement)
 
         Files.write(Path("${file.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
 
@@ -42,6 +43,33 @@ class SentryAutoInstallTestIT {
         verifier.isAutoclean = false
         verifier.executeGoal("install")
         verifier.verifyFilePresent("target/lib/sentry-${SdkVersionInfo.getSentryVersion()}.jar")
+        verifier.resetStreams()
+    }
+
+    @Test
+    @Throws(VerificationException::class, IOException::class)
+    fun `installs sentry with version from sentry bom`() {
+        val bomVersion = "8.33.0"
+        val dependencyManagement =
+            """
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.sentry</groupId>
+                        <artifactId>sentry-bom</artifactId>
+                        <version>$bomVersion</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            """.trimIndent()
+        val path = getPOM(dependencyManagement = dependencyManagement)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyFilePresent("target/lib/sentry-$bomVersion.jar")
+        verifier.verifyTextInLog("Installing Sentry with version $bomVersion")
         verifier.resetStreams()
     }
 
