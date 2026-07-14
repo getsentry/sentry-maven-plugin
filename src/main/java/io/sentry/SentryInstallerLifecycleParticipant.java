@@ -93,6 +93,14 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
       final @NotNull PluginConfig pluginConfig = new ConfigParser().parseConfig(project);
       SentryTelemetryService.getInstance().start(pluginConfig, project, session, pluginManager);
 
+      if (pluginConfig.isSkipAutoInstall() && pluginConfig.isSkipValidateOpenTelemetryVersions()) {
+        logger.info(
+            "Auto Install and OpenTelemetry version check disabled for project "
+                + project.getId()
+                + ", skipping dependency resolution");
+        continue;
+      }
+
       @Nullable List<Artifact> resolvedArtifacts;
       try {
         resolvedArtifacts = resolver.resolveArtifactsForProject(project, session);
