@@ -42,7 +42,7 @@ class SentryAutoInstallTest {
     @Test
     fun `when sentry is already installed logs a message and does nothing`() {
         val sut = fixture.getSut(false, sentryVersion = "6.25.2")
-        val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
+        val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts, null)
 
         assertEquals("6.25.2", sentryVersion)
 
@@ -58,7 +58,7 @@ class SentryAutoInstallTest {
     fun `installs sentry with info message`() {
         val sut = fixture.getSut()
 
-        val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
+        val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts, null)
 
         assertEquals(SdkVersionInfo.getSentryVersion(), sentryVersion)
 
@@ -71,13 +71,33 @@ class SentryAutoInstallTest {
     }
 
     @Test
+    fun `installs sentry with managed version`() {
+        val sut = fixture.getSut()
+
+        val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts, "8.33.0")
+
+        assertEquals("8.33.0", sentryVersion)
+
+        assertTrue {
+            fixture.logger.capturedMessage ==
+                "Installing Sentry with version 8.33.0"
+        }
+
+        assertTrue(
+            fixture.dependencies.any {
+                it.groupId == "io.sentry" && it.artifactId == "sentry" && it.version == "8.33.0"
+            },
+        )
+    }
+
+    @Test
     fun `if sentry version cannot be resolved, don't install sentry and return null`() {
         val sut = fixture.getSut()
 
         Mockito.mockStatic(SdkVersionInfo::class.java).use { utilities ->
             utilities.`when`<String>(SdkVersionInfo::getSentryVersion).thenReturn(null)
 
-            val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts)
+            val sentryVersion = sut.install(fixture.dependencies, fixture.resolvedArtifacts, null)
 
             assertEquals(null, sentryVersion)
 
