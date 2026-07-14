@@ -22,6 +22,7 @@ import io.sentry.autoinstall.graphql.GraphqlInstallStrategy;
 import io.sentry.autoinstall.jdbc.JdbcInstallStrategy;
 import io.sentry.autoinstall.log4j2.Log4j2InstallStrategy;
 import io.sentry.autoinstall.logback.LogbackInstallStrategy;
+import io.sentry.autoinstall.opentelemetry.OpenTelemetryVersionChecker;
 import io.sentry.autoinstall.quartz.QuartzInstallStrategy;
 import io.sentry.autoinstall.spring.*;
 import io.sentry.autoinstall.util.ManagedSentryVersionResolver;
@@ -74,6 +75,14 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
   @Inject
   private @NotNull BuildPluginManager pluginManager;
 
+  @SuppressWarnings("NullAway")
+  @Inject
+  private @NotNull org.apache.maven.project.ProjectBuilder projectBuilder;
+
+  @SuppressWarnings("NullAway")
+  @Inject
+  private @NotNull org.apache.maven.repository.RepositorySystem mavenRepositorySystem;
+
   private static final @NotNull org.slf4j.Logger logger =
       LoggerFactory.getLogger(SentryInstallerLifecycleParticipant.class);
 
@@ -84,66 +93,86 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
       final @NotNull PluginConfig pluginConfig = new ConfigParser().parseConfig(project);
       SentryTelemetryService.getInstance().start(pluginConfig, project, session, pluginManager);
 
-      if (pluginConfig.isSkipAutoInstall()) {
+      if (pluginConfig.isSkipAutoInstall() && pluginConfig.isSkipValidateOpenTelemetryVersions()) {
+        logger.info(
+            "Auto Install and OpenTelemetry version check disabled for project "
+                + project.getId()
+                + ", skipping dependency resolution");
+        continue;
+      }
+
+      @Nullable List<Artifact> resolvedArtifacts;
+      try {
+        resolvedArtifacts = resolver.resolveArtifactsForProject(project, session);
+      } catch (DependencyResolutionException e) {
+        logger.error("Unable to resolve all dependencies", e);
+        continue;
+      }
+
+      if (!pluginConfig.isSkipAutoInstall()) {
+        final @Nullable ISpan span = SentryTelemetryService.getInstance().startTask("auto-install");
+
+        try {
+          final @NotNull Model currModel = project.getModel();
+
+          final @NotNull List<Dependency> dependencyList = currModel.getDependencies();
+          final @Nullable String managedSentryVersion =
+              ManagedSentryVersionResolver.getManagedSentryVersion(project);
+          final @Nullable String sentryVersion =
+              new SentryInstaller()
+                  .install(dependencyList, resolvedArtifacts, managedSentryVersion);
+
+          if (sentryVersion != null) {
+            SentryTelemetryService.getInstance().addTag("SDK_VERSION", sentryVersion);
+
+            final @NotNull AutoInstallState autoInstallState = new AutoInstallState(sentryVersion);
+            autoInstallState.setInstallSpring(shouldInstallSpring(resolvedArtifacts));
+            autoInstallState.setInstallLogback(
+                !isModuleAvailable(resolvedArtifacts, SENTRY_LOGBACK_ID));
+            autoInstallState.setInstallLog4j2(
+                !isModuleAvailable(resolvedArtifacts, SENTRY_LOG4J2_ID));
+            autoInstallState.setInstallGraphql(shouldInstallGraphQL(resolvedArtifacts));
+            autoInstallState.setInstallJdbc(!isModuleAvailable(resolvedArtifacts, SENTRY_JDBC_ID));
+            autoInstallState.setInstallQuartz(
+                !isModuleAvailable(resolvedArtifacts, SENTRY_QUARTZ_ID));
+
+            for (final @NotNull Class<? extends AbstractIntegrationInstaller> installerClass :
+                installers) {
+              try {
+                final @NotNull AbstractIntegrationInstaller installer =
+                    installerClass.getDeclaredConstructor().newInstance();
+                installer.install(dependencyList, resolvedArtifacts, autoInstallState);
+              } catch (Throwable e) {
+                logger.error(
+                    "Unable to instantiate installer class: " + installerClass.getName(), e);
+              }
+            }
+          } else {
+            logger.error(
+                "No Sentry SDK Version found, cannot auto-install sentry integrations for project + "
+                    + project.getId());
+          }
+        } catch (Throwable t) {
+          SentryTelemetryService.getInstance().captureError(t, "auto-install");
+          throw t;
+        } finally {
+          SentryTelemetryService.getInstance().endTask(span);
+        }
+      } else {
         logger.info(
             "Auto Install disabled for project "
                 + project.getId()
                 + " , not installing dependencies");
-        continue;
       }
 
-      final @Nullable ISpan span = SentryTelemetryService.getInstance().startTask("auto-install");
-
-      try {
-        @Nullable List<Artifact> resolvedArtifacts;
-        try {
-          resolvedArtifacts = resolver.resolveArtifactsForProject(project, session);
-        } catch (DependencyResolutionException e) {
-          logger.error("Unable to resolve all dependencies", e);
-          continue;
-        }
-
-        final @NotNull Model currModel = project.getModel();
-
-        final @NotNull List<Dependency> dependencyList = currModel.getDependencies();
-        final @Nullable String managedSentryVersion =
-            ManagedSentryVersionResolver.getManagedSentryVersion(project);
-        final @Nullable String sentryVersion =
-            new SentryInstaller().install(dependencyList, resolvedArtifacts, managedSentryVersion);
-
-        if (sentryVersion == null) {
-          logger.error(
-              "No Sentry SDK Version found, cannot auto-install sentry integrations for project + "
-                  + project.getId());
-          continue;
-        }
-
-        SentryTelemetryService.getInstance().addTag("SDK_VERSION", sentryVersion);
-
-        final @NotNull AutoInstallState autoInstallState = new AutoInstallState(sentryVersion);
-        autoInstallState.setInstallSpring(shouldInstallSpring(resolvedArtifacts));
-        autoInstallState.setInstallLogback(
-            !isModuleAvailable(resolvedArtifacts, SENTRY_LOGBACK_ID));
-        autoInstallState.setInstallLog4j2(!isModuleAvailable(resolvedArtifacts, SENTRY_LOG4J2_ID));
-        autoInstallState.setInstallGraphql(shouldInstallGraphQL(resolvedArtifacts));
-        autoInstallState.setInstallJdbc(!isModuleAvailable(resolvedArtifacts, SENTRY_JDBC_ID));
-        autoInstallState.setInstallQuartz(!isModuleAvailable(resolvedArtifacts, SENTRY_QUARTZ_ID));
-
-        for (final @NotNull Class<? extends AbstractIntegrationInstaller> installerClass :
-            installers) {
-          try {
-            final @NotNull AbstractIntegrationInstaller installer =
-                installerClass.getDeclaredConstructor().newInstance();
-            installer.install(dependencyList, resolvedArtifacts, autoInstallState);
-          } catch (Throwable e) {
-            logger.error("Unable to instantiate installer class: " + installerClass.getName(), e);
-          }
-        }
-      } catch (Throwable t) {
-        SentryTelemetryService.getInstance().captureError(t, "auto-install");
-        throw t;
-      } finally {
-        SentryTelemetryService.getInstance().endTask(span);
+      if (!pluginConfig.isSkipValidateOpenTelemetryVersions()) {
+        new OpenTelemetryVersionChecker()
+            .check(
+                project,
+                resolvedArtifacts,
+                projectBuilder,
+                mavenRepositorySystem,
+                session.getProjectBuildingRequest());
       }
     }
     super.afterProjectsRead(session);

@@ -10,6 +10,8 @@ public class PluginConfig {
   public static final @NotNull String DEFAULT_SKIP_REPORT_DEPENDENCIES_STRING = "false";
   public static final boolean DEFAULT_SKIP_AUTO_INSTALL = false;
   public static final @NotNull String DEFAULT_SKIP_AUTO_INSTALL_STRING = "false";
+  public static final boolean DEFAULT_SKIP_VALIDATE_OPENTELEMETRY_VERSIONS = false;
+  public static final @NotNull String DEFAULT_SKIP_VALIDATE_OPENTELEMETRY_VERSIONS_STRING = "false";
   public static final boolean DEFAULT_SKIP_SOURCE_BUNDLE = false;
   public static final @NotNull String DEFAULT_SKIP_SOURCE_BUNDLE_STRING = "false";
   public static final boolean DEFAULT_IGNORE_SOURCE_BUNDLE_UPLOAD_FAILURE = false;
@@ -27,6 +29,7 @@ public class PluginConfig {
 
   private boolean skip = DEFAULT_SKIP;
   private boolean skipAutoInstall = DEFAULT_SKIP_AUTO_INSTALL;
+  private boolean skipValidateOpenTelemetryVersions = DEFAULT_SKIP_VALIDATE_OPENTELEMETRY_VERSIONS;
   private boolean skipTelemetry = DEFAULT_SKIP_TELEMETRY;
   private boolean skipReportDependencies = DEFAULT_SKIP_REPORT_DEPENDENCIES;
   private boolean skipSourceBundle = DEFAULT_SKIP_SOURCE_BUNDLE;
@@ -102,6 +105,15 @@ public class PluginConfig {
 
   public boolean isSkipAutoInstall() {
     return skipAutoInstall || skip;
+  }
+
+  public void setSkipValidateOpenTelemetryVersions(
+      final boolean skipValidateOpenTelemetryVersions) {
+    this.skipValidateOpenTelemetryVersions = skipValidateOpenTelemetryVersions;
+  }
+
+  public boolean isSkipValidateOpenTelemetryVersions() {
+    return skipValidateOpenTelemetryVersions || skip;
   }
 
   public boolean isSkipTelemetry() {
