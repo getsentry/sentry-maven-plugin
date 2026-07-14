@@ -18,6 +18,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
@@ -205,6 +206,19 @@ class UploadSourceBundleTestIT {
 
     private fun setupEmptyProject(): File = setupProject(subdirectories = emptyList())
 
+    private fun setupCopyConflictProject(baseDir: String): File {
+        val projectDir = setupProject(baseDir)
+        val conflictingDirectory = File(projectDir, "src/main/java/conflict")
+        assertTrue(conflictingDirectory.mkdirs())
+        assertTrue(File(conflictingDirectory, "Child.java").createNewFile())
+
+        val additionalSourceDir = File(projectDir, "src/main/extra")
+        assertTrue(additionalSourceDir.mkdirs())
+        File(additionalSourceDir, "conflict").writeText("conflicting file")
+
+        return projectDir
+    }
+
     private fun setupProject(
         baseDir: String = "base",
         subdirectories: List<String> = listOf("src/main/java"),
@@ -253,6 +267,71 @@ class UploadSourceBundleTestIT {
 
     private fun getPropertiesFileContent(baseDir: String): String =
         File("$baseDir/target/sentry/properties/sentry-debug-meta.properties").readText()
+
+    @Test
+    fun `incremental build removes deleted source and changes deterministic bundle ID`() {
+        val projectDir = setupProject(baseDir = "incremental-deletion-test")
+        getPOM(projectDir, reproducibleBundleId = true)
+
+        val sourceFile = File(projectDir, "src/main/java/Main0.java")
+        val collectedSourceFile = File(projectDir, "target/sentry/collected-sources/Main0.java")
+
+        val verifier1 = Verifier(projectDir.absolutePath)
+        verifier1.isAutoclean = false
+        verifier1.executeGoal("install")
+        verifier1.verifyErrorFreeLog()
+        val bundleId1 = getBundleIdFromProperties(projectDir.absolutePath)
+        assertTrue(collectedSourceFile.exists())
+        verifier1.resetStreams()
+
+        assertTrue(sourceFile.delete())
+
+        val verifier2 = Verifier(projectDir.absolutePath)
+        verifier2.isAutoclean = false
+        verifier2.executeGoal("install")
+        verifier2.verifyErrorFreeLog()
+        val bundleId2 = getBundleIdFromProperties(projectDir.absolutePath)
+
+        assertFalse(collectedSourceFile.exists(), "Deleted source should not remain in collected-sources")
+        assertNotEquals(bundleId1, bundleId2, "Bundle ID should change when a source is deleted")
+        verifier2.resetStreams()
+    }
+
+    @Test
+    fun `source copy failure fails deterministic build`() {
+        val projectDir = setupCopyConflictProject("deterministic-copy-failure-test")
+        val path =
+            getPOM(
+                projectDir,
+                reproducibleBundleId = true,
+                extraSourceContextDirs = listOf("src/main/extra"),
+            )
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+
+        assertFailsWith<VerificationException> {
+            verifier.executeGoal("install")
+        }
+        verifier.verifyTextInLog("Failed to collect sources for deterministic bundle ID")
+        verifier.resetStreams()
+    }
+
+    @Test
+    fun `source copy failure remains non-fatal for non-deterministic build`() {
+        val projectDir = setupCopyConflictProject("non-deterministic-copy-failure-test")
+        val path =
+            getPOM(
+                projectDir,
+                reproducibleBundleId = false,
+                extraSourceContextDirs = listOf("src/main/extra"),
+            )
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+
+        verifier.executeGoal("install")
+        verifier.verifyTextInLog("Failed to copy file")
+        verifier.resetStreams()
+    }
 
     @Test
     fun `bundle ID changes when source content changes`() {

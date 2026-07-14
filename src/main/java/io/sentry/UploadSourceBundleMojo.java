@@ -7,9 +7,13 @@ import io.sentry.telemetry.SentryTelemetryService;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -110,70 +114,119 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     uploadSourceBundle(cliRunner, sourceBundleTargetDir);
   }
 
-  private void collectSources(@NotNull File outputDir) {
+  private void collectSources(final @NotNull File outputDir) throws MojoExecutionException {
     final @Nullable ISpan span = SentryTelemetryService.getInstance().startTask("collectSources");
     logger.debug("Collecting files from source directories");
 
-    if (!outputDir.exists()) {
-      outputDir.mkdirs();
-    }
-
-    final @Nullable List<String> sourceRootsPaths = mavenProject.getCompileSourceRoots();
-    final @NotNull List<String> sourceDirsPaths =
-        sourceRootsPaths == null ? new ArrayList<>() : new ArrayList<>(sourceRootsPaths);
-    sourceDirsPaths.removeIf(Objects::isNull);
-    sourceDirsPaths.addAll(additionalSourceDirsForSourceContext);
-
-    if (sourceDirsPaths.isEmpty()) {
-      logger.info("No source directories to collect and bundle");
-    } else {
-      logger.debug(
-          "Copying files from the following directories to {} for inclusion in source bundle: {}",
-          outputDir,
-          String.join(",", sourceDirsPaths));
-    }
-    int count = 0;
-    for (final @NotNull String sourceDirPath : sourceDirsPaths) {
+    try {
       try {
-        final @NotNull File sourceDir = new File(sourceDirPath);
-        final @NotNull Path sourceDirAbsolutePath = sourceDir.toPath().toAbsolutePath().normalize();
-
-        if (!sourceDir.exists()) {
-          logger.error(
-              "Not collecting sources in {}: directory does not exist", sourceDirAbsolutePath);
-          continue;
-        }
-        if (!sourceDir.isDirectory()) {
-          logger.error("Not collecting sources in {}: not a directory", sourceDirAbsolutePath);
-          continue;
-        }
-        logger.debug("Collecting sources in {}", sourceDirPath);
-
-        try (final @NotNull Stream<Path> stream = Files.walk(sourceDirAbsolutePath)) {
-          stream.forEach(
-              (sourcePath) -> {
-                final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
-                final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
-
-                if (sourcePath.toFile().isFile()) {
-                  try {
-                    Files.createDirectories(destinationPath.getParent());
-                    Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
-                  } catch (IOException e) {
-                    logger.error(
-                        "Failed to copy file from {} to {}", sourcePath, destinationPath, e);
-                  }
-                }
-              });
-        }
-        count++;
+        resetCollectedSourcesDirectory(outputDir);
       } catch (Throwable t) {
-        logger.error("Failed to collect sources in {}", sourceDirPath, t);
-        SentryTelemetryService.getInstance().captureError(t, "bundleSources " + sourceDirPath);
+        handleSourceCollectionFailure(
+            "Failed to reset collected sources directory " + outputDir, t);
       }
+
+      final @Nullable List<String> sourceRootsPaths = mavenProject.getCompileSourceRoots();
+      final @NotNull List<String> sourceDirsPaths =
+          sourceRootsPaths == null ? new ArrayList<>() : new ArrayList<>(sourceRootsPaths);
+      sourceDirsPaths.removeIf(Objects::isNull);
+      sourceDirsPaths.addAll(additionalSourceDirsForSourceContext);
+
+      if (sourceDirsPaths.isEmpty()) {
+        logger.info("No source directories to collect and bundle");
+      } else {
+        logger.debug(
+            "Copying files from the following directories to {} for inclusion in source bundle: {}",
+            outputDir,
+            String.join(",", sourceDirsPaths));
+      }
+      int count = 0;
+      for (final @NotNull String sourceDirPath : sourceDirsPaths) {
+        try {
+          final @NotNull File sourceDir = new File(sourceDirPath);
+          final @NotNull Path sourceDirAbsolutePath =
+              sourceDir.toPath().toAbsolutePath().normalize();
+
+          if (!sourceDir.exists()) {
+            logger.error(
+                "Not collecting sources in {}: directory does not exist", sourceDirAbsolutePath);
+            continue;
+          }
+          if (!sourceDir.isDirectory()) {
+            logger.error("Not collecting sources in {}: not a directory", sourceDirAbsolutePath);
+            continue;
+          }
+          logger.debug("Collecting sources in {}", sourceDirPath);
+
+          try (final @NotNull Stream<Path> stream = Files.walk(sourceDirAbsolutePath)) {
+            final @NotNull Iterator<Path> sourcePaths = stream.iterator();
+            while (sourcePaths.hasNext()) {
+              final @NotNull Path sourcePath = sourcePaths.next();
+              final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
+              final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
+
+              if (sourcePath.toFile().isFile()) {
+                try {
+                  Files.createDirectories(destinationPath.getParent());
+                  Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                  handleSourceCollectionFailure(
+                      "Failed to copy file from " + sourcePath + " to " + destinationPath, e);
+                }
+              }
+            }
+          }
+          count++;
+        } catch (MojoExecutionException e) {
+          throw e;
+        } catch (Throwable t) {
+          handleSourceCollectionFailure("Failed to collect sources in " + sourceDirPath, t);
+        }
+      }
+      logger.info("Collected sources from {} source directories", count);
+    } finally {
+      SentryTelemetryService.getInstance().endTask(span);
     }
-    logger.info("Collected sources from {} source directories", count);
-    SentryTelemetryService.getInstance().endTask(span);
+  }
+
+  private void resetCollectedSourcesDirectory(final @NotNull File outputDir) throws IOException {
+    final @NotNull Path outputPath = outputDir.toPath();
+    if (Files.exists(outputPath, LinkOption.NOFOLLOW_LINKS)) {
+      Files.walkFileTree(
+          outputPath,
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public @NotNull FileVisitResult visitFile(
+                final @NotNull Path file, final @NotNull BasicFileAttributes attributes)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public @NotNull FileVisitResult postVisitDirectory(
+                final @NotNull Path directory, final @Nullable IOException exception)
+                throws IOException {
+              if (exception != null) {
+                throw exception;
+              }
+              Files.delete(directory);
+              return FileVisitResult.CONTINUE;
+            }
+          });
+    }
+    Files.createDirectories(outputPath);
+  }
+
+  private void handleSourceCollectionFailure(
+      final @NotNull String message, final @NotNull Throwable throwable)
+      throws MojoExecutionException {
+    logger.error(message, throwable);
+    SentryTelemetryService.getInstance().captureError(throwable, "collectSources: " + message);
+    if (reproducibleBundleId) {
+      throw new MojoExecutionException(
+          "Failed to collect sources for deterministic bundle ID: " + message, throwable);
+    }
   }
 
   private @NotNull File sentryBuildDir() {
