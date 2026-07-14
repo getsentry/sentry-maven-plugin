@@ -100,10 +100,10 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
     collectSources(collectedSourcesTargetDir);
 
-    final @Nullable String deterministicBundleId =
-        reproducibleBundleId ? generateDeterministicBundleId(collectedSourcesTargetDir) : null;
     final @NotNull String bundleId =
-        deterministicBundleId != null ? deterministicBundleId : UUID.randomUUID().toString();
+        reproducibleBundleId
+            ? generateDeterministicBundleId(collectedSourcesTargetDir)
+            : UUID.randomUUID().toString();
 
     createDebugMetaPropertiesFile(bundleId);
     bundleSources(cliRunner, bundleId, collectedSourcesTargetDir, sourceBundleTargetDir);
@@ -185,9 +185,10 @@ public class UploadSourceBundleMojo extends AbstractMojo {
    * ensures reproducible builds produce the same bundle ID when the source files are identical.
    *
    * @param collectedSourcesDir the directory containing the collected source files
-   * @return a UUID v4 string derived from the hash of the source files, or null on failure
+   * @return a UUID v4 string derived from the hash of the source files
    */
-  private @Nullable String generateDeterministicBundleId(final @NotNull File collectedSourcesDir) {
+  private @NotNull String generateDeterministicBundleId(final @NotNull File collectedSourcesDir)
+      throws MojoExecutionException {
     final @Nullable ISpan span =
         SentryTelemetryService.getInstance().startTask("generateDeterministicBundleId");
     try {
@@ -223,18 +224,16 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       final byte[] hashBytes = digest.digest();
       return bytesToUuid(hashBytes);
     } catch (NoSuchAlgorithmException e) {
-      logger.warn("MD5 algorithm not available, falling back to random UUID", e);
+      throw new MojoExecutionException("MD5 algorithm not available", e);
     } catch (IOException e) {
-      logger.warn(
-          "Failed to read source files for bundle ID generation, falling back to random UUID", e);
       SentryTelemetryService.getInstance().captureError(e, "generateDeterministicBundleId");
+      throw new MojoExecutionException("Failed to read source files for bundle ID generation", e);
     } catch (Throwable t) {
-      logger.warn("Failed to generate deterministic bundle ID, falling back to random UUID", t);
       SentryTelemetryService.getInstance().captureError(t, "generateDeterministicBundleId");
+      throw new MojoExecutionException("Failed to generate deterministic bundle ID", t);
     } finally {
       SentryTelemetryService.getInstance().endTask(span);
     }
-    return null;
   }
 
   private void updateDigestWithLengthPrefix(
