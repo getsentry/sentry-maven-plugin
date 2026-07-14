@@ -102,7 +102,7 @@ class SentryAutoInstallTestIT {
         verifier.isAutoclean = false
         verifier.executeGoal("install")
         verifier.verifyFileNotPresent("target/lib/sentry-${SdkVersionInfo.getSentryVersion()}.jar")
-        verifier.verifyTextInLog("Auto Install disabled for project ")
+        verifier.verifyTextInLog("Auto Install and OpenTelemetry version check disabled for project ")
         verifier.resetStreams()
     }
 
