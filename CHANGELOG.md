@@ -5,7 +5,8 @@
 ### Features
 
 - Autoinstall Profiler ([#222](https://github.com/getsentry/sentry-maven-plugin/pull/222))
-    - enable with `<installProfiler>true</installProfiler>`
+    - enable autoinstall with `<installProfiler>true</installProfiler>`
+    - the Profiling feature also needs to be enabled in the SDK configuration. See the docs [here](https://docs.sentry.io/platforms/java/profiling/).
 
 ### Fixes
 
