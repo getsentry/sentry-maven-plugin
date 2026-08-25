@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Features
+
+- Deterministic Bundle Id generation ([#220](https://github.com/getsentry/sentry-maven-plugin/pull/220))
+    - to enable set reproducibleBundleId to true and add an outputTimestamp to properties
+    - reproducible JAR builds require maven-jar-plugin >= 3.2.0
+
 ### Fixes
 
 - Use imported Sentry BOM versions for auto-installed dependencies ([#265](https://github.com/getsentry/sentry-maven-plugin/pull/265))

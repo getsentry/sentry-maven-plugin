@@ -4,6 +4,7 @@ fun basePom(
     skipPlugin: Boolean = false,
     skipSourceBundle: Boolean = false,
     ignoreSourceBundleUploadFailure: Boolean = false,
+    reproducibleBundleId: Boolean = false,
     sentryCliPath: String? = null,
     extraSourceRoots: List<String> = listOf(),
     extraSourceContextDirs: List<String> = emptyList(),
@@ -91,6 +92,7 @@ fun basePom(
                             <skip>$skipPlugin</skip>
                             <skipSourceBundle>$skipSourceBundle</skipSourceBundle>
                             <ignoreSourceBundleUploadFailure>$ignoreSourceBundleUploadFailure</ignoreSourceBundleUploadFailure>
+                            <reproducibleBundleId>$reproducibleBundleId</reproducibleBundleId>
                             <skipTelemetry>true</skipTelemetry>
                             <org>sentry-sdks</org>
                             <project>sentry-maven</project>
