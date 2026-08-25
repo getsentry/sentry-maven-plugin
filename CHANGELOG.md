@@ -15,6 +15,12 @@
 
 - Use imported Sentry BOM versions for auto-installed dependencies ([#265](https://github.com/getsentry/sentry-maven-plugin/pull/265))
 
+### Dependencies
+
+- Bump Sentry SDK from v8.34.1 to v8.53.0 ([#278](https://github.com/getsentry/sentry-maven-plugin/pull/278))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8530)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.34.1...8.53.0)
+
 ## 0.11.0
 
 ### Features
