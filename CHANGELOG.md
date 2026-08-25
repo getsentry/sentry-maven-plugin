@@ -4,6 +4,9 @@
 
 ### Features
 
+- Deterministic Bundle Id generation ([#220](https://github.com/getsentry/sentry-maven-plugin/pull/220))
+    - to enable set reproducibleBundleId to true and add an outputTimestamp to properties
+    - reproducible JAR builds require maven-jar-plugin >= 3.2.0
 - Autoinstall Profiler ([#222](https://github.com/getsentry/sentry-maven-plugin/pull/222))
     - enable autoinstall with `<installProfiler>true</installProfiler>`
     - the Profiling feature also needs to be enabled in the SDK configuration. See the docs [here](https://docs.sentry.io/platforms/java/profiling/).

@@ -5,11 +5,19 @@ import static io.sentry.config.PluginConfig.*;
 import io.sentry.cli.SentryCliRunner;
 import io.sentry.telemetry.SentryTelemetryService;
 import java.io.*;
-import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
@@ -73,6 +81,9 @@ public class UploadSourceBundleMojo extends AbstractMojo {
   @Parameter(defaultValue = DEFAULT_IGNORE_SOURCE_BUNDLE_UPLOAD_FAILURE_STRING)
   private boolean ignoreSourceBundleUploadFailure;
 
+  @Parameter(defaultValue = DEFAULT_REPRODUCIBLE_BUNDLE_ID_STRING)
+  private boolean reproducibleBundleId;
+
   @SuppressWarnings("NullAway")
   @Component
   private @NotNull BuildPluginManager pluginManager;
@@ -85,87 +96,219 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       return;
     }
 
-    final @NotNull String bundleId = UUID.randomUUID().toString();
     final @NotNull File collectedSourcesTargetDir = new File(sentryBuildDir(), "collected-sources");
     final @NotNull File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
     final @NotNull SentryCliRunner cliRunner =
         new SentryCliRunner(
             debugSentryCli, sentryCliExecutablePath, mavenProject, mavenSession, pluginManager);
 
+    collectSources(collectedSourcesTargetDir);
+
+    final @NotNull String bundleId =
+        reproducibleBundleId
+            ? generateDeterministicBundleId(collectedSourcesTargetDir)
+            : UUID.randomUUID().toString();
+
     createDebugMetaPropertiesFile(bundleId);
-    collectSources(bundleId, collectedSourcesTargetDir);
     bundleSources(cliRunner, bundleId, collectedSourcesTargetDir, sourceBundleTargetDir);
     uploadSourceBundle(cliRunner, sourceBundleTargetDir);
   }
 
-  private void collectSources(@NotNull String bundleId, @NotNull File outputDir) {
+  private void collectSources(final @NotNull File outputDir) throws MojoExecutionException {
     final @Nullable ISpan span = SentryTelemetryService.getInstance().startTask("collectSources");
     logger.debug("Collecting files from source directories");
 
-    if (!outputDir.exists()) {
-      outputDir.mkdirs();
-    }
-
-    final @Nullable List<String> sourceRootsPaths = mavenProject.getCompileSourceRoots();
-    final @NotNull List<String> sourceDirsPaths =
-        sourceRootsPaths == null ? new ArrayList<>() : new ArrayList<>(sourceRootsPaths);
-    sourceDirsPaths.removeIf(Objects::isNull);
-    sourceDirsPaths.addAll(additionalSourceDirsForSourceContext);
-
-    if (sourceDirsPaths.isEmpty()) {
-      logger.info("No source directories to collect and bundle");
-    } else {
-      logger.debug(
-          "Copying files from the following directories to {} for inclusion in source bundle: {}",
-          outputDir,
-          String.join(",", sourceDirsPaths));
-    }
-    int count = 0;
-    for (final @NotNull String sourceDirPath : sourceDirsPaths) {
+    try {
       try {
-        final @NotNull File sourceDir = new File(sourceDirPath);
-        final @NotNull Path sourceDirAbsolutePath = sourceDir.toPath().toAbsolutePath().normalize();
-
-        if (!sourceDir.exists()) {
-          logger.error(
-              "Not collecting sources in {}: directory does not exist", sourceDirAbsolutePath);
-          continue;
-        }
-        if (!sourceDir.isDirectory()) {
-          logger.error("Not collecting sources in {}: not a directory", sourceDirAbsolutePath);
-          continue;
-        }
-        logger.debug("Collecting sources in {}", sourceDirPath);
-
-        try (final @NotNull Stream<Path> stream = Files.walk(sourceDirAbsolutePath)) {
-          stream.forEach(
-              (sourcePath) -> {
-                final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
-                final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
-
-                if (sourcePath.toFile().isFile()) {
-                  try {
-                    Files.createDirectories(destinationPath.getParent());
-                    Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
-                  } catch (IOException e) {
-                    logger.error(
-                        "Failed to copy file from {} to {}", sourcePath, destinationPath, e);
-                  }
-                }
-              });
-        }
-        count++;
+        resetCollectedSourcesDirectory(outputDir);
       } catch (Throwable t) {
-        logger.error("Failed to collect sources in {}", sourceDirPath, t);
-        SentryTelemetryService.getInstance().captureError(t, "bundleSources " + sourceDirPath);
+        handleSourceCollectionFailure(
+            "Failed to reset collected sources directory " + outputDir, t);
       }
+
+      final @Nullable List<String> sourceRootsPaths = mavenProject.getCompileSourceRoots();
+      final @NotNull List<String> sourceDirsPaths =
+          sourceRootsPaths == null ? new ArrayList<>() : new ArrayList<>(sourceRootsPaths);
+      sourceDirsPaths.removeIf(Objects::isNull);
+      sourceDirsPaths.addAll(additionalSourceDirsForSourceContext);
+
+      if (sourceDirsPaths.isEmpty()) {
+        logger.info("No source directories to collect and bundle");
+      } else {
+        logger.debug(
+            "Copying files from the following directories to {} for inclusion in source bundle: {}",
+            outputDir,
+            String.join(",", sourceDirsPaths));
+      }
+      int count = 0;
+      for (final @NotNull String sourceDirPath : sourceDirsPaths) {
+        try {
+          final @NotNull File sourceDir = new File(sourceDirPath);
+          final @NotNull Path sourceDirAbsolutePath =
+              sourceDir.toPath().toAbsolutePath().normalize();
+
+          if (!sourceDir.exists()) {
+            logger.error(
+                "Not collecting sources in {}: directory does not exist", sourceDirAbsolutePath);
+            continue;
+          }
+          if (!sourceDir.isDirectory()) {
+            logger.error("Not collecting sources in {}: not a directory", sourceDirAbsolutePath);
+            continue;
+          }
+          logger.debug("Collecting sources in {}", sourceDirPath);
+
+          try (final @NotNull Stream<Path> stream = Files.walk(sourceDirAbsolutePath)) {
+            final @NotNull Iterator<Path> sourcePaths = stream.iterator();
+            while (sourcePaths.hasNext()) {
+              final @NotNull Path sourcePath = sourcePaths.next();
+              final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
+              final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
+
+              if (sourcePath.toFile().isFile()) {
+                try {
+                  Files.createDirectories(destinationPath.getParent());
+                  Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                  handleSourceCollectionFailure(
+                      "Failed to copy file from " + sourcePath + " to " + destinationPath, e);
+                }
+              }
+            }
+          }
+          count++;
+        } catch (MojoExecutionException e) {
+          throw e;
+        } catch (Throwable t) {
+          handleSourceCollectionFailure("Failed to collect sources in " + sourceDirPath, t);
+        }
+      }
+      logger.info("Collected sources from {} source directories", count);
+    } finally {
+      SentryTelemetryService.getInstance().endTask(span);
     }
-    logger.info("Collected sources from {} source directories", count);
-    SentryTelemetryService.getInstance().endTask(span);
+  }
+
+  private void resetCollectedSourcesDirectory(final @NotNull File outputDir) throws IOException {
+    final @NotNull Path outputPath = outputDir.toPath();
+    if (Files.exists(outputPath, LinkOption.NOFOLLOW_LINKS)) {
+      Files.walkFileTree(
+          outputPath,
+          new SimpleFileVisitor<Path>() {
+            @Override
+            public @NotNull FileVisitResult visitFile(
+                final @NotNull Path file, final @NotNull BasicFileAttributes attributes)
+                throws IOException {
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public @NotNull FileVisitResult postVisitDirectory(
+                final @NotNull Path directory, final @Nullable IOException exception)
+                throws IOException {
+              if (exception != null) {
+                throw exception;
+              }
+              Files.delete(directory);
+              return FileVisitResult.CONTINUE;
+            }
+          });
+    }
+    Files.createDirectories(outputPath);
+  }
+
+  private void handleSourceCollectionFailure(
+      final @NotNull String message, final @NotNull Throwable throwable)
+      throws MojoExecutionException {
+    logger.error(message, throwable);
+    SentryTelemetryService.getInstance().captureError(throwable, "collectSources: " + message);
+    if (reproducibleBundleId) {
+      throw new MojoExecutionException(
+          "Failed to collect sources for deterministic bundle ID: " + message, throwable);
+    }
   }
 
   private @NotNull File sentryBuildDir() {
     return new File(outputDirectory, "sentry");
+  }
+
+  /**
+   * Generates a deterministic bundle ID based on the MD5 hash of all collected source files. This
+   * ensures reproducible builds produce the same bundle ID when the source files are identical.
+   *
+   * @param collectedSourcesDir the directory containing the collected source files
+   * @return a UUID v4 string derived from the hash of the source files
+   */
+  private @NotNull String generateDeterministicBundleId(final @NotNull File collectedSourcesDir)
+      throws MojoExecutionException {
+    final @Nullable ISpan span =
+        SentryTelemetryService.getInstance().startTask("generateDeterministicBundleId");
+    try {
+      final @NotNull MessageDigest digest = MessageDigest.getInstance("MD5");
+
+      if (collectedSourcesDir.exists() && collectedSourcesDir.isDirectory()) {
+        try (final @NotNull Stream<Path> stream = Files.walk(collectedSourcesDir.toPath())) {
+          final @NotNull List<Path> sortedFiles =
+              stream
+                  .filter(Files::isRegularFile)
+                  .sorted(
+                      Comparator.comparing(
+                          p ->
+                              collectedSourcesDir
+                                  .toPath()
+                                  .relativize(p)
+                                  .toString()
+                                  .replace('\\', '/')))
+                  .collect(Collectors.toList());
+
+          for (final @NotNull Path file : sortedFiles) {
+            final @NotNull String relativePath =
+                collectedSourcesDir.toPath().relativize(file).toString().replace('\\', '/');
+            updateDigestWithLengthPrefix(digest, relativePath.getBytes(StandardCharsets.UTF_8));
+
+            // Include the file content in the hash
+            final byte[] fileBytes = Files.readAllBytes(file);
+            updateDigestWithLengthPrefix(digest, fileBytes);
+          }
+        }
+      }
+
+      final byte[] hashBytes = digest.digest();
+      return bytesToUuid(hashBytes);
+    } catch (NoSuchAlgorithmException e) {
+      throw new MojoExecutionException("MD5 algorithm not available", e);
+    } catch (IOException e) {
+      SentryTelemetryService.getInstance().captureError(e, "generateDeterministicBundleId");
+      throw new MojoExecutionException("Failed to read source files for bundle ID generation", e);
+    } catch (Throwable t) {
+      SentryTelemetryService.getInstance().captureError(t, "generateDeterministicBundleId");
+      throw new MojoExecutionException("Failed to generate deterministic bundle ID", t);
+    } finally {
+      SentryTelemetryService.getInstance().endTask(span);
+    }
+  }
+
+  private void updateDigestWithLengthPrefix(
+      final @NotNull MessageDigest digest, final byte[] data) {
+    digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(data.length).array());
+    digest.update(data);
+  }
+
+  /**
+   * Converts 16 bytes into a UUID v4 string format (RFC 4122).
+   *
+   * @param hashBytes the hash bytes (exactly 16 bytes expected from MD5)
+   * @return a UUID string in the format xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+   */
+  private @NotNull String bytesToUuid(final byte[] hashBytes) {
+    // Set version 4 (bits 12-15 of time_hi_and_version to 0100)
+    hashBytes[6] = (byte) ((hashBytes[6] & 0x0F) | 0x40);
+    // Set variant to RFC 4122 (bits 6-7 of clock_seq_hi_and_reserved to 10)
+    hashBytes[8] = (byte) ((hashBytes[8] & 0x3F) | 0x80);
+
+    final @NotNull ByteBuffer buffer = ByteBuffer.wrap(hashBytes);
+    return new UUID(buffer.getLong(), buffer.getLong()).toString();
   }
 
   private void bundleSources(
@@ -280,11 +423,17 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     }
 
     final @NotNull File debugMetaFile = new File(sentryBuildDir, "sentry-debug-meta.properties");
-    final @NotNull Properties properties = createDebugMetaProperties(bundleId);
 
     try (final @NotNull BufferedWriter fileWriter =
-            Files.newBufferedWriter(debugMetaFile.toPath(), Charset.defaultCharset())) {
-      properties.store(fileWriter, "Generated by sentry-maven-plugin");
+            Files.newBufferedWriter(debugMetaFile.toPath(), StandardCharsets.UTF_8)) {
+      // Write properties without timestamp comment for reproducible builds
+      // Properties are written in sorted order for consistency
+      fileWriter.write("# Generated by sentry-maven-plugin");
+      fileWriter.write("\n");
+      fileWriter.write("io.sentry.build-tool=maven");
+      fileWriter.write("\n");
+      fileWriter.write("io.sentry.bundle-ids=" + bundleId);
+      fileWriter.write("\n");
 
       final @NotNull Resource resource = new Resource();
       resource.setDirectory(sentryBuildDir.getPath());
@@ -299,14 +448,5 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     } finally {
       SentryTelemetryService.getInstance().endTask(span);
     }
-  }
-
-  private @NotNull Properties createDebugMetaProperties(final @NotNull String bundleId) {
-    final @NotNull Properties properties = new Properties();
-
-    properties.setProperty("io.sentry.bundle-ids", bundleId);
-    properties.setProperty("io.sentry.build-tool", "maven");
-
-    return properties;
   }
 }

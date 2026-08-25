@@ -18,6 +18,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class UploadSourceBundleTestIT {
@@ -29,6 +31,7 @@ class UploadSourceBundleTestIT {
         skipPlugin: Boolean = false,
         skipSourceBundle: Boolean = false,
         ignoreSourceBundleUploadFailure: Boolean = false,
+        reproducibleBundleId: Boolean = false,
         sentryCliPath: String? = null,
         extraSourceRoots: List<String> = listOf(),
         extraSourceContextDirs: List<String> = emptyList(),
@@ -39,6 +42,7 @@ class UploadSourceBundleTestIT {
                 skipPlugin,
                 skipSourceBundle,
                 ignoreSourceBundleUploadFailure,
+                reproducibleBundleId,
                 sentryCliPath,
                 extraSourceRoots,
                 extraSourceContextDirs,
@@ -202,6 +206,19 @@ class UploadSourceBundleTestIT {
 
     private fun setupEmptyProject(): File = setupProject(subdirectories = emptyList())
 
+    private fun setupCopyConflictProject(baseDir: String): File {
+        val projectDir = setupProject(baseDir)
+        val conflictingDirectory = File(projectDir, "src/main/java/conflict")
+        assertTrue(conflictingDirectory.mkdirs())
+        assertTrue(File(conflictingDirectory, "Child.java").createNewFile())
+
+        val additionalSourceDir = File(projectDir, "src/main/extra")
+        assertTrue(additionalSourceDir.mkdirs())
+        File(additionalSourceDir, "conflict").writeText("conflicting file")
+
+        return projectDir
+    }
+
     private fun setupProject(
         baseDir: String = "base",
         subdirectories: List<String> = listOf("src/main/java"),
@@ -246,5 +263,298 @@ class UploadSourceBundleTestIT {
         val myProps = Properties()
         myProps.load(FileInputStream("$baseDir/target/sentry/properties/sentry-debug-meta.properties"))
         return myProps.getProperty("io.sentry.bundle-ids")
+    }
+
+    private fun getPropertiesFileContent(baseDir: String): String =
+        File("$baseDir/target/sentry/properties/sentry-debug-meta.properties").readText()
+
+    @Test
+    fun `incremental build removes deleted source and changes deterministic bundle ID`() {
+        val projectDir = setupProject(baseDir = "incremental-deletion-test")
+        getPOM(projectDir, reproducibleBundleId = true)
+
+        val sourceFile = File(projectDir, "src/main/java/Main0.java")
+        val collectedSourceFile = File(projectDir, "target/sentry/collected-sources/Main0.java")
+
+        val verifier1 = Verifier(projectDir.absolutePath)
+        verifier1.isAutoclean = false
+        verifier1.executeGoal("install")
+        verifier1.verifyErrorFreeLog()
+        val bundleId1 = getBundleIdFromProperties(projectDir.absolutePath)
+        assertTrue(collectedSourceFile.exists())
+        verifier1.resetStreams()
+
+        assertTrue(sourceFile.delete())
+
+        val verifier2 = Verifier(projectDir.absolutePath)
+        verifier2.isAutoclean = false
+        verifier2.executeGoal("install")
+        verifier2.verifyErrorFreeLog()
+        val bundleId2 = getBundleIdFromProperties(projectDir.absolutePath)
+
+        assertFalse(collectedSourceFile.exists(), "Deleted source should not remain in collected-sources")
+        assertNotEquals(bundleId1, bundleId2, "Bundle ID should change when a source is deleted")
+        verifier2.resetStreams()
+    }
+
+    @Test
+    fun `source copy failure fails deterministic build`() {
+        val projectDir = setupCopyConflictProject("deterministic-copy-failure-test")
+        val path =
+            getPOM(
+                projectDir,
+                reproducibleBundleId = true,
+                extraSourceContextDirs = listOf("src/main/extra"),
+            )
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+
+        assertFailsWith<VerificationException> {
+            verifier.executeGoal("install")
+        }
+        verifier.verifyTextInLog("Failed to collect sources for deterministic bundle ID")
+        verifier.resetStreams()
+    }
+
+    @Test
+    fun `source copy failure remains non-fatal for non-deterministic build`() {
+        val projectDir = setupCopyConflictProject("non-deterministic-copy-failure-test")
+        val path =
+            getPOM(
+                projectDir,
+                reproducibleBundleId = false,
+                extraSourceContextDirs = listOf("src/main/extra"),
+            )
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+
+        verifier.executeGoal("install")
+        verifier.verifyTextInLog("Failed to copy file")
+        verifier.resetStreams()
+    }
+
+    @Test
+    fun `bundle ID changes when source content changes`() {
+        val projectDir = File(file, "content-change-test")
+        projectDir.mkdirs()
+
+        val sourceDir = File(projectDir, "src/main/java")
+        sourceDir.mkdirs()
+
+        installMavenWrapper(projectDir, "3.8.6")
+        getPOM(projectDir, reproducibleBundleId = true)
+
+        // First build with initial content
+        File(sourceDir, "Main.java").writeText("public class Main { int version = 1; }")
+
+        val verifier1 = Verifier(projectDir.absolutePath)
+        verifier1.isAutoclean = false
+        verifier1.executeGoal("install")
+        verifier1.verifyErrorFreeLog()
+
+        val bundleId1 = getBundleIdFromProperties(projectDir.absolutePath)
+        verifier1.resetStreams()
+
+        // Clean and rebuild with different content
+        File(projectDir, "target").deleteRecursively()
+        File(sourceDir, "Main.java").writeText("public class Main { int version = 2; }")
+
+        val verifier2 = Verifier(projectDir.absolutePath)
+        verifier2.isAutoclean = false
+        verifier2.executeGoal("install")
+        verifier2.verifyErrorFreeLog()
+
+        val bundleId2 = getBundleIdFromProperties(projectDir.absolutePath)
+        verifier2.resetStreams()
+
+        // Verify bundle ID changed
+        assertTrue(
+            bundleId1 != bundleId2,
+            "Bundle ID should change when source content changes",
+        )
+    }
+
+    @Test
+    fun `bundle ID differs for ambiguous path and content splits`() {
+        val extraDir = "src/main/extra"
+
+        val firstProjectDir = File(file, "ambiguous-path-content-test-1")
+        firstProjectDir.mkdirs()
+        File(firstProjectDir, "src/main/java").mkdirs()
+        File(firstProjectDir, extraDir).mkdirs()
+        File(firstProjectDir, "$extraDir/ab").writeText("cd")
+        installMavenWrapper(firstProjectDir, "3.8.6")
+        getPOM(
+            firstProjectDir,
+            reproducibleBundleId = true,
+            extraSourceContextDirs = listOf(extraDir),
+        )
+
+        val verifier1 = Verifier(firstProjectDir.absolutePath)
+        verifier1.isAutoclean = false
+        verifier1.executeGoal("install")
+        verifier1.verifyErrorFreeLog()
+        val bundleId1 = getBundleIdFromProperties(firstProjectDir.absolutePath)
+        verifier1.resetStreams()
+
+        val secondProjectDir = File(file, "ambiguous-path-content-test-2")
+        secondProjectDir.mkdirs()
+        File(secondProjectDir, "src/main/java").mkdirs()
+        File(secondProjectDir, extraDir).mkdirs()
+        File(secondProjectDir, "$extraDir/a").writeText("bcd")
+        installMavenWrapper(secondProjectDir, "3.8.6")
+        getPOM(
+            secondProjectDir,
+            reproducibleBundleId = true,
+            extraSourceContextDirs = listOf(extraDir),
+        )
+
+        val verifier2 = Verifier(secondProjectDir.absolutePath)
+        verifier2.isAutoclean = false
+        verifier2.executeGoal("install")
+        verifier2.verifyErrorFreeLog()
+        val bundleId2 = getBundleIdFromProperties(secondProjectDir.absolutePath)
+        verifier2.resetStreams()
+
+        assertNotEquals(
+            bundleId1,
+            bundleId2,
+            "Bundle IDs should differ for source trees with ambiguous path/content concatenation",
+        )
+    }
+
+    @Test
+    fun `properties file does not contain timestamp`() {
+        val baseDir = setupProject()
+        val path = getPOM(baseDir)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        val propertiesContent = getPropertiesFileContent(baseDir.absolutePath)
+
+        // Properties.store() adds a timestamp like "#Wed Jan 08 10:30:00 CET 2025"
+        // Verify this pattern is not present
+        val timestampPattern = Regex("#\\w{3} \\w{3} \\d{2} \\d{2}:\\d{2}:\\d{2}")
+        assertTrue(
+            !timestampPattern.containsMatchIn(propertiesContent),
+            "Properties file should not contain a timestamp comment. Content: $propertiesContent",
+        )
+        assertTrue(
+            propertiesContent.contains("\n"),
+            "Properties file should contain LF line endings. Content: $propertiesContent",
+        )
+        assertTrue(
+            !propertiesContent.contains("\r\n"),
+            "Properties file should not contain CRLF line endings. Content: $propertiesContent",
+        )
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    fun `build is reproducible with reproducibleBundleId enabled`() {
+        val projectDir = File(file, "reproducible-artifact-compare-test")
+        projectDir.mkdirs()
+
+        val sourceDir = File(projectDir, "src/main/java/com/example")
+        sourceDir.mkdirs()
+
+        // Create source files
+        File(sourceDir, "Main.java").writeText(
+            """
+            package com.example;
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Reproducible build test");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        installMavenWrapper(projectDir, "3.9.11")
+
+        // Create POM with outputTimestamp for reproducible builds
+        val pomContent =
+            basePom(reproducibleBundleId = true)
+                .replace(
+                    "<properties>",
+                    """<properties>
+                <project.build.outputTimestamp>2025-01-01T00:00:00Z</project.build.outputTimestamp>""",
+                )
+        Files.write(Path("${projectDir.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
+
+        // First build: clean install
+        val verifier1 = Verifier(projectDir.absolutePath)
+        verifier1.isAutoclean = false
+        verifier1.executeGoal("clean")
+        verifier1.executeGoal("install")
+        verifier1.verifyErrorFreeLog()
+        verifier1.resetStreams()
+
+        // Second build: clean verify artifact:compare
+        val verifier2 = Verifier(projectDir.absolutePath)
+        verifier2.isAutoclean = false
+        verifier2.executeGoal("clean")
+        verifier2.executeGoal("verify")
+        verifier2.addCliOption("-Dartifact.buildCompare.saveAll=true")
+        verifier2.executeGoal("artifact:compare")
+        verifier2.verifyErrorFreeLog()
+
+        verifier2.resetStreams()
+    }
+
+    @Test
+    fun `build is not reproducible with reproducibleBundleId disabled`() {
+        val projectDir = File(file, "non-reproducible-artifact-compare-test")
+        projectDir.mkdirs()
+
+        val sourceDir = File(projectDir, "src/main/java/com/example")
+        sourceDir.mkdirs()
+
+        File(sourceDir, "Main.java").writeText(
+            """
+            package com.example;
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Non-reproducible bundle ID test");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        installMavenWrapper(projectDir, "3.9.11")
+
+        // Create POM with reproducibleBundleId=false but still with outputTimestamp
+        // This means the JAR will be reproducible, but the bundle ID will change
+        val pomContent =
+            basePom(reproducibleBundleId = false)
+                .replace(
+                    "<properties>",
+                    """<properties>
+                <project.build.outputTimestamp>2025-01-01T00:00:00Z</project.build.outputTimestamp>""",
+                )
+        Files.write(Path("${projectDir.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
+
+        // First build
+        val verifier1 = Verifier(projectDir.absolutePath)
+        verifier1.isAutoclean = false
+        verifier1.executeGoals(listOf("clean", "install"))
+        verifier1.verifyErrorFreeLog()
+        verifier1.resetStreams()
+
+        // Second build - should fail artifact:compare because bundle ID changes
+        val verifier2 = Verifier(projectDir.absolutePath)
+        verifier2.isAutoclean = false
+        verifier2.executeGoal("clean")
+
+        assertFailsWith<VerificationException> {
+            verifier2.executeGoals(listOf("verify", "artifact:compare"))
+        }
+
+        verifier2.verifyTextInLog("[ERROR] [Reproducible Builds] rebuild comparison result: 1 files match, 1 differ")
+
+        verifier2.resetStreams()
     }
 }
