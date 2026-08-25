@@ -5,6 +5,7 @@ import io.sentry.EventProcessor;
 import io.sentry.Hint;
 import io.sentry.ISpan;
 import io.sentry.ITransaction;
+import io.sentry.ProfileLifecycle;
 import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.SentryLevel;
@@ -82,6 +83,11 @@ public class SampleApplication {
                     // Performance configuration options
                     // Set what percentage of traces should be collected
                     options.setTracesSampleRate(1.0); // set 0.5 to send 50% of traces
+
+                    // Profiling configuration options
+                    // Set ProfileLifecycle and ProfileSessionSampleRate
+                    options.setProfileLifecycle(ProfileLifecycle.TRACE);
+                    options.setProfileSessionSampleRate(1.0);
 
                     // Determine traces sample rate based on the sampling context
                     options.setTracesSampler(

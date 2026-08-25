@@ -54,6 +54,8 @@
                     <additionalSourceDirsForSourceContext>
                         <value>src/main/extra_param</value>
                     </additionalSourceDirsForSourceContext>
+                    <!-- enable auto-installation of sentry-async-profiler for the profiling example below -->
+                    <installProfiler>true</installProfiler>
                 </configuration>
                 <executions>
                     <execution>

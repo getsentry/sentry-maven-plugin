@@ -12,6 +12,7 @@ public class AutoInstallState {
   private boolean installGraphql = false;
 
   private boolean installQuartz = false;
+  private boolean installProfiler = false;
 
   public AutoInstallState(final @NotNull String sentryVersion) {
     this.sentryVersion = sentryVersion;
@@ -71,5 +72,13 @@ public class AutoInstallState {
 
   public void setInstallQuartz(boolean installQuartz) {
     this.installQuartz = installQuartz;
+  }
+
+  public boolean isInstallProfiler() {
+    return installProfiler;
+  }
+
+  public void setInstallProfiler(boolean installProfiler) {
+    this.installProfiler = installProfiler;
   }
 }

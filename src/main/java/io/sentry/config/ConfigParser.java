@@ -28,6 +28,7 @@ public class ConfigParser {
   private static final @NotNull String AUTH_TOKEN_OPTION = "authToken";
   private static final @NotNull String ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT =
       "additionalSourceDirsForSourceContext";
+  private static final @NotNull String INSTALL_PROFILER_FLAG = "installProfiler";
 
   public @NotNull PluginConfig parseConfig(final @NotNull MavenProject project) {
     final @NotNull PluginConfig pluginConfig = new PluginConfig();
@@ -101,6 +102,10 @@ public class ConfigParser {
               : Arrays.stream(dom.getChild(ADDITIONAL_SOURCE_DIRS_FOR_SOURCE_CONTEXT).getChildren())
                   .map(Xpp3Dom::getValue)
                   .collect(Collectors.joining(",")));
+
+      pluginConfig.setInstallProfiler(
+          dom.getChild(INSTALL_PROFILER_FLAG) != null
+              && Boolean.parseBoolean(dom.getChild(INSTALL_PROFILER_FLAG).getValue()));
     }
 
     return pluginConfig;
