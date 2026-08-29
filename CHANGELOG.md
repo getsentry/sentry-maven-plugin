@@ -15,6 +15,12 @@
 
 - Use imported Sentry BOM versions for auto-installed dependencies ([#265](https://github.com/getsentry/sentry-maven-plugin/pull/265))
 
+### Dependencies
+
+- Bump CLI from v3.3.0 to v3.6.1 ([#271](https://github.com/getsentry/sentry-maven-plugin/pull/271))
+  - [changelog](https://github.com/getsentry/sentry-cli/blob/master/CHANGELOG.md#361)
+  - [diff](https://github.com/getsentry/sentry-cli/compare/3.3.0...3.6.1)
+
 ## 0.11.0
 
 ### Features
