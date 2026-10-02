@@ -170,7 +170,14 @@ public class UploadSourceBundleMojo extends AbstractMojo {
               final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
               final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
 
-              if (sourcePath.toFile().isFile()) {
+              if (Files.isSymbolicLink(sourcePath)) {
+                logger.info(
+                    "Not collecting {}: symbolic links are not included in the source bundle",
+                    sourcePath);
+                continue;
+              }
+
+              if (Files.isRegularFile(sourcePath, LinkOption.NOFOLLOW_LINKS)) {
                 try {
                   Files.createDirectories(destinationPath.getParent());
                   Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);

@@ -260,6 +260,59 @@ class UploadSourceBundleTestIT {
         verifier.resetStreams()
     }
 
+    @Test
+    @DisabledOnOs(OS.WINDOWS, disabledReason = "Creating symbolic links requires elevated privileges on Windows")
+    fun `does not follow symbolic links inside source directories`() {
+        val baseDir = setupProject()
+        val outsideDir = File(file, "outside")
+        val outsideSubDir = File(outsideDir, "dir")
+        assertTrue(outsideSubDir.mkdirs())
+        val outsideFile = File(outsideDir, "secret.properties")
+        outsideFile.writeText("SECRET")
+        File(outsideSubDir, "Hidden.txt").writeText("SECRET")
+
+        val sourceDir = File(baseDir, "src/main/java")
+        Files.createSymbolicLink(File(sourceDir, "leaked.properties").toPath(), outsideFile.toPath())
+        Files.createSymbolicLink(File(sourceDir, "linked-dir").toPath(), outsideSubDir.toPath())
+
+        val path = getPOM(baseDir)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        val collectedSources = File(baseDir, "target/sentry/collected-sources")
+        assertTrue(File(collectedSources, "Main0.java").isFile, "Regular source files must still be collected")
+        assertFalse(File(collectedSources, "leaked.properties").exists(), "Symlinked files must not be collected")
+        assertFalse(File(collectedSources, "linked-dir").exists(), "Symlinked directories must not be collected")
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS, disabledReason = "Creating symbolic links requires elevated privileges on Windows")
+    fun `does not follow a source directory that is a symbolic link`() {
+        val baseDir = setupEmptyProject()
+        val outsideDir = File(file, "outside")
+        assertTrue(outsideDir.mkdirs())
+        File(outsideDir, "secret.properties").writeText("SECRET")
+        assertTrue(File(baseDir, "src/main").mkdirs())
+        Files.createSymbolicLink(File(baseDir, "src/main/java").toPath(), outsideDir.toPath())
+
+        val path = getPOM(baseDir)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        assertFalse(
+            File(baseDir, "target/sentry/collected-sources/secret.properties").exists(),
+            "Files behind a symlinked source directory must not be collected",
+        )
+
+        verifier.resetStreams()
+    }
+
     private fun setupEmptyProject(): File = setupProject(subdirectories = emptyList())
 
     private fun setupCopyConflictProject(baseDir: String): File {
