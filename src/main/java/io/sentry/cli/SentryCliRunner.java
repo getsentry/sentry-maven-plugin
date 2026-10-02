@@ -23,6 +23,7 @@ public class SentryCliRunner {
 
   private final boolean debugSentryCli;
   private final @Nullable String sentryCliExecutablePath;
+  private final @Nullable String authToken;
   private final @NotNull MavenProject mavenProject;
   private final @NotNull MavenSession mavenSession;
   private final @NotNull BuildPluginManager pluginManager;
@@ -30,11 +31,13 @@ public class SentryCliRunner {
   public SentryCliRunner(
       final boolean debugSentryCli,
       final @Nullable String sentryCliExecutablePath,
+      final @Nullable String authToken,
       final @NotNull MavenProject mavenProject,
       final @NotNull MavenSession mavenSession,
       final @NotNull BuildPluginManager pluginManager) {
     this.debugSentryCli = debugSentryCli;
     this.sentryCliExecutablePath = sentryCliExecutablePath;
+    this.authToken = authToken;
     this.mavenProject = mavenProject;
     this.mavenSession = mavenSession;
     this.pluginManager = pluginManager;
@@ -43,6 +46,8 @@ public class SentryCliRunner {
   /**
    * Runs sentry-cli with the given arguments. The CLI is executed directly, without a shell, and
    * each argument is passed as a separate argv entry, so arguments must not be quoted or escaped.
+   * The auth token is passed via the SENTRY_AUTH_TOKEN environment variable rather than as an
+   * argument, so it does not show up in process listings.
    */
   public @Nullable String runSentryCli(final @NotNull List<String> args, final boolean failOnError)
       throws MojoExecutionException {
@@ -50,9 +55,15 @@ public class SentryCliRunner {
     try {
       logFile = File.createTempFile("maven", "cli");
 
-      final @NotNull List<Element> argElements = new ArrayList<>();
+      final @NotNull List<Element> execElements = new ArrayList<>();
+      if (authToken != null) {
+        execElements.add(
+            element(
+                name("env"),
+                attributes(attribute("key", "SENTRY_AUTH_TOKEN"), attribute("value", authToken))));
+      }
       for (final @NotNull String arg : args) {
-        argElements.add(element(name("arg"), attributes(attribute("value", arg))));
+        execElements.add(element(name("arg"), attributes(attribute("value", arg))));
       }
 
       executeMojo(
@@ -71,7 +82,7 @@ public class SentryCliRunner {
                               "executable", getCliPath(mavenProject, sentryCliExecutablePath)),
                           attribute("failOnError", String.valueOf(failOnError)),
                           attribute("output", logFile.getAbsolutePath())),
-                      argElements.toArray(new Element[0])))),
+                      execElements.toArray(new Element[0])))),
           executionEnvironment(mavenProject, mavenSession, pluginManager));
 
       return collectAndMaybePrintOutput(logFile, debugSentryCli);
