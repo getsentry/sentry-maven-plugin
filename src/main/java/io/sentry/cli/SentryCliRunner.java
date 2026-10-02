@@ -6,7 +6,8 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -39,16 +40,20 @@ public class SentryCliRunner {
     this.pluginManager = pluginManager;
   }
 
-  public @Nullable String runSentryCli(
-      final @NotNull String sentryCliCommand, final boolean failOnError)
+  /**
+   * Runs sentry-cli with the given arguments. The CLI is executed directly, without a shell, and
+   * each argument is passed as a separate argv entry, so arguments must not be quoted or escaped.
+   */
+  public @Nullable String runSentryCli(final @NotNull List<String> args, final boolean failOnError)
       throws MojoExecutionException {
-    final boolean isWindows = isWindows();
-
-    final @NotNull String executable = isWindows ? "cmd.exe" : "/bin/sh";
-    final @NotNull String cArg = isWindows ? "/c" : "-c";
     @Nullable File logFile = null;
     try {
       logFile = File.createTempFile("maven", "cli");
+
+      final @NotNull List<Element> argElements = new ArrayList<>();
+      for (final @NotNull String arg : args) {
+        argElements.add(element(name("arg"), attributes(attribute("value", arg))));
+      }
 
       executeMojo(
           plugin(
@@ -62,19 +67,11 @@ public class SentryCliRunner {
                   element(
                       name("exec"),
                       attributes(
-                          attribute("executable", executable),
+                          attribute(
+                              "executable", getCliPath(mavenProject, sentryCliExecutablePath)),
                           attribute("failOnError", String.valueOf(failOnError)),
-                          attribute("output", escape(logFile.getAbsolutePath()))),
-                      element(name("arg"), attributes(attribute("value", cArg))),
-                      element(
-                          name("arg"),
-                          attributes(
-                              attribute(
-                                  "value",
-                                  wrapForWindows(
-                                      escape(getCliPath(mavenProject, sentryCliExecutablePath))
-                                          + " "
-                                          + sentryCliCommand))))))),
+                          attribute("output", logFile.getAbsolutePath())),
+                      argElements.toArray(new Element[0])))),
           executionEnvironment(mavenProject, mavenSession, pluginManager));
 
       return collectAndMaybePrintOutput(logFile, debugSentryCli);
@@ -90,38 +87,6 @@ public class SentryCliRunner {
       throw e;
     } catch (IOException e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  private static boolean isWindows() {
-    final boolean isWindows =
-        System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
-    return isWindows;
-  }
-
-  private @Nullable String wrapForWindows(final @Nullable String toWrap) {
-    // Wrap whole command in double quotes as Windows cmd will remove the first and last double
-    // quote
-    if (toWrap != null && isWindows()) {
-      return "\"" + toWrap + "\"";
-    } else {
-      return toWrap;
-    }
-  }
-
-  public @Nullable String escape(final @Nullable String escapePath) {
-    if (escapePath == null) {
-      return null;
-    }
-    if (isWindows()) {
-      // Wrap paths that contain a whitespace in double quotes
-      // For some reason wrapping paths that do not contain a whitespace leads to an error
-      if (escapePath.contains(" ")) {
-        return "\"" + escapePath + "\"";
-      }
-      return escapePath;
-    } else {
-      return escapePath.replaceAll(" ", "\\\\ ");
     }
   }
 

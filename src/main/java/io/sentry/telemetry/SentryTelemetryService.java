@@ -167,7 +167,7 @@ public class SentryTelemetryService {
 
     command.add("info");
     try {
-      final @Nullable String infoOutput = cliRunner.runSentryCli(String.join(" ", command), false);
+      final @Nullable String infoOutput = cliRunner.runSentryCli(command, false);
       if (infoOutput != null) {
         final InfoOutput info = new InfoOutput();
         Pattern serverPattern = Pattern.compile("Sentry Server: .*sentry.io$", Pattern.MULTILINE);
@@ -195,8 +195,7 @@ public class SentryTelemetryService {
     command.add("--log-level=error");
     command.add("--version");
     try {
-      final @Nullable String versionOutput =
-          cliRunner.runSentryCli(String.join(" ", command), false);
+      final @Nullable String versionOutput = cliRunner.runSentryCli(command, false);
 
       if (versionOutput != null) {
         final @NotNull Pattern versionRegex =

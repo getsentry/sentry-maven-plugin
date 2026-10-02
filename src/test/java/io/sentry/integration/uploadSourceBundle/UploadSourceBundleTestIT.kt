@@ -36,6 +36,7 @@ class UploadSourceBundleTestIT {
         extraSourceRoots: List<String> = listOf(),
         extraSourceContextDirs: List<String> = emptyList(),
         sentryUrl: String? = null,
+        authToken: String = "&lt;token&gt;",
     ): String {
         val pomContent =
             basePom(
@@ -47,6 +48,7 @@ class UploadSourceBundleTestIT {
                 extraSourceRoots,
                 extraSourceContextDirs,
                 sentryUrl,
+                authToken,
             )
 
         Files.write(Path("${baseDir.absolutePath}/pom.xml"), pomContent.toByteArray(), StandardOpenOption.CREATE)
@@ -131,6 +133,23 @@ class UploadSourceBundleTestIT {
 
         verifier.verifyErrorFreeLog()
         verifier.verifyTextInLog("Collected sources from 1 source directories")
+        val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
+        assertTrue(bundleUploadedSuccessfully(baseDir, output))
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    fun `passes plugin parameters to sentry-cli without shell interpretation`() {
+        val marker = File(file, "injected-command-ran")
+        val baseDir = setupProject()
+        val path = getPOM(baseDir, authToken = "token;touch ${marker.absolutePath};#")
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+
+        verifier.verifyErrorFreeLog()
+        assertFalse(marker.exists(), "Shell metacharacters in plugin parameters must not be interpreted")
         val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
         assertTrue(bundleUploadedSuccessfully(baseDir, output))
 
