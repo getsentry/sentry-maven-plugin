@@ -13,7 +13,7 @@
 
 ### Fixes
 
-- Run sentry-cli without a shell so plugin parameters and paths are passed as-is instead of being interpreted as shell syntax
+- Run sentry-cli without a shell so plugin parameters and paths are passed as-is instead of being interpreted as shell syntax ([#288](https://github.com/getsentry/sentry-maven-plugin/pull/288))
 - Use imported Sentry BOM versions for auto-installed dependencies ([#265](https://github.com/getsentry/sentry-maven-plugin/pull/265))
 
 ## 0.11.0
