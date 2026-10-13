@@ -9,6 +9,7 @@ fun basePom(
     extraSourceRoots: List<String> = listOf(),
     extraSourceContextDirs: List<String> = emptyList(),
     sentryUrl: String? = null,
+    authToken: String = "&lt;token&gt;",
 ): String {
     val extraSourceRootsXml =
         if (extraSourceRoots.isEmpty()) {
@@ -96,7 +97,7 @@ fun basePom(
                             <skipTelemetry>true</skipTelemetry>
                             <org>sentry-sdks</org>
                             <project>sentry-maven</project>
-                            <authToken>\&lt;token\&gt;</authToken>
+                            <authToken>$authToken</authToken>
                             ${if (sentryUrl.isNullOrBlank()) "" else "<url>$sentryUrl</url>"}
                             ${if (sentryCliPath.isNullOrBlank()) "" else "<sentryCliExecutablePath>$sentryCliPath</sentryCliExecutablePath>"}
                             $extraSourceContextDirsXml
