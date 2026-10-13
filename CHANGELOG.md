@@ -13,8 +13,8 @@
 
 ### Fixes
 
-- Run sentry-cli without a shell so plugin parameters and paths are passed as-is instead of being interpreted as shell syntax
-- Pass the auth token to sentry-cli via the `SENTRY_AUTH_TOKEN` environment variable instead of a command-line argument, so it no longer shows up in process listings
+- Run sentry-cli without a shell so plugin parameters and paths are passed as-is instead of being interpreted as shell syntax ([#288](https://github.com/getsentry/sentry-maven-plugin/pull/288))
+- Pass the auth token to sentry-cli via the `SENTRY_AUTH_TOKEN` environment variable instead of a command-line argument, so it no longer shows up in process listings ([#289](https://github.com/getsentry/sentry-maven-plugin/pull/289))
 - Do not follow symbolic links inside source directories when collecting sources for the source bundle, so files outside the source tree are no longer uploaded ([#290](https://github.com/getsentry/sentry-maven-plugin/pull/290))
     - symlinked files and directories inside a source directory are skipped and excluded from source context
 - Use imported Sentry BOM versions for auto-installed dependencies ([#265](https://github.com/getsentry/sentry-maven-plugin/pull/265))
