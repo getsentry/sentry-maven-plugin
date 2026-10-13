@@ -370,7 +370,7 @@ class UploadSourceBundleTestIT {
 
     private fun getBundleIdFromProperties(baseDir: String): String {
         val myProps = Properties()
-        myProps.load(FileInputStream("$baseDir/target/sentry/properties/sentry-debug-meta.properties"))
+        FileInputStream("$baseDir/target/sentry/properties/sentry-debug-meta.properties").use { myProps.load(it) }
         return myProps.getProperty("io.sentry.bundle-ids")
     }
 
