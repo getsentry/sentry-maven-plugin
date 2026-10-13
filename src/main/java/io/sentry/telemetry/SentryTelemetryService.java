@@ -70,6 +70,7 @@ public class SentryTelemetryService {
             new SentryCliRunner(
                 pluginConfig.isDebugSentryCli(),
                 pluginConfig.getSentryCliExecutablePath(),
+                pluginConfig.getAuthToken(),
                 mavenProject,
                 mavenSession,
                 pluginManager);
@@ -157,12 +158,6 @@ public class SentryTelemetryService {
     if (url != null) {
       command.add("--url");
       command.add(url);
-    }
-
-    final @Nullable String authToken = pluginConfig.getAuthToken();
-    if (authToken != null) {
-      command.add("--auth-token");
-      command.add(authToken);
     }
 
     command.add("info");

@@ -100,7 +100,12 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     final @NotNull File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
     final @NotNull SentryCliRunner cliRunner =
         new SentryCliRunner(
-            debugSentryCli, sentryCliExecutablePath, mavenProject, mavenSession, pluginManager);
+            debugSentryCli,
+            sentryCliExecutablePath,
+            authToken,
+            mavenProject,
+            mavenSession,
+            pluginManager);
 
     collectSources(collectedSourcesTargetDir);
 
@@ -339,9 +344,6 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       if (url != null) {
         bundleSourcesCommand.add("--url=" + url);
       }
-      if (authToken != null) {
-        bundleSourcesCommand.add("--auth-token=" + authToken);
-      }
 
       bundleSourcesCommand.add("debug-files");
       bundleSourcesCommand.add("bundle-jvm");
@@ -383,9 +385,6 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
       if (url != null) {
         command.add("--url=" + url);
-      }
-      if (authToken != null) {
-        command.add("--auth-token=" + authToken);
       }
 
       command.add("debug-files");
