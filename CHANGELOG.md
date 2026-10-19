@@ -16,6 +16,12 @@
 - Run sentry-cli without a shell so plugin parameters and paths are passed as-is instead of being interpreted as shell syntax ([#288](https://github.com/getsentry/sentry-maven-plugin/pull/288))
 - Use imported Sentry BOM versions for auto-installed dependencies ([#265](https://github.com/getsentry/sentry-maven-plugin/pull/265))
 
+### Dependencies
+
+- Bump Sentry SDK from v8.34.1 to v8.61.0 ([#291](https://github.com/getsentry/sentry-maven-plugin/pull/291))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8610)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.34.1...8.61.0)
+
 ## 0.11.0
 
 ### Features
