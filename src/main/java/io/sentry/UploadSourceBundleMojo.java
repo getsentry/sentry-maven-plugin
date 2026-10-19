@@ -161,31 +161,25 @@ public class UploadSourceBundleMojo extends AbstractMojo {
             logger.error("Not collecting sources in {}: not a directory", sourceDirAbsolutePath);
             continue;
           }
+          final @Nullable Path link = findLinkInSourceDirPath(sourceDirAbsolutePath);
+          if (link != null) {
+            logger.info(
+                "Not collecting sources in {}: {} is a link, links are not followed",
+                sourceDirAbsolutePath,
+                link);
+            continue;
+          }
           logger.debug("Collecting sources in {}", sourceDirPath);
 
-          try (final @NotNull Stream<Path> stream = Files.walk(sourceDirAbsolutePath)) {
-            final @NotNull Iterator<Path> sourcePaths = stream.iterator();
-            while (sourcePaths.hasNext()) {
-              final @NotNull Path sourcePath = sourcePaths.next();
-              final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
-              final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
-
-              if (Files.isSymbolicLink(sourcePath)) {
-                logger.info(
-                    "Not collecting {}: symbolic links are not included in the source bundle",
-                    sourcePath);
-                continue;
-              }
-
-              if (Files.isRegularFile(sourcePath, LinkOption.NOFOLLOW_LINKS)) {
-                try {
-                  Files.createDirectories(destinationPath.getParent());
-                  Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                  handleSourceCollectionFailure(
-                      "Failed to copy file from " + sourcePath + " to " + destinationPath, e);
-                }
-              }
+          for (final @NotNull Path sourcePath : findRegularFiles(sourceDirAbsolutePath)) {
+            final @NotNull Path relativePath = sourceDirAbsolutePath.relativize(sourcePath);
+            final @NotNull Path destinationPath = outputDir.toPath().resolve(relativePath);
+            try {
+              Files.createDirectories(destinationPath.getParent());
+              Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+              handleSourceCollectionFailure(
+                  "Failed to copy file from " + sourcePath + " to " + destinationPath, e);
             }
           }
           count++;
@@ -199,6 +193,94 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     } finally {
       SentryTelemetryService.getInstance().endTask(span);
     }
+  }
+
+  /**
+   * Symbolic links and link-like entries such as Windows junctions (reported as "other" by NIO) are
+   * never followed, so that files outside the source tree cannot end up in the uploaded bundle.
+   */
+  private static boolean isLink(final @NotNull BasicFileAttributes attributes) {
+    return attributes.isSymbolicLink() || attributes.isOther();
+  }
+
+  /**
+   * Returns the first link on the path from the project root to {@code sourceDir} (inclusive), or
+   * null if there is none. Directories at or above the project root are trusted. A source directory
+   * outside the project is only checked itself, as it can only be added by configuration.
+   */
+  private @Nullable Path findLinkInSourceDirPath(final @NotNull Path sourceDir) throws IOException {
+    final @NotNull List<Path> pathsToCheck = new ArrayList<>();
+    final @Nullable Path projectRoot = findProjectRootContaining(sourceDir);
+    if (projectRoot == null) {
+      pathsToCheck.add(sourceDir);
+    } else if (!projectRoot.equals(sourceDir)) {
+      @NotNull Path current = projectRoot;
+      for (final @NotNull Path component : projectRoot.relativize(sourceDir)) {
+        current = current.resolve(component);
+        pathsToCheck.add(current);
+      }
+    }
+
+    for (final @NotNull Path path : pathsToCheck) {
+      if (isLink(
+          Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS))) {
+        return path;
+      }
+    }
+    return null;
+  }
+
+  /** The reactor root if it contains {@code sourceDir}, otherwise the module root if it does. */
+  private @Nullable Path findProjectRootContaining(final @NotNull Path sourceDir) {
+    final @Nullable MavenProject topLevelProject = mavenSession.getTopLevelProject();
+    final @NotNull List<File> projectRoots = new ArrayList<>();
+    if (topLevelProject != null && topLevelProject.getBasedir() != null) {
+      projectRoots.add(topLevelProject.getBasedir());
+    }
+    if (mavenProject.getBasedir() != null) {
+      projectRoots.add(mavenProject.getBasedir());
+    }
+
+    for (final @NotNull File projectRoot : projectRoots) {
+      final @NotNull Path projectRootPath = projectRoot.toPath().toAbsolutePath().normalize();
+      if (sourceDir.startsWith(projectRootPath)) {
+        return projectRootPath;
+      }
+    }
+    return null;
+  }
+
+  private @NotNull List<Path> findRegularFiles(final @NotNull Path sourceDir) throws IOException {
+    final @NotNull List<Path> regularFiles = new ArrayList<>();
+    Files.walkFileTree(
+        sourceDir,
+        new SimpleFileVisitor<Path>() {
+          @Override
+          public @NotNull FileVisitResult preVisitDirectory(
+              final @NotNull Path directory, final @NotNull BasicFileAttributes attributes) {
+            if (isLink(attributes)) {
+              logSkippedLink(directory);
+              return FileVisitResult.SKIP_SUBTREE;
+            }
+            return FileVisitResult.CONTINUE;
+          }
+
+          @Override
+          public @NotNull FileVisitResult visitFile(
+              final @NotNull Path file, final @NotNull BasicFileAttributes attributes) {
+            if (isLink(attributes)) {
+              logSkippedLink(file);
+            } else if (attributes.isRegularFile()) {
+              regularFiles.add(file);
+            }
+            return FileVisitResult.CONTINUE;
+          }
+        });
+    return regularFiles;
+  }
+
+  private static void logSkippedLink(final @NotNull Path path) {
+    logger.info("Not collecting {}: links are not included in the source bundle", path);
   }
 
   private void resetCollectedSourcesDirectory(final @NotNull File outputDir) throws IOException {

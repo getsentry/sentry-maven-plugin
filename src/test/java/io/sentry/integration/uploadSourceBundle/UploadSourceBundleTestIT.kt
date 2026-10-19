@@ -7,6 +7,7 @@ import org.apache.maven.it.Verifier
 import org.apache.maven.project.MavenProject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -311,6 +312,70 @@ class UploadSourceBundleTestIT {
         )
 
         verifier.resetStreams()
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS, disabledReason = "Creating symbolic links requires elevated privileges on Windows")
+    fun `does not follow a symbolic link above a source directory`() {
+        val baseDir = setupEmptyProject()
+        val outsideDir = File(file, "outside")
+        assertTrue(File(outsideDir, "main/java").mkdirs())
+        File(outsideDir, "main/java/secret.properties").writeText("SECRET")
+        Files.createSymbolicLink(File(baseDir, "src").toPath(), outsideDir.toPath())
+
+        val path = getPOM(baseDir)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        assertFalse(
+            File(baseDir, "target/sentry/collected-sources/secret.properties").exists(),
+            "Files behind a symlinked parent of a source directory must not be collected",
+        )
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    @EnabledOnOs(OS.WINDOWS)
+    fun `does not follow junctions`() {
+        val baseDir = setupProject()
+        val outsideDir = File(file, "outside")
+        assertTrue(File(outsideDir, "nested").mkdirs())
+        File(outsideDir, "nested/secret.properties").writeText("SECRET")
+        assertTrue(File(outsideDir, "parent/java").mkdirs())
+        File(outsideDir, "parent/java/parent-secret.properties").writeText("SECRET")
+        createJunction(File(baseDir, "src/main/java/junction-dir"), File(outsideDir, "nested"))
+        createJunction(File(baseDir, "linked-parent"), File(outsideDir, "parent"))
+
+        val path = getPOM(baseDir, extraSourceContextDirs = listOf("linked-parent/java"))
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        val collectedSources = File(baseDir, "target/sentry/collected-sources")
+        assertTrue(File(collectedSources, "Main0.java").isFile, "Regular source files must still be collected")
+        assertFalse(File(collectedSources, "junction-dir").exists(), "Junctions inside a source directory must not be followed")
+        assertFalse(
+            File(collectedSources, "parent-secret.properties").exists(),
+            "Junctions above a source directory must not be followed",
+        )
+
+        verifier.resetStreams()
+    }
+
+    private fun createJunction(
+        link: File,
+        target: File,
+    ) {
+        val process =
+            ProcessBuilder("cmd", "/c", "mklink", "/J", link.absolutePath, target.absolutePath)
+                .redirectErrorStream(true)
+                .start()
+        val output = process.inputStream.bufferedReader().readText()
+        assertEquals(0, process.waitFor(), "mklink /J failed: $output")
     }
 
     private fun setupEmptyProject(): File = setupProject(subdirectories = emptyList())
