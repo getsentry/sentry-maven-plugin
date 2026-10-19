@@ -163,7 +163,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
           }
           final @Nullable Path link = findLinkInSourceDirPath(sourceDirAbsolutePath);
           if (link != null) {
-            logger.info(
+            logger.warn(
                 "Not collecting sources in {}: {} is a link, links are not followed",
                 sourceDirAbsolutePath,
                 link);

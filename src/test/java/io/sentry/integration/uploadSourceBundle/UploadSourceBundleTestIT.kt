@@ -143,16 +143,18 @@ class UploadSourceBundleTestIT {
     }
 
     @Test
-    fun `passes plugin parameters to sentry-cli without shell interpretation`() {
-        val marker = File(file, "injected-command-ran")
-        val baseDir = setupProject()
-        val path = getPOM(baseDir, authToken = "token;touch ${marker.absolutePath};#")
+    fun `passes arguments to sentry-cli without shell interpretation`() {
+        // The project path ends up in the --output and source directory arguments. The auth token is
+        // passed via the environment, so it cannot be used to exercise argument passing.
+        val baseDir = setupProject(baseDir = "base;touch injected-command-ran;#")
+        val marker = File(baseDir, "injected-command-ran")
+        val path = getPOM(baseDir)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
 
         verifier.verifyErrorFreeLog()
-        assertFalse(marker.exists(), "Shell metacharacters in plugin parameters must not be interpreted")
+        assertFalse(marker.exists(), "Shell metacharacters in arguments must not be interpreted")
         val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
         assertTrue(bundleUploadedSuccessfully(baseDir, output))
 
