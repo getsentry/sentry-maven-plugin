@@ -345,8 +345,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
       bundleSourcesCommand.add("debug-files");
       bundleSourcesCommand.add("bundle-jvm");
-      bundleSourcesCommand.add(
-          "--output=" + cliRunner.escape(sourceBundleTargetDir.getAbsolutePath()));
+      bundleSourcesCommand.add("--output=" + sourceBundleTargetDir.getAbsolutePath());
       bundleSourcesCommand.add("--debug-id=" + bundleId);
       if (org != null) {
         bundleSourcesCommand.add("--org=" + org);
@@ -354,9 +353,9 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       if (project != null) {
         bundleSourcesCommand.add("--project=" + project);
       }
-      bundleSourcesCommand.add(cliRunner.escape(collectedSourcesDir.getAbsolutePath()));
+      bundleSourcesCommand.add(collectedSourcesDir.getAbsolutePath());
 
-      cliRunner.runSentryCli(String.join(" ", bundleSourcesCommand), true);
+      cliRunner.runSentryCli(bundleSourcesCommand, true);
     } catch (Throwable t) {
       SentryTelemetryService.getInstance().captureError(t, "bundleSources");
       throw t;
@@ -398,9 +397,9 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       if (project != null) {
         command.add("--project=" + project);
       }
-      command.add(cliRunner.escape(sourceBundleTargetDir.getAbsolutePath()));
+      command.add(sourceBundleTargetDir.getAbsolutePath());
 
-      cliRunner.runSentryCli(String.join(" ", command), true);
+      cliRunner.runSentryCli(command, true);
     } catch (Throwable t) {
       SentryTelemetryService.getInstance().captureError(t, "uploadSourceBundle");
       if (ignoreSourceBundleUploadFailure) {
