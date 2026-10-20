@@ -1,15 +1,13 @@
 package io.sentry.cli;
 
 import static io.sentry.SentryCliProvider.getCliPath;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.jetbrains.annotations.NotNull;
@@ -25,94 +23,74 @@ public class SentryCliRunner {
   private final @Nullable String sentryCliExecutablePath;
   private final @Nullable String authToken;
   private final @NotNull MavenProject mavenProject;
-  private final @NotNull MavenSession mavenSession;
-  private final @NotNull BuildPluginManager pluginManager;
 
   public SentryCliRunner(
       final boolean debugSentryCli,
       final @Nullable String sentryCliExecutablePath,
       final @Nullable String authToken,
-      final @NotNull MavenProject mavenProject,
-      final @NotNull MavenSession mavenSession,
-      final @NotNull BuildPluginManager pluginManager) {
+      final @NotNull MavenProject mavenProject) {
     this.debugSentryCli = debugSentryCli;
     this.sentryCliExecutablePath = sentryCliExecutablePath;
     this.authToken = authToken;
     this.mavenProject = mavenProject;
-    this.mavenSession = mavenSession;
-    this.pluginManager = pluginManager;
   }
 
   /**
-   * Runs sentry-cli with the given arguments. The CLI is executed directly, without a shell, and
-   * each argument is passed as a separate argv entry, so arguments must not be quoted or escaped.
-   * The auth token is passed via the SENTRY_AUTH_TOKEN environment variable rather than as an
-   * argument, so it does not show up in process listings.
+   * Runs sentry-cli with the given arguments and returns its combined stdout and stderr output.
+   *
+   * <p>The CLI is executed directly, without a shell, and each argument is passed as a separate
+   * argv entry, so arguments must not be quoted or escaped. The auth token is passed via the
+   * SENTRY_AUTH_TOKEN environment variable of the child process only, so it does not show up in
+   * process listings and is not written to any file.
    */
   public @Nullable String runSentryCli(final @NotNull List<String> args, final boolean failOnError)
       throws MojoExecutionException {
-    @Nullable File logFile = null;
-    try {
-      logFile = File.createTempFile("maven", "cli");
+    final @NotNull List<String> command = new ArrayList<>();
+    command.add(getCliPath(mavenProject, sentryCliExecutablePath));
+    command.addAll(args);
 
-      final @NotNull List<Element> execElements = new ArrayList<>();
-      if (authToken != null) {
-        execElements.add(
-            element(
-                name("env"),
-                attributes(attribute("key", "SENTRY_AUTH_TOKEN"), attribute("value", authToken))));
-      }
-      for (final @NotNull String arg : args) {
-        execElements.add(element(name("arg"), attributes(attribute("value", arg))));
-      }
-
-      executeMojo(
-          plugin(
-              groupId("org.apache.maven.plugins"),
-              artifactId("maven-antrun-plugin"),
-              version("3.1.0")),
-          goal("run"),
-          configuration(
-              element(
-                  name("target"),
-                  element(
-                      name("exec"),
-                      attributes(
-                          attribute(
-                              "executable", getCliPath(mavenProject, sentryCliExecutablePath)),
-                          attribute("failOnError", String.valueOf(failOnError)),
-                          attribute("output", logFile.getAbsolutePath())),
-                      execElements.toArray(new Element[0])))),
-          executionEnvironment(mavenProject, mavenSession, pluginManager));
-
-      return collectAndMaybePrintOutput(logFile, debugSentryCli);
-    } catch (MojoExecutionException e) {
-      logger.error("Error while attempting to run Sentry CLI: ", e);
-      if (logFile != null) {
-        final @Nullable String output = collectAndMaybePrintOutput(logFile, true);
-        if (output != null) {
-          final @NotNull CliFailureReason failureReason = failureReasonFromCliOutput(output);
-          throw new SentryCliException(failureReason);
-        }
-      }
-      throw e;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    final @NotNull ProcessBuilder processBuilder =
+        new ProcessBuilder(command).directory(mavenProject.getBasedir()).redirectErrorStream(true);
+    if (authToken != null) {
+      processBuilder.environment().put("SENTRY_AUTH_TOKEN", authToken);
     }
+
+    final @NotNull String output;
+    final int exitCode;
+    try {
+      final @NotNull Process process = processBuilder.start();
+      output = readFully(process.getInputStream());
+      exitCode = process.waitFor();
+    } catch (IOException e) {
+      logger.error("Error while attempting to run Sentry CLI: ", e);
+      throw new MojoExecutionException("Failed to run Sentry CLI", e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new MojoExecutionException("Interrupted while running Sentry CLI", e);
+    }
+
+    if (exitCode != 0 && failOnError) {
+      logger.error("Sentry CLI exited with code {}", exitCode);
+      throw new SentryCliException(failureReasonFromCliOutput(output));
+    }
+
+    if (debugSentryCli) {
+      logger.info(output);
+    }
+    return output;
   }
 
-  private @Nullable String collectAndMaybePrintOutput(
-      final @NotNull File logFile, final boolean shouldPrint) {
-    try {
-      final @NotNull String output = new String(Files.readAllBytes(logFile.toPath()));
-      if (shouldPrint) {
-        logger.info(output);
+  private static @NotNull String readFully(final @NotNull InputStream inputStream)
+      throws IOException {
+    try (final @NotNull InputStream in = inputStream) {
+      final @NotNull ByteArrayOutputStream out = new ByteArrayOutputStream();
+      final byte[] buffer = new byte[8192];
+      int read;
+      while ((read = in.read(buffer)) != -1) {
+        out.write(buffer, 0, read);
       }
-      return output;
-    } catch (IOException e) {
-      logger.error("Failed to read sentry-cli output file.", e);
+      return new String(out.toByteArray(), Charset.defaultCharset());
     }
-    return null;
   }
 
   private @NotNull CliFailureReason failureReasonFromCliOutput(final @NotNull String outputString) {
