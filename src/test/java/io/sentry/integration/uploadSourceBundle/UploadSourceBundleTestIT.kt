@@ -7,6 +7,7 @@ import org.apache.maven.it.Verifier
 import org.apache.maven.project.MavenProject
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -142,16 +143,22 @@ class UploadSourceBundleTestIT {
     }
 
     @Test
-    fun `passes plugin parameters to sentry-cli without shell interpretation`() {
-        val marker = File(file, "injected-command-ran")
-        val baseDir = setupProject()
-        val path = getPOM(baseDir, authToken = "token;touch ${marker.absolutePath};#")
+    @DisabledOnOs(
+        OS.WINDOWS,
+        disabledReason = "Project path contains ';', the Java classpath separator on Windows, which breaks mvnw.cmd before the plugin runs",
+    )
+    fun `passes arguments to sentry-cli without shell interpretation`() {
+        // The project path ends up in the --output and source directory arguments. The auth token is
+        // passed via the environment, so it cannot be used to exercise argument passing.
+        val baseDir = setupProject(baseDir = "base;touch injected-command-ran;#")
+        val marker = File(baseDir, "injected-command-ran")
+        val path = getPOM(baseDir)
         val verifier = Verifier(path)
         verifier.isAutoclean = false
         verifier.executeGoal("install")
 
         verifier.verifyErrorFreeLog()
-        assertFalse(marker.exists(), "Shell metacharacters in plugin parameters must not be interpreted")
+        assertFalse(marker.exists(), "Shell metacharacters in arguments must not be interpreted")
         val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
         assertTrue(bundleUploadedSuccessfully(baseDir, output))
 
@@ -266,6 +273,123 @@ class UploadSourceBundleTestIT {
         verifier.resetStreams()
     }
 
+    @Test
+    @DisabledOnOs(OS.WINDOWS, disabledReason = "Creating symbolic links requires elevated privileges on Windows")
+    fun `does not follow symbolic links inside source directories`() {
+        val baseDir = setupProject()
+        val outsideDir = File(file, "outside")
+        val outsideSubDir = File(outsideDir, "dir")
+        assertTrue(outsideSubDir.mkdirs())
+        val outsideFile = File(outsideDir, "secret.properties")
+        outsideFile.writeText("SECRET")
+        File(outsideSubDir, "Hidden.txt").writeText("SECRET")
+
+        val sourceDir = File(baseDir, "src/main/java")
+        Files.createSymbolicLink(File(sourceDir, "leaked.properties").toPath(), outsideFile.toPath())
+        Files.createSymbolicLink(File(sourceDir, "linked-dir").toPath(), outsideSubDir.toPath())
+
+        val path = getPOM(baseDir)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        val collectedSources = File(baseDir, "target/sentry/collected-sources")
+        assertTrue(File(collectedSources, "Main0.java").isFile, "Regular source files must still be collected")
+        assertFalse(File(collectedSources, "leaked.properties").exists(), "Symlinked files must not be collected")
+        assertFalse(File(collectedSources, "linked-dir").exists(), "Symlinked directories must not be collected")
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS, disabledReason = "Creating symbolic links requires elevated privileges on Windows")
+    fun `does not follow a source directory that is a symbolic link`() {
+        val baseDir = setupEmptyProject()
+        val outsideDir = File(file, "outside")
+        assertTrue(outsideDir.mkdirs())
+        File(outsideDir, "secret.properties").writeText("SECRET")
+        assertTrue(File(baseDir, "src/main").mkdirs())
+        Files.createSymbolicLink(File(baseDir, "src/main/java").toPath(), outsideDir.toPath())
+
+        val path = getPOM(baseDir)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        assertFalse(
+            File(baseDir, "target/sentry/collected-sources/secret.properties").exists(),
+            "Files behind a symlinked source directory must not be collected",
+        )
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS, disabledReason = "Creating symbolic links requires elevated privileges on Windows")
+    fun `does not follow a symbolic link above a source directory`() {
+        val baseDir = setupEmptyProject()
+        val outsideDir = File(file, "outside")
+        assertTrue(File(outsideDir, "main/java").mkdirs())
+        File(outsideDir, "main/java/secret.properties").writeText("SECRET")
+        Files.createSymbolicLink(File(baseDir, "src").toPath(), outsideDir.toPath())
+
+        val path = getPOM(baseDir)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        assertFalse(
+            File(baseDir, "target/sentry/collected-sources/secret.properties").exists(),
+            "Files behind a symlinked parent of a source directory must not be collected",
+        )
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    @EnabledOnOs(OS.WINDOWS)
+    fun `does not follow junctions`() {
+        val baseDir = setupProject()
+        val outsideDir = File(file, "outside")
+        assertTrue(File(outsideDir, "nested").mkdirs())
+        File(outsideDir, "nested/secret.properties").writeText("SECRET")
+        assertTrue(File(outsideDir, "parent/java").mkdirs())
+        File(outsideDir, "parent/java/parent-secret.properties").writeText("SECRET")
+        createJunction(File(baseDir, "src/main/java/junction-dir"), File(outsideDir, "nested"))
+        createJunction(File(baseDir, "linked-parent"), File(outsideDir, "parent"))
+
+        val path = getPOM(baseDir, extraSourceContextDirs = listOf("linked-parent/java"))
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+        verifier.verifyErrorFreeLog()
+
+        val collectedSources = File(baseDir, "target/sentry/collected-sources")
+        assertTrue(File(collectedSources, "Main0.java").isFile, "Regular source files must still be collected")
+        assertFalse(File(collectedSources, "junction-dir").exists(), "Junctions inside a source directory must not be followed")
+        assertFalse(
+            File(collectedSources, "parent-secret.properties").exists(),
+            "Junctions above a source directory must not be followed",
+        )
+
+        verifier.resetStreams()
+    }
+
+    private fun createJunction(
+        link: File,
+        target: File,
+    ) {
+        val process =
+            ProcessBuilder("cmd", "/c", "mklink", "/J", link.absolutePath, target.absolutePath)
+                .redirectErrorStream(true)
+                .start()
+        val output = process.inputStream.bufferedReader().readText()
+        assertEquals(0, process.waitFor(), "mklink /J failed: $output")
+    }
+
     private fun setupEmptyProject(): File = setupProject(subdirectories = emptyList())
 
     private fun setupCopyConflictProject(baseDir: String): File {
@@ -323,7 +447,7 @@ class UploadSourceBundleTestIT {
 
     private fun getBundleIdFromProperties(baseDir: String): String {
         val myProps = Properties()
-        myProps.load(FileInputStream("$baseDir/target/sentry/properties/sentry-debug-meta.properties"))
+        FileInputStream("$baseDir/target/sentry/properties/sentry-debug-meta.properties").use { myProps.load(it) }
         return myProps.getProperty("io.sentry.bundle-ids")
     }
 

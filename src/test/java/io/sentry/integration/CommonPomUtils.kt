@@ -1,10 +1,8 @@
 package io.sentry.integration
 
-import org.apache.maven.it.Verifier
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-import java.nio.file.StandardOpenOption
 
 /**
  * Utility to install a specific version of the Maven wrapper for tests
@@ -16,25 +14,18 @@ fun installMavenWrapper(
     bootstrapMavenWrapper(directory)
 
     val mavenVersionToUse = System.getProperty("maven.test.version") ?: version
+    setWrapperMavenVersion(directory, mavenVersionToUse)
+}
 
-    val emptyPom =
-        """
-        <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-        <modelVersion>4.0.0</modelVersion>
-            <groupId>io.sentry.autoinstall</groupId>
-            <artifactId>installmaven</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </project>
-        """.trimIndent()
-
-    Files.write(directory.toPath().resolve("pom.xml"), emptyPom.toByteArray(), StandardOpenOption.CREATE)
-    Verifier(directory.absolutePath).apply {
-        addCliOption("-N")
-        addCliOption("-Dmaven=$mavenVersionToUse")
-        executeGoal("wrapper:wrapper")
-    }
-    Files.delete(directory.toPath().resolve("pom.xml"))
+private fun setWrapperMavenVersion(
+    directory: File,
+    version: String,
+) {
+    val propertiesFile = File(directory, ".mvn/wrapper/maven-wrapper.properties")
+    val distributionUrl =
+        "distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/$version/apache-maven-$version-bin.zip"
+    val otherProperties = propertiesFile.readLines().filterNot { it.trim().startsWith("distributionUrl=") }
+    propertiesFile.writeText((listOf(distributionUrl) + otherProperties).joinToString(separator = "\n", postfix = "\n"))
 }
 
 /**
@@ -52,6 +43,7 @@ private fun bootstrapMavenWrapper(targetDirectory: File) {
         targetDirectory.toPath().resolve("mvnw"),
         StandardCopyOption.REPLACE_EXISTING,
     )
+    targetDirectory.resolve("mvnw").setExecutable(true)
     Files.copy(
         projectRoot.toPath().resolve("mvnw.cmd"),
         targetDirectory.toPath().resolve("mvnw.cmd"),

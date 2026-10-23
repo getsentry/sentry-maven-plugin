@@ -62,9 +62,9 @@ public class SentryCliProvider {
       propertiesFileToUse = new File(mavenProject.getParent().getBasedir(), "sentry.properties");
     }
 
-    try {
+    try (final @NotNull FileInputStream inputStream = new FileInputStream(propertiesFileToUse)) {
       final @NotNull Properties sentryProperties = new Properties();
-      sentryProperties.load(new FileInputStream(propertiesFileToUse));
+      sentryProperties.load(inputStream);
 
       return sentryProperties.getProperty("cli.executable");
 
