@@ -184,11 +184,29 @@ public class UploadSourceBundleMojo extends AbstractMojo {
   }
 
   /**
-   * Symbolic links and link-like entries such as Windows junctions (reported as "other" by NIO) are
-   * never followed, so that files outside the source tree cannot end up in the uploaded bundle.
+   * Links are never followed, so that files outside the source tree cannot end up in the uploaded
+   * bundle. Windows junctions are reported as "other" by NIO, but so are reparse points that are
+   * not links, such as OneDrive Files On-Demand. An "other" entry is therefore only treated as a
+   * link if it resolves to a different location than its own.
    */
-  private static boolean isLink(final @NotNull BasicFileAttributes attributes) {
-    return attributes.isSymbolicLink() || attributes.isOther();
+  private static boolean isLink(
+      final @NotNull Path path, final @NotNull BasicFileAttributes attributes) {
+    if (attributes.isSymbolicLink()) {
+      return true;
+    }
+    if (!attributes.isOther()) {
+      return false;
+    }
+    final @Nullable Path parent = path.toAbsolutePath().getParent();
+    final @Nullable Path fileName = path.getFileName();
+    if (parent == null || fileName == null) {
+      return true;
+    }
+    try {
+      return !path.toRealPath().equals(parent.toRealPath().resolve(fileName));
+    } catch (IOException e) {
+      return true;
+    }
   }
 
   /**
@@ -211,7 +229,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
     for (final @NotNull Path path : pathsToCheck) {
       if (isLink(
-          Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS))) {
+          path, Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS))) {
         return path;
       }
     }
@@ -246,7 +264,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
           @Override
           public @NotNull FileVisitResult preVisitDirectory(
               final @NotNull Path directory, final @NotNull BasicFileAttributes attributes) {
-            if (isLink(attributes)) {
+            if (isLink(directory, attributes)) {
               logSkippedLink(directory);
               return FileVisitResult.SKIP_SUBTREE;
             }
@@ -256,9 +274,12 @@ public class UploadSourceBundleMojo extends AbstractMojo {
           @Override
           public @NotNull FileVisitResult visitFile(
               final @NotNull Path file, final @NotNull BasicFileAttributes attributes) {
-            if (isLink(attributes)) {
+            if (isLink(file, attributes)) {
               logSkippedLink(file);
-            } else if (attributes.isRegularFile()) {
+            } else if (attributes.isRegularFile()
+                // Non-link reparse points such as cloud files are "other" to NIO, but files to
+                // java.io. FIFOs, sockets and devices are neither, so they are never read.
+                || (attributes.isOther() && file.toFile().isFile())) {
               regularFiles.add(file);
             }
             return FileVisitResult.CONTINUE;
