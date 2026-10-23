@@ -22,6 +22,12 @@
     - hard links cannot be distinguished from regular files and are still collected
 - Use imported Sentry BOM versions for auto-installed dependencies ([#265](https://github.com/getsentry/sentry-maven-plugin/pull/265))
 
+### Dependencies
+
+- Bump Sentry SDK from v8.34.1 to v8.61.0 ([#291](https://github.com/getsentry/sentry-maven-plugin/pull/291))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8610)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.34.1...8.61.0)
+
 ## 0.11.0
 
 ### Features
