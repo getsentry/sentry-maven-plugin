@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.maven.Maven;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.jetbrains.annotations.NotNull;
@@ -53,10 +51,7 @@ public class SentryTelemetryService {
   private SentryTelemetryService() {}
 
   public void start(
-      final @NotNull PluginConfig pluginConfig,
-      final @NotNull MavenProject mavenProject,
-      final @NotNull MavenSession mavenSession,
-      final @NotNull BuildPluginManager pluginManager) {
+      final @NotNull PluginConfig pluginConfig, final @NotNull MavenProject mavenProject) {
     try {
       if (started) {
         return;
@@ -70,9 +65,8 @@ public class SentryTelemetryService {
             new SentryCliRunner(
                 pluginConfig.isDebugSentryCli(),
                 pluginConfig.getSentryCliExecutablePath(),
-                mavenProject,
-                mavenSession,
-                pluginManager);
+                pluginConfig.getAuthToken(),
+                mavenProject);
         final @Nullable InfoOutput infoOutput = determineSentryCliInfo(cliRunner, pluginConfig);
 
         if (infoOutput != null && !infoOutput.isSaas) {
@@ -157,12 +151,6 @@ public class SentryTelemetryService {
     if (url != null) {
       command.add("--url");
       command.add(url);
-    }
-
-    final @Nullable String authToken = pluginConfig.getAuthToken();
-    if (authToken != null) {
-      command.add("--auth-token");
-      command.add(authToken);
     }
 
     command.add("info");

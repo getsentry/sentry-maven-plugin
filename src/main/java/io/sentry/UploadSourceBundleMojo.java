@@ -22,9 +22,7 @@ import java.util.stream.Stream;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -84,10 +82,6 @@ public class UploadSourceBundleMojo extends AbstractMojo {
   @Parameter(defaultValue = DEFAULT_REPRODUCIBLE_BUNDLE_ID_STRING)
   private boolean reproducibleBundleId;
 
-  @SuppressWarnings("NullAway")
-  @Component
-  private @NotNull BuildPluginManager pluginManager;
-
   @Override
   public void execute() throws MojoExecutionException {
     final @Nullable String sentrySkipSourceUpload = System.getenv("SENTRY_SKIP_SOURCE_UPLOAD");
@@ -99,8 +93,7 @@ public class UploadSourceBundleMojo extends AbstractMojo {
     final @NotNull File collectedSourcesTargetDir = new File(sentryBuildDir(), "collected-sources");
     final @NotNull File sourceBundleTargetDir = new File(sentryBuildDir(), "source-bundle");
     final @NotNull SentryCliRunner cliRunner =
-        new SentryCliRunner(
-            debugSentryCli, sentryCliExecutablePath, mavenProject, mavenSession, pluginManager);
+        new SentryCliRunner(debugSentryCli, sentryCliExecutablePath, authToken, mavenProject);
 
     collectSources(collectedSourcesTargetDir);
 
@@ -339,9 +332,6 @@ public class UploadSourceBundleMojo extends AbstractMojo {
       if (url != null) {
         bundleSourcesCommand.add("--url=" + url);
       }
-      if (authToken != null) {
-        bundleSourcesCommand.add("--auth-token=" + authToken);
-      }
 
       bundleSourcesCommand.add("debug-files");
       bundleSourcesCommand.add("bundle-jvm");
@@ -383,9 +373,6 @@ public class UploadSourceBundleMojo extends AbstractMojo {
 
       if (url != null) {
         command.add("--url=" + url);
-      }
-      if (authToken != null) {
-        command.add("--auth-token=" + authToken);
       }
 
       command.add("debug-files");

@@ -6,6 +6,8 @@ import org.apache.maven.it.VerificationException
 import org.apache.maven.it.Verifier
 import org.apache.maven.project.MavenProject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.FileInputStream
@@ -152,6 +154,47 @@ class UploadSourceBundleTestIT {
         assertFalse(marker.exists(), "Shell metacharacters in plugin parameters must not be interpreted")
         val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
         assertTrue(bundleUploadedSuccessfully(baseDir, output))
+
+        verifier.resetStreams()
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS, disabledReason = "Uses a POSIX shell wrapper around sentry-cli")
+    fun `passes auth token to sentry-cli via environment without exposing it in argv or build output`() {
+        val authToken = "test-auth-token-not-in-argv"
+        val cliPath = SentryCliProvider.getCliPath(MavenProject(), null)
+        val baseDir = setupProject()
+        val argsFile = File(file, "cli-args.txt")
+        val envFile = File(file, "cli-env.txt")
+        val wrapper = File(file, "sentry-cli-wrapper")
+        wrapper.writeText(
+            """
+            |#!/bin/sh
+            |printf '%s\n' "${'$'}@" >> '${argsFile.absolutePath}'
+            |printf '%s\n' "${'$'}SENTRY_AUTH_TOKEN" >> '${envFile.absolutePath}'
+            |exec '$cliPath' "${'$'}@"
+            """.trimMargin(),
+        )
+        wrapper.setExecutable(true)
+
+        val path = getPOM(baseDir, sentryCliPath = wrapper.absolutePath, authToken = authToken)
+        val verifier = Verifier(path)
+        verifier.isAutoclean = false
+        verifier.executeGoal("install")
+
+        verifier.verifyErrorFreeLog()
+        val output = verifier.loadLines(verifier.logFileName, Charset.defaultCharset().name()).joinToString("\n")
+        assertTrue(bundleUploadedSuccessfully(baseDir, output))
+        assertFalse(argsFile.readText().contains(authToken), "Auth token must not be passed as a CLI argument")
+        val envTokens = envFile.readLines()
+        assertEquals(2, envTokens.size, "Expected one bundle and one upload invocation")
+        assertTrue(envTokens.all { it == authToken }, "Auth token must be passed via SENTRY_AUTH_TOKEN")
+        val filesContainingToken =
+            File(baseDir, "target")
+                .walk()
+                .filter { it.isFile && it.readBytes().toString(Charsets.ISO_8859_1).contains(authToken) }
+                .toList()
+        assertTrue(filesContainingToken.isEmpty(), "Auth token must not be written to build output: $filesContainingToken")
 
         verifier.resetStreams()
     }

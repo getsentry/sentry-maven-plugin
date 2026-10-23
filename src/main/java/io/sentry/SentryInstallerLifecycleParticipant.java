@@ -42,7 +42,6 @@ import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
-import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.project.DependencyResolutionException;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.artifact.Artifact;
@@ -73,10 +72,6 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
 
   @Inject @NotNull ArtifactResolver resolver;
 
-  @SuppressWarnings("NullAway")
-  @Inject
-  private @NotNull BuildPluginManager pluginManager;
-
   private static final @NotNull org.slf4j.Logger logger =
       LoggerFactory.getLogger(SentryInstallerLifecycleParticipant.class);
 
@@ -85,7 +80,7 @@ public class SentryInstallerLifecycleParticipant extends AbstractMavenLifecycleP
       throws MavenExecutionException {
     for (final @NotNull MavenProject project : session.getProjects()) {
       final @NotNull PluginConfig pluginConfig = new ConfigParser().parseConfig(project);
-      SentryTelemetryService.getInstance().start(pluginConfig, project, session, pluginManager);
+      SentryTelemetryService.getInstance().start(pluginConfig, project);
 
       if (pluginConfig.isSkipAutoInstall()) {
         logger.info(
