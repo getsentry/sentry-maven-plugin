@@ -143,6 +143,10 @@ class UploadSourceBundleTestIT {
     }
 
     @Test
+    @DisabledOnOs(
+        OS.WINDOWS,
+        disabledReason = "Project path contains ';', the Java classpath separator on Windows, which breaks mvnw.cmd before the plugin runs",
+    )
     fun `passes arguments to sentry-cli without shell interpretation`() {
         // The project path ends up in the --output and source directory arguments. The auth token is
         // passed via the environment, so it cannot be used to exercise argument passing.
