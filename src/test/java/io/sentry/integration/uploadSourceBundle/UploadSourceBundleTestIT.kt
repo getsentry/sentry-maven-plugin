@@ -163,7 +163,7 @@ class UploadSourceBundleTestIT {
 
     @Test
     @DisabledOnOs(OS.WINDOWS, disabledReason = "Uses a POSIX shell wrapper around sentry-cli")
-    fun `passes auth token to sentry-cli via environment instead of command line`() {
+    fun `passes auth token to sentry-cli via environment without exposing it in argv or build output`() {
         val authToken = "test-auth-token-not-in-argv"
         val cliPath = SentryCliProvider.getCliPath(MavenProject(), null)
         val baseDir = setupProject()
@@ -192,6 +192,12 @@ class UploadSourceBundleTestIT {
         val envTokens = envFile.readLines()
         assertEquals(2, envTokens.size, "Expected one bundle and one upload invocation")
         assertTrue(envTokens.all { it == authToken }, "Auth token must be passed via SENTRY_AUTH_TOKEN")
+        val filesContainingToken =
+            File(baseDir, "target")
+                .walk()
+                .filter { it.isFile && it.readBytes().toString(Charsets.ISO_8859_1).contains(authToken) }
+                .toList()
+        assertTrue(filesContainingToken.isEmpty(), "Auth token must not be written to build output: $filesContainingToken")
 
         verifier.resetStreams()
     }

@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.maven.Maven;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.jetbrains.annotations.NotNull;
@@ -53,10 +51,7 @@ public class SentryTelemetryService {
   private SentryTelemetryService() {}
 
   public void start(
-      final @NotNull PluginConfig pluginConfig,
-      final @NotNull MavenProject mavenProject,
-      final @NotNull MavenSession mavenSession,
-      final @NotNull BuildPluginManager pluginManager) {
+      final @NotNull PluginConfig pluginConfig, final @NotNull MavenProject mavenProject) {
     try {
       if (started) {
         return;
@@ -71,9 +66,7 @@ public class SentryTelemetryService {
                 pluginConfig.isDebugSentryCli(),
                 pluginConfig.getSentryCliExecutablePath(),
                 pluginConfig.getAuthToken(),
-                mavenProject,
-                mavenSession,
-                pluginManager);
+                mavenProject);
         final @Nullable InfoOutput infoOutput = determineSentryCliInfo(cliRunner, pluginConfig);
 
         if (infoOutput != null && !infoOutput.isSaas) {
