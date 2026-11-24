@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Dependencies
+
+- Bump Sentry SDK from v8.63.0 to v8.65.1 ([#302](https://github.com/getsentry/sentry-maven-plugin/pull/302))
+  - [changelog](https://github.com/getsentry/sentry-java/blob/main/CHANGELOG.md#8651)
+  - [diff](https://github.com/getsentry/sentry-java/compare/8.63.0...8.65.1)
+
 ## 0.12.0
 
 ### Features
